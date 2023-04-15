@@ -2,9 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"time"
 )
+
+func init() {
+	logFile, err := os.OpenFile("log/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		fmt.Println("open log file failed, err:", err)
+		return
+	}
+	log.SetOutput(logFile)
+	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
+}
 
 func main() {
 	fmt.Println("hello world")
-	fmt.Println("test pr!")
+	log.Println("test Log!")
 }
