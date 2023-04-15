@@ -1,4 +1,4 @@
-package core
+package service
 
 import (
 	"time"
@@ -70,7 +70,7 @@ type PodStatus struct {
 }
 type Pod struct {
 	Kind       string
-	ObjectMeta `yaml：“metadata”`
+	ObjectMeta `json:“metadata”`
 	Spec       PodSpec
 	Status     PodStatus
 }
@@ -95,7 +95,7 @@ type ServiceSpec struct {
 }
 
 type Service struct {
-	Kind       string
-	ObjectMeta `yaml：“metadata”`
-	Spec       ServiceSpec
+	Kind     string
+	Metadata ObjectMeta
+	Spec     ServiceSpec
 }
