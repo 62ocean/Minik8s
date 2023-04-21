@@ -24,7 +24,7 @@ func EtcdInit() {
 }
 
 func Put(key string, val string) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	_, err := cli.Put(ctx, key, val)
 	cancel()
 	if err != nil {
