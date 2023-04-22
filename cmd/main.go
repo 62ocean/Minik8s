@@ -1,6 +1,8 @@
 package main
 
 import (
+	"k8s/pkg/apiserver"
+	"k8s/pkg/kubectl"
 	"fmt"
 	"log"
 	"os"
@@ -18,6 +20,9 @@ func init() {
 }
 
 func main() {
+	//etcd.EtcdTest()
+	apiserver.StartServer()
+	kubectl.CmdExec()
 	fmt.Println("hello world")
 	log.Println("test Log!")
 }
