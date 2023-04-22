@@ -6,6 +6,7 @@ import (
 	"k8s/pkg/replicaset"
 	"k8s/pkg/tool"
 	"os"
+	"time"
 )
 
 //func init() {
@@ -32,6 +33,13 @@ func main() {
 		fmt.Println("解析 yaml 文件失败：", err)
 	}
 	tool.OutputJson("replicaset", replicasetData)
+
+	ticker := time.NewTicker(3 * time.Second)
+	for range ticker.C {
+		fmt.Print("每隔3秒执行任务")
+	}
+	ticker.Stop()
+
 	//fmt.Println(replicasetData)
 
 	// 解析pod的yaml配置文件
