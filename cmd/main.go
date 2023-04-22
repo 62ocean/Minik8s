@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"k8s/pkg/apiserver"
+	"k8s/pkg/kubectl"
 	"k8s/pkg/replicaset"
 	"k8s/pkg/tool"
+	"log"
 	"os"
 	"time"
 )
@@ -17,10 +20,14 @@ import (
 //	}
 //	log.SetOutput(logFile)
 //	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
-//	log.SetPrefix("[Pod]")
 //}
 
 func main() {
+	//etcd.EtcdTest()
+	apiserver.StartServer()
+	kubectl.CmdExec()
+	fmt.Println("hello world")
+	log.Println("test Log!")
 	//解析replicaset.yaml
 	dataBytes, err := os.ReadFile("../pkg/replicaset/ReplicasetConfigTest.yml")
 	if err != nil {
