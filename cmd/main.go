@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"k8s/pkg/api/pod"
+	"k8s/pkg/api/kubectl"
+	//"gopkg.in/yaml.v3"
+	//"k8s/pkg/api/pod"
 	"log"
 	"os"
 	"time"
-	"k8s/pkg/api/kubectl"
 )
 
 func init() {
