@@ -48,7 +48,13 @@ type Spec struct {
 }
 
 type Metadata struct {
-	Name string `yaml:"name"`
+	Name   string `yaml:"name"`
+	Labels Labels `yaml:"labels"`
+}
+
+type Labels struct {
+	App string `yaml:"app"`
+	Env string `yaml:"env"`
 }
 
 type ContainerMeta struct {
