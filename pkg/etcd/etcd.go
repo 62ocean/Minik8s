@@ -12,7 +12,7 @@ var err error
 
 func EtcdInit() {
 	cli, err = clientv3.New(clientv3.Config{
-		Endpoints: []string{"localhost:2379"},
+		Endpoints: []string{"10.181.159.205:2379"},
 		// Endpoints: []string{"localhost:2379", "localhost:22379", "localhost:32379"}
 		DialTimeout: 5 * time.Second,
 	})
@@ -20,6 +20,7 @@ func EtcdInit() {
 		fmt.Println("connect to etcd failed: ", err)
 		return
 	}
+	fmt.Printf("%s\n", cli.Endpoints())
 	fmt.Println("connect to etcd success")
 }
 
