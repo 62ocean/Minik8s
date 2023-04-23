@@ -1,12 +1,11 @@
 package main
 
 import (
-	"k8s/pkg/apiserver"
-	"k8s/pkg/kubectl"
+	"k8s/pkg/etcd"
 )
 
 func main() {
-	//etcd.EtcdTest()
-	apiserver.StartServer()
-	kubectl.CmdExec()
+	etcd.EtcdTest()
+	//apiserver.StartServer()
+	//kubectl.CmdExec()
 }
