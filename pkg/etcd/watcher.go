@@ -17,10 +17,9 @@ var (
 
 // Listener 对外通知
 type Listener interface {
-	Set([]byte, []byte)
-	Create([]byte, []byte)
-	Modify([]byte, []byte)
-	Delete([]byte)
+	OnSet([]byte, []byte)
+	OnModify([]byte, []byte)
+	OnDelete([]byte)
 }
 
 // EtcdWatcher ETCD key监视器
@@ -122,7 +121,7 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 	}
 
 	for _, ev := range getResp.Kvs {
-		listener.Set(ev.Key, ev.Value)
+		listener.OnSet(ev.Key, ev.Value)
 	}
 
 	var watchChan clientv3.WatchChan
@@ -143,9 +142,9 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 			for _, ev := range resp.Events {
 				switch ev.Type {
 				case storagepb2.PUT:
-					listener.Modify(ev.Kv.Key, ev.Kv.Value)
+					listener.OnModify(ev.Kv.Key, ev.Kv.Value)
 				case storagepb2.DELETE:
-					listener.Delete(ev.Kv.Key)
+					listener.OnDelete(ev.Kv.Key)
 				}
 			}
 		}

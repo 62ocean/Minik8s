@@ -5,11 +5,6 @@ import (
 	"k8s/pkg/etcd"
 )
 
-func StartServer() {
-	//etcd.EtcdTest()
-	etcd.EtcdInit()
-}
-
 func CreatePod() {
 	fmt.Printf("apiserver: create pod\n")
 }
