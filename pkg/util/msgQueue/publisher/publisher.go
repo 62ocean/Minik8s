@@ -20,7 +20,7 @@ func NewPublisher(host string) (*Publisher, error) {
 }
 
 // Publish 向指定的交换机广播一条信息并立即返回，广播类型为FANOUT
-func (p *Publisher) Publish(queueName string, body []byte, contentType string) error {
+func (p *Publisher) Publish(exchangeName string, body []byte, contentType string) error {
 	ch, err := p.connection.Channel()
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (p *Publisher) Publish(queueName string, body []byte, contentType string) e
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		queueName,
+		exchangeName,
 		amqp.ExchangeFanout,
 		true,
 		false,
@@ -40,8 +40,8 @@ func (p *Publisher) Publish(queueName string, body []byte, contentType string) e
 	}
 
 	err = ch.Publish(
-		queueName,
-		queueName,
+		exchangeName,
+		exchangeName,
 		false,
 		false,
 		amqp.Publishing{

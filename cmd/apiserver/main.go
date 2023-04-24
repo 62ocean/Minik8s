@@ -21,6 +21,6 @@ func init() {
 
 func main() {
 	//etcd.EtcdTest()
-	server := apiserver.CreateAPIServer()
+	server, _ := apiserver.CreateAPIServer()
 	server.StartServer()
 }
