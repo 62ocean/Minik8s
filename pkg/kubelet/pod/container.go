@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"io"
+	"k8s/object"
 	"log"
 	"strconv"
 )
@@ -101,7 +102,7 @@ func pullSingleImage(image string) error {
 /*-----------------------Volume------------------------*/
 
 // 创建数据卷们
-func createVolumes(volumesConfig []VolumeConfig) ([]volume2.Volume, error) {
+func createVolumes(volumesConfig []object.VolumeConfig) ([]volume2.Volume, error) {
 	var result []volume2.Volume
 	for _, config := range volumesConfig {
 		existed, err := isVolumeExisted(config.Name)
@@ -162,8 +163,8 @@ func isVolumeExisted(name string) (bool, error) {
 /*----------------------Container------------------------*/
 
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []Container) ([]ContainerMeta, error) {
-	var result []ContainerMeta
+func CreateContainers(containerConfigs []object.Container) ([]object.ContainerMeta, error) {
+	var result []object.ContainerMeta
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -185,7 +186,7 @@ func CreateContainers(containerConfigs []Container) ([]ContainerMeta, error) {
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, ContainerMeta{Name: "pause", ContainerID: pauseID})
+	result = append(result, object.ContainerMeta{Name: "pause", ContainerID: pauseID})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -241,7 +242,7 @@ func CreateContainers(containerConfigs []Container) ([]ContainerMeta, error) {
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, ContainerMeta{
+		result = append(result, object.ContainerMeta{
 			Name:        config.Name,
 			ContainerID: resp.ID,
 		})

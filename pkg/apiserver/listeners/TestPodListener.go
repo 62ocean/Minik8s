@@ -1,7 +1,8 @@
-package handlers
+package listeners
 
 import (
 	"fmt"
+	storagepb2 "github.com/coreos/etcd/storage/storagepb"
 	"k8s/pkg/etcd"
 )
 
@@ -21,16 +22,16 @@ func main() {
 
 }
 
-func (p podListener) OnSet(key []byte, val []byte) {
-	fmt.Printf("set watcher of key " + string(key) + "\n")
+func (p podListener) OnSet(kv storagepb2.KeyValue) {
+	fmt.Printf("set watcher of key " + string(kv.Key) + "\n")
 	return
 }
-func (p podListener) OnModify(key []byte, val []byte) {
-	fmt.Printf("modify kye:" + string(key) + "value:" + string(val) + "\n")
+func (p podListener) OnModify(kv storagepb2.KeyValue) {
+	fmt.Printf("modify kye:" + string(kv.Key) + "value:" + string(kv.Value) + "\n")
 	return
 }
 
-func (p podListener) OnDelete(key []byte) {
-	fmt.Printf("delete kye:" + string(key) + "\n")
+func (p podListener) OnDelete(kv storagepb2.KeyValue) {
+	fmt.Printf("delete kye:" + string(kv.Key) + "\n")
 	return
 }

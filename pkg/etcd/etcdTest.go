@@ -2,7 +2,7 @@ package etcd
 
 import "fmt"
 
-func EtcdTest() {
+func main() {
 	EtcdInit()
 	Put("test", "test")
 	Put("test1/test1_1", "test1_1")

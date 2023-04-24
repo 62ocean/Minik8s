@@ -1,4 +1,4 @@
-package pod
+package object
 
 type ContainerPort struct {
 	Port int32 `yaml:"containerPort"`
@@ -61,4 +61,9 @@ type Pod struct {
 	Kind       string   `yaml:"kind"`
 	Metadata   Metadata `yaml:"metadata"`
 	Spec       Spec     `yaml:"spec"`
+}
+
+type PodStorage struct {
+	Config Pod
+	Status Status
 }

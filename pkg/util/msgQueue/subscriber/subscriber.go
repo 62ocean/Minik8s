@@ -1,6 +1,9 @@
 package subscriber
 
-import "github.com/streadway/amqp"
+import (
+	"fmt"
+	"github.com/streadway/amqp"
+)
 
 type Subscriber struct {
 	host       string
@@ -22,16 +25,15 @@ func NewSubscriber(host string) (*Subscriber, error) {
 }
 
 // Subscribe 将队列与指定交换机绑定并开始监听，传入参数为队列名称、
-func (p *Subscriber) Subscribe(queueName string, handler Handler) error {
+func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 	ch, err := p.connection.Channel()
 	if err != nil {
 		return err
 	}
 	defer ch.Close()
 
-	// queueName 对外是队列名称，实际是交换机名称
 	err = ch.ExchangeDeclare(
-		queueName,
+		exchangeName,
 		amqp.ExchangeFanout,
 		true,
 		false,
@@ -56,9 +58,9 @@ func (p *Subscriber) Subscribe(queueName string, handler Handler) error {
 	}
 
 	err = ch.QueueBind(
-		q.Name,    // queue name
-		"",        // routing key
-		queueName, // exchange
+		q.Name,       // queue name
+		"",           // routing key
+		exchangeName, // exchange
 		false,
 		nil,
 	)
@@ -84,6 +86,7 @@ func (p *Subscriber) Subscribe(queueName string, handler Handler) error {
 	// 处理队列中消息的协程
 	go func() {
 		for d := range msgs {
+			fmt.Println("get msg now")
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
 		}
