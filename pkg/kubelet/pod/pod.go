@@ -1,8 +1,11 @@
 package pod
 
-import "fmt"
+import (
+	"fmt"
+	object2 "k8s/object"
+)
 
-func CreatePod(podConfig Pod) error {
+func CreatePod(podConfig object2.Pod) error {
 	// 拉取镜像
 	var images []string
 	for _, configItem := range podConfig.Spec.Containers {
@@ -27,7 +30,7 @@ func CreatePod(podConfig Pod) error {
 	}
 
 	// 创建pod中的容器
-	var containerMeta []ContainerMeta
+	var containerMeta []object2.ContainerMeta
 	containerMeta, err = CreateContainers(podConfig.Spec.Containers)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -61,3 +64,15 @@ func CreatePod(podConfig Pod) error {
 
 	return nil
 }
+
+//
+//import "github.com/docker/docker/api/types/container"
+//
+//func CreatePod(podConfig Pod) error {
+//
+//	for _, configItme := range podConfig.Spec.Containers {
+//		// TODO: config containers port
+//		config := &container.Config{Image: configItme.Image}
+//
+//	}
+//}
