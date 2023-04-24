@@ -184,7 +184,7 @@ func CreateContainers(containerConfigs []Container) ([]ContainerMeta, error) {
 		fmt.Println(err3.Error())
 		return nil, err3
 	}
-	log.Println("Create pause container")
+	log.Println("OnCreate pause container")
 	result = append(result, ContainerMeta{Name: "pause", ContainerID: pauseID})
 
 	for _, config := range containerConfigs {
@@ -238,7 +238,7 @@ func CreateContainers(containerConfigs []Container) ([]ContainerMeta, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("Create container %s\n", resp.ID)
+		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
 		result = append(result, ContainerMeta{
