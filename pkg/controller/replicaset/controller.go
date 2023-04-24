@@ -56,11 +56,15 @@ func (c *controller) AddReplicaset(rs ReplicaSet) {
 }
 
 func (c *controller) DeleteReplicaset(rs ReplicaSet) {
+	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.uuid)
+
 	worker := c.workers[rs.Metadata.uuid]
 	worker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs ReplicaSet) {
+	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.uuid)
+
 	worker := c.workers[rs.Metadata.uuid]
 	worker.UpdateReplicaset(rs)
 }
