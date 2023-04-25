@@ -1,0 +1,7 @@
+etcdEndpoint : 10.181.159.205:2379
+etcd-prefix : /flannel.com/network
+docker-net : 162.16.2.1/24
+flannel-network : 162.16.0.0/16
+flannel-subnet : 162.16.2.0/24
+flannel-subnet-gateway : 162.16.2.1
+node-ip : 172.17.16.13
