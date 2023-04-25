@@ -7,7 +7,7 @@ import (
 
 func StartServer() {
 	//etcd.EtcdTest()
-	etcd.EtcdInit()
+	etcd.EtcdInit("")
 }
 
 func CreatePod() {

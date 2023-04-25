@@ -3,7 +3,7 @@ package etcd
 import "fmt"
 
 func EtcdTest() {
-	EtcdInit()
+	EtcdInit("")
 	//Put("test", "2333")
 	//Put("test1/test1_1", "test1_1")
 	//Put("test1/test1_2", "test1_2")
