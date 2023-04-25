@@ -133,6 +133,7 @@ func GetLocalNodeNetwork() pod.NodeNetwork {
 	}
 }
 
+// 对etcd中已存在的节点配置本地路由等
 func addCurrentNodes(vx *pod.VxlanDevice) {
 	currentNodes := etcd.GetDirectory(conf.etcdPrefix)
 	for _, v := range currentNodes {

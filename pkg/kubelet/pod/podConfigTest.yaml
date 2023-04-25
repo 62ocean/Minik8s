@@ -1,0 +1,39 @@
+apiVersion : v1
+kind: Pod
+metadata :
+  name : nginx
+spec:
+  containers :
+    - name : nginx
+      image : nginx:1.14.2
+      resources:
+        limits:
+          cpu: "1"
+          memory: 32M
+      command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]
+      args:
+        - '-storage.local.retention=$(STORAGE_RETENTION)'
+        - '-storage.local.memory-chunks=$(STORAGE_MEMORY_CHUNKS)'
+        - '-config.file=/etc/prometheus/prometheus.yml'
+        - '-alertmanager.url=http://alertmanager:9093/alertmanager'
+        - '-web.external-url=$(EXTERNAL_URL)'
+      volumeMounts:
+        - name: html
+          mountPath: /data/media
+      ports:
+        - containerPort: 80
+    - name : nginx2
+      image: nginx:1.14.2
+      resources:
+        limits:
+          cpu: "1"
+          memory: 32M
+      volumeMounts:
+        - name: html
+          mountPath: /data/media
+      ports:
+        - containerPort: 80
+        - containerPort: 90
+  volumes:
+    - name: html
+      emptyDir: {}

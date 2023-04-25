@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/urfave/cli/v2"
-	"k8s/pkg/apiserver"
 	"log"
 	"os"
 )
@@ -24,7 +23,7 @@ func CmdExec() {
 				},
 				Action: func(c *cli.Context) error {
 					fmt.Println("create: ", c.String("f"))
-					apiserver.CreatePod()
+					//apiserver.CreatePod()
 					return nil
 				},
 			},
@@ -40,7 +39,7 @@ func CmdExec() {
 				},
 				Action: func(c *cli.Context) error {
 					fmt.Println("delete: ", c.String("f"))
-					apiserver.CreatePod()
+					//apiserver.CreatePod()
 					return nil
 				},
 			},
@@ -56,7 +55,7 @@ func CmdExec() {
 								return errors.New("the pod name must be specified")
 							}
 							fmt.Println("pod information: ", c.Args().First())
-							apiserver.DescribePod()
+							//apiserver.DescribePod()
 							return nil
 						},
 					},
@@ -68,7 +67,7 @@ func CmdExec() {
 								return errors.New("the service name must be specified")
 							}
 							fmt.Println("service information: ", c.Args().First())
-							apiserver.DescribeService()
+							//apiserver.DescribeService()
 							return nil
 						},
 					},
