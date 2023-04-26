@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="cdc909de-62f0-4e72-9c9b-4e66ad92107a" name="Changes" comment="实现api-server的list-watch框架">
+      <change beforePath="$PROJECT_DIR$/object/global.go" beforeDir="false" afterPath="$PROJECT_DIR$/object/global.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/listeners/podListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/listeners/podListener.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/etcd/watcher.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/etcd/watcher.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/msgQueue/publisher/publisher.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/msgQueue/publisher/publisher.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" url="file://$PROJECT_DIR$/../../../../Program Files/Go" />
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature-kubelet" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2O8SiVfBZClSxyuaRBh5KlQn5wp" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Homework/K8S-ref/kubernetes-release-1.27&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.scopes&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Homework\K8s\repository\k8s\pkg\util" />
+      <recent name="D:\Homework\K8s\repository\k8s\pkg\apiserver\listeners" />
+      <recent name="D:\Homework\K8s\repository\k8s\pkg\kubelet" />
+      <recent name="D:\Homework\K8s\repository\k8s" />
+      <recent name="D:\Homework\K8s\repository\k8s\pkg\object" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Build.go build k8s/cmd/kubelet">
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build k8s/cmd/apiserver" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/cmd/apiserver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/cmd/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build k8s/cmd/kubelet" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/cmd/kubelet" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/cmd/kubelet/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build k8s/pkg/etcd" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/pkg/etcd" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/cmd/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build k8s/pkg/util/msgQueue/publisher" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/pkg/util/msgQueue/publisher" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build k8s/pkg/util/msgQueue/subscriber" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/pkg/util/msgQueue/subscriber" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Go Build.go build k8s/cmd/kubelet" />
+      <item itemvalue="Go Build.go build k8s/pkg/util/msgQueue/publisher" />
+      <item itemvalue="Go Build.go build k8s/pkg/util/msgQueue/subscriber" />
+      <item itemvalue="Go Build.go build k8s/cmd/apiserver" />
+      <item itemvalue="Go Build.go build k8s/pkg/etcd" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Build.go build k8s/cmd/apiserver" />
+        <item itemvalue="Go Build.go build k8s/pkg/etcd" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.log" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="b165fd04-8eef-4502-b20a-9e5431019b57" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/apiserver" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+        <entry key="b165fd04-8eef-4502-b20a-9e5431019b57">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="basic struct with hello world" />
+    <MESSAGE value="basic struct with hello world and .gitignore" />
+    <MESSAGE value="basic struct" />
+    <MESSAGE value="ignore idea" />
+    <MESSAGE value="添加项目规范文件和log全局初始化代码" />
+    <MESSAGE value="完成container相关API" />
+    <MESSAGE value="开始写kubelet" />
+    <MESSAGE value="merge apiserver into kubelet" />
+    <MESSAGE value="完成部分HTTP通信模块" />
+    <MESSAGE value="add etcd watcher" />
+    <MESSAGE value="add msgQueue" />
+    <MESSAGE value="暂存apiserver——为了实现http处理，要切换一下分支" />
+    <MESSAGE value="实现api-server的list-watch框架" />
+    <option name="LAST_COMMIT_MESSAGE" value="实现api-server的list-watch框架" />
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+</project>
