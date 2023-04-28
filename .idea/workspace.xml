@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8efea443-eb89-4e43-858f-88020435473a" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/flannel/flannel.properties" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/apiserver/flannel.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/flannel/flannel.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/flannel/flanneld0" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
