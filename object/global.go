@@ -1,5 +1,7 @@
 package object
 
+import "time"
+
 type Status int
 
 const (
@@ -9,10 +11,12 @@ const (
 )
 
 type Metadata struct {
-	Name      string `yaml:"name"`
-	Labels    Labels `yaml:"labels"`
-	Namespace string
-	Uid       string
+	Name string `yaml:"name"`
+	//Labels            Labels `yaml:"labels"`
+	Labels            map[string]string `yaml:"labels"`
+	Namespace         string
+	Uid               string
+	CreationTimestamp time.Time
 }
 
 type Labels struct {

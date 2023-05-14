@@ -25,5 +25,16 @@ func InitWebServer(container *restful.Container) {
 	podWS.Route(podWS.DELETE("/remove").To(RemovePod))
 	container.Add(podWS)
 
+	// service
+	serviceWS := new(restful.WebService)
+	serviceWS.Path("/services").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	serviceWS.Route(serviceWS.POST("/create").To(CreateService))
+	serviceWS.Route(serviceWS.GET("/get").To(GetService))
+	serviceWS.Route(serviceWS.POST("/update").To(UpdateService))
+	serviceWS.Route(serviceWS.DELETE("/remove").To(RemoveService))
+	container.Add(serviceWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }
