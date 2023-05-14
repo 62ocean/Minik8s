@@ -78,10 +78,11 @@ type Pod struct {
 type ServicePort struct {
 	Name     string
 	Protocol Protocol
-	// 对外暴露的端口
-	Port     int32
+	// port是k8s集群内部访问service的端口
+	Port int32
+	// 外部访问k8s集群中service的端口
 	NodePort int32
-	// 对pod暴露的端口
+	// pod的端口
 	TargetPort int32
 }
 type ServiceType string
