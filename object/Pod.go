@@ -42,7 +42,7 @@ type VolumeConfig struct {
 	HostPath VolumeHostPathConfig `yaml:"hostPath"`
 }
 
-type Spec struct {
+type PodSpec struct {
 	Containers []Container    `yaml:"containers"`
 	Volumes    []VolumeConfig `yaml:"volumes"`
 }
@@ -56,7 +56,7 @@ type Pod struct {
 	ApiVersion string   `yaml:"apiVersion"`
 	Kind       string   `yaml:"kind"`
 	Metadata   Metadata `yaml:"metadata"`
-	Spec       Spec     `yaml:"spec"`
+	Spec       PodSpec  `yaml:"spec"`
 }
 
 type PodStorage struct {
