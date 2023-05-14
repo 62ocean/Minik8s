@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/emicklei/go-restful/v3"
+	"encoding/json"
 	"k8s/object"
+	"k8s/pkg/etcd"
 	"log"
 )
 
@@ -19,7 +20,10 @@ func CreateService(request *restful.Request, response *restful.Response) {
 
 	serviceName := service.Metadata.Name
 	key := "/registry/services/" + serviceName
-
+	serviceString, _ := json.Marshal(*service)
+	res := etcd.Put(key, string(serviceString))
+	response.AddHeader("Content-Type", "text/plain")
+	
 }
 
 func GetService(request *restful.Request, response *restful.Response)    {}

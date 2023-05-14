@@ -16,7 +16,7 @@ func main() {
 	watch, _ := etcd.NewEtcdWatcher([]string{"localhost:2379"})
 	watch.AddWatch("/registry", true, listener)
 	defer watch.Close(true)
-	etcd.EtcdInit()
+	etcd.EtcdInit("")
 	etcd.Put("/registry/pod", "new pod 2 lalalalla")
 	etcd.Put("/registry/node", "lalallalal")
 
