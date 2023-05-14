@@ -83,6 +83,8 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 
 	forever := make(chan bool)
 
+	//fmt.Println("before routine")
+
 	// 处理队列中消息的协程
 	go func() {
 		for d := range msgs {
@@ -92,8 +94,11 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 		}
 	}()
 
+	//fmt.Println("after routine")
+
 	//log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
+	//fmt.Println("after forever")
 	return nil
 
 }
