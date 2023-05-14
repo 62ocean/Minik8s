@@ -14,9 +14,10 @@ import (
 /*-----------------APIServer-----------------*/
 
 type APIServer struct {
-	wsContainer *restful.Container
-	etcdWatcher *etcd.EtcdWatcher
-	podListener *listeners.PodListener
+	wsContainer        *restful.Container
+	etcdWatcher        *etcd.EtcdWatcher
+	podListener        *listeners.PodListener
+	replicasetListener *listeners.ReplicasetListener
 	//TODO 在此添加其他listener……
 }
 
@@ -32,6 +33,7 @@ func CreateAPIServer() (*APIServer, error) {
 
 	// listeners
 	podListener := listeners.NewPodListener()
+	replicasetListener := listeners.NewReplicasetListener()
 
 	// HTTP server
 	wsContainer := restful.NewContainer()
@@ -40,9 +42,10 @@ func CreateAPIServer() (*APIServer, error) {
 
 	// construct APIServer
 	server := APIServer{
-		etcdWatcher: etcdWatcher,
-		podListener: podListener,
-		wsContainer: wsContainer,
+		etcdWatcher:        etcdWatcher,
+		podListener:        podListener,
+		wsContainer:        wsContainer,
+		replicasetListener: replicasetListener,
 	}
 
 	return &server, nil
@@ -52,6 +55,7 @@ func CreateAPIServer() (*APIServer, error) {
 func (s *APIServer) StartServer() {
 	// watch
 	s.etcdWatcher.AddWatch("/registry/pods/", true, s.podListener)
+	s.etcdWatcher.AddWatch("/registry/replicasets/", true, s.replicasetListener)
 
 	// list
 	server := &http.Server{Addr: ":8080", Handler: s.wsContainer}
