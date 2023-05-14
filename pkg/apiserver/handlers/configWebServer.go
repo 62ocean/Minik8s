@@ -23,6 +23,7 @@ func InitWebServer(container *restful.Container) {
 	podWS.Route(podWS.GET("/get").To(GetPod))
 	podWS.Route(podWS.POST("/update").To(UpdatePod))
 	podWS.Route(podWS.DELETE("/remove").To(RemovePod))
+	podWS.Route(podWS.GET("/getAll").To(GetAllPod))
 	container.Add(podWS)
 
 	// TODO 在此添加新的HTTP请求接口

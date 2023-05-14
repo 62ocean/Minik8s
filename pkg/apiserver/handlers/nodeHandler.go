@@ -19,7 +19,7 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 		return
 	}
 	ip := node.IP
-	key := "/registry/nodes/" + ip
+	key := "/registry/nodes/default/" + ip
 	nodeStorage := object.NodeStorage{
 		Node:   *node,
 		Status: object.RUNNING,
@@ -33,9 +33,8 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 			fmt.Println(err.Error())
 		}
 	} else {
-		podQueue := "pods"
-		//err := response.WriteEntity(string(podQueue))
-		_, err := response.Write([]byte(podQueue))
+		ret := "ok"
+		_, err := response.Write([]byte(ret))
 		if err != nil {
 			fmt.Println(err.Error())
 		}

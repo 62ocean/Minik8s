@@ -21,6 +21,6 @@ func init() {
 
 func main() {
 	// 创建kubelet对象
-	kl, _ := kubelet.NewKubelet()
+	kl, _ := kubelet.NewKubelet("node1")
 	kl.Run()
 }
