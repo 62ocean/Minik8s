@@ -2,6 +2,8 @@ package replicaset
 
 import (
 	"fmt"
+	"k8s/object"
+	"k8s/pkg/util/msgQueue/subscriber"
 	"sync"
 )
 
@@ -13,64 +15,74 @@ const (
 
 type Controller interface {
 	Start(wg *sync.WaitGroup)
-	ReplicasetChangeHandler()
-	AddReplicaset(rs ReplicaSet)
-	DeleteReplicaset(rs ReplicaSet)
-	UpdateReplicaset(rs ReplicaSet)
+	//ReplicasetChangeHandler()
+	AddReplicaset(rs object.ReplicaSet)
+	DeleteReplicaset(rs object.ReplicaSet)
+	UpdateReplicaset(rs object.ReplicaSet)
 }
 
 type controller struct {
 	workers map[string]Worker
+
+	s       *subscriber.Subscriber
+	handler *RSChangeHandler
 }
 
 func (c *controller) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	// watch(topic_replicaset, ReplicasetChangeHandler)
+	c.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	c.handler = NewReplicasetChangeHandler(c)
 
-}
-
-func (c *controller) ReplicasetChangeHandler() {
-
-	// 设msg.rs为发生变化的replicaset, msg.type为发生变化的类型
-	var msg_type int
-	var msg_rs ReplicaSet
-
-	switch msg_type {
-	case RS_CREATE:
-		c.AddReplicaset(msg_rs)
-	case RS_DELETE:
-		c.DeleteReplicaset(msg_rs)
-	case RS_UPDATE:
-		c.UpdateReplicaset(msg_rs)
+	err := c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
+	if err != nil {
+		return
 	}
+
 }
 
-func (c *controller) AddReplicaset(rs ReplicaSet) {
-	fmt.Print("create new replicaset: %s %s", rs.Metadata.Name, rs.Metadata.uuid)
+//func (c *controller) ReplicasetChangeHandler(msg []byte) {
+//
+//	// 设msg.rs为发生变化的replicaset, msg.type为发生变化的类型
+//	var msg_type int
+//	var msg_rs object.ReplicaSet
+//
+//	switch msg_type {
+//	case RS_CREATE:
+//		c.AddReplicaset(msg_rs)
+//	case RS_DELETE:
+//		c.DeleteReplicaset(msg_rs)
+//	case RS_UPDATE:
+//		c.UpdateReplicaset(msg_rs)
+//	}
+//}
+
+func (c *controller) AddReplicaset(rs object.ReplicaSet) {
+	fmt.Print("create new replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
 
 	quit := make(chan int)
 	worker := NewWorker(rs, quit)
-	c.workers[rs.Metadata.uuid] = worker
+	c.workers[rs.Metadata.UID] = worker
 	go worker.Start()
 }
 
-func (c *controller) DeleteReplicaset(rs ReplicaSet) {
-	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.uuid)
+func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
+	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
 
-	worker := c.workers[rs.Metadata.uuid]
+	worker := c.workers[rs.Metadata.UID]
 	worker.Stop()
 
 }
-func (c *controller) UpdateReplicaset(rs ReplicaSet) {
-	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.uuid)
+func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
+	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
 
-	worker := c.workers[rs.Metadata.uuid]
+	worker := c.workers[rs.Metadata.UID]
 	worker.UpdateReplicaset(rs)
 }
 
 func NewController() Controller {
 	c := &controller{}
+	c.workers = make(map[string]Worker)
 
 	return c
 }
