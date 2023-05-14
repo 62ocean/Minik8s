@@ -4,16 +4,20 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cdc909de-62f0-4e72-9c9b-4e66ad92107a" name="Changes" comment="replicaset controller可以接收到apiserver的消息">
-      <change afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/replicasetHandler.go" afterDir="false" />
+    <list default="true" id="cdc909de-62f0-4e72-9c9b-4e66ad92107a" name="Changes" comment="replicaset controller可以解析消息中的replicaset">
+      <change afterPath="$PROJECT_DIR$/pkg/util/parseYaml/parsePodYaml.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/util/parseYaml/parseReplicasetYaml.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/controllerManager/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/controllerManager/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/object/Replicaset.go" beforeDir="false" afterPath="$PROJECT_DIR$/object/Replicaset.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/apiserver/handlers/configWebServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/configWebServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/handlers/podHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/podHandler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/handlers/replicasetHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/replicasetHandler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/manager.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/podChangeHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/worker/podSyncHandler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/rsChangeHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/rsChangeHandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/global/global.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/global/global.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/worker.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/worker/worker.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/ReplicasetConfigTest.yml" beforeDir="false" afterPath="$PROJECT_DIR$/test/ReplicasetConfigTest.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,11 +71,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/pkg/controller/replicaset/worker" />
       <recent name="D:\Homework\K8s\repository\k8s\pkg\util" />
       <recent name="D:\Homework\K8s\repository\k8s\pkg\apiserver\listeners" />
       <recent name="D:\Homework\K8s\repository\k8s\pkg\kubelet" />
       <recent name="D:\Homework\K8s\repository\k8s" />
-      <recent name="D:\Homework\K8s\repository\k8s\pkg\object" />
     </key>
   </component>
   <component name="RunManager" selected="Go Build.go build k8s/cmd/controllerManager">
@@ -194,7 +198,8 @@
     <MESSAGE value="实现api-server的list-watch框架" />
     <MESSAGE value="merge apiserver into master" />
     <MESSAGE value="replicaset controller可以接收到apiserver的消息" />
-    <option name="LAST_COMMIT_MESSAGE" value="replicaset controller可以接收到apiserver的消息" />
+    <MESSAGE value="replicaset controller可以解析消息中的replicaset" />
+    <option name="LAST_COMMIT_MESSAGE" value="replicaset controller可以解析消息中的replicaset" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
