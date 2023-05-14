@@ -17,6 +17,9 @@ func CreateService(request *restful.Request, response *restful.Response) {
 		return
 	}
 
+	serviceName := service.Metadata.Name
+	key := "/registry/services/" + serviceName
+
 }
 
 func GetService(request *restful.Request, response *restful.Response)    {}
