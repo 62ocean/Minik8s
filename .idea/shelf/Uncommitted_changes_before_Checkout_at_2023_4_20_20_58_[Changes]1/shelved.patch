@@ -1,0 +1,90 @@
+Index: cmd/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package main\r\n\r\nimport (\r\n\t\"fmt\"\r\n\t\"gopkg.in/yaml.v3\"\r\n\t\"k8s/pkg/api/pod\"\r\n\t\"os\"\r\n)\r\n\r\nfunc main() {\r\n\t// 解析pod的yaml配置文件\r\n\tdataBytes, err := os.ReadFile(\"D:\\\\Homework\\\\K8s\\\\repository\\\\k8s\\\\pkg\\\\pod\\\\podConfigTest.yaml\")\r\n\tif err != nil {\r\n\t\tfmt.Println(\"读取文件失败：\", err)\r\n\t\treturn\r\n\t}\r\n\tfmt.Println(\"yaml 文件的内容: \\n\", string(dataBytes))\r\n\tvar podData pod.Pod\r\n\terr2 := yaml.Unmarshal(dataBytes, &podData)\r\n\tif err2 != nil {\r\n\t\tfmt.Println(\"解析 yaml 文件失败：\", err)\r\n\t}\r\n\tfmt.Println(podData)\r\n\r\n\t// 根据配置文件创建容器\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cmd/main.go b/cmd/main.go
+--- a/cmd/main.go	
++++ b/cmd/main.go	
+@@ -4,17 +4,30 @@
+ 	"fmt"
+ 	"gopkg.in/yaml.v3"
+ 	"k8s/pkg/api/pod"
++	"log"
+ 	"os"
++	"time"
+ )
++
++func init() {
++	logFile, err := os.OpenFile("log/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
++	if err != nil {
++		fmt.Println("open log file failed, err:", err)
++		return
++	}
++	log.SetOutput(logFile)
++	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
++	log.SetPrefix("[Pod]")
++}
+ 
+ func main() {
+ 	// 解析pod的yaml配置文件
+-	dataBytes, err := os.ReadFile("D:\\Homework\\K8s\\repository\\k8s\\pkg\\pod\\podConfigTest.yaml")
++	dataBytes, err := os.ReadFile("pkg/api/pod/podConfigTest.yaml")
+ 	if err != nil {
+ 		fmt.Println("读取文件失败：", err)
+ 		return
+ 	}
+-	fmt.Println("yaml 文件的内容: \n", string(dataBytes))
++	//fmt.Println("yaml 文件的内容: \n", string(dataBytes))
+ 	var podData pod.Pod
+ 	err2 := yaml.Unmarshal(dataBytes, &podData)
+ 	if err2 != nil {
+@@ -23,5 +36,6 @@
+ 	fmt.Println(podData)
+ 
+ 	// 根据配置文件创建容器
++	pod.CreatePod(podData)
+ 
+ }
+Index: pkg/util/commandUtil.go
+===================================================================
+diff --git a/pkg/util/commandUtil.go b/pkg/util/commandUtil.go
+new file mode 100644
+--- /dev/null	
++++ b/pkg/util/commandUtil.go	
+@@ -0,0 +1,33 @@
++package util
++
++import (
++	"log"
++	"os/exec"
++	"runtime"
++)
++
++func RunCommand(cmd string) string {
++	if runtime.GOOS == "windows" {
++		return runInWindows(cmd)
++	} else {
++		return runInLinux(cmd)
++	}
++}
++
++func runInLinux(cmd string) string {
++	log.Println("Running Linux cmd:", cmd)
++	result, err := exec.Command("/bin/sh", "-c", cmd).Output()
++	if err != nil {
++		log.Error(err.Error())
++	}
++	return string(result)
++}
++
++func runInWindows(cmd string) string {
++	log.Info("Running Win cmd:", cmd)
++	result, err := exec.Command("cmd", "/c", cmd).Output()
++	if err != nil {
++		log.Error(err.Error())
++	}
++	return string(result)
++}

@@ -18,6 +18,7 @@ var (
 // Listener 对外通知
 type Listener interface {
 	OnSet(kv storagepb2.KeyValue)
+	OnCreate(kv storagepb2.KeyValue)
 	OnModify(kv storagepb2.KeyValue)
 	OnDelete(kv storagepb2.KeyValue)
 }
@@ -142,7 +143,11 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 			for _, ev := range resp.Events {
 				switch ev.Type {
 				case storagepb2.PUT:
-					listener.OnModify(*ev.Kv)
+					if ev.Kv.Version == 1 {
+						listener.OnCreate(*ev.Kv)
+					} else {
+						listener.OnModify(*ev.Kv)
+					}
 				case storagepb2.DELETE:
 					listener.OnDelete(*ev.Kv)
 				}
