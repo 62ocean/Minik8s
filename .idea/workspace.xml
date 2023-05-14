@@ -4,19 +4,16 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cdc909de-62f0-4e72-9c9b-4e66ad92107a" name="Changes" comment="merge master">
+    <list default="true" id="cdc909de-62f0-4e72-9c9b-4e66ad92107a" name="Changes" comment="replicaset controller可以接收到apiserver的消息">
+      <change afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/replicasetHandler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/apiserver/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/apiserver/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/controllerManager/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/controllerManager/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/apiserver.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/apiserver.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/flannel/flannel.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/flannel/flannel.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/listeners/TestPodListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/listeners/TestPodListener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/apiserver/listeners/replicasetListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/listeners/replicasetListener.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/handlers/configWebServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/configWebServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/controller/manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/manager.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/controller.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/replicaset/rsChangeHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/replicaset/rsChangeHandler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/etcd/etcd.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/etcd/etcd.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/global/global.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/global/global.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/util/msgQueue/subscriber/subscriber.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -196,7 +193,8 @@
     <MESSAGE value="暂存apiserver——为了实现http处理，要切换一下分支" />
     <MESSAGE value="实现api-server的list-watch框架" />
     <MESSAGE value="merge apiserver into master" />
-    <option name="LAST_COMMIT_MESSAGE" value="merge apiserver into master" />
+    <MESSAGE value="replicaset controller可以接收到apiserver的消息" />
+    <option name="LAST_COMMIT_MESSAGE" value="replicaset controller可以接收到apiserver的消息" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
