@@ -24,6 +24,7 @@ type Controller interface {
 type controller struct {
 	workers map[string]Worker
 
+	//监听replicaset的变化并处理
 	s       *subscriber.Subscriber
 	handler *RSChangeHandler
 }
@@ -58,25 +59,25 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 //}
 
 func (c *controller) AddReplicaset(rs object.ReplicaSet) {
-	fmt.Print("create new replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
+	fmt.Print("create new replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
 
 	quit := make(chan int)
 	worker := NewWorker(rs, quit)
-	c.workers[rs.Metadata.UID] = worker
+	c.workers[rs.Metadata.Uid] = worker
 	go worker.Start()
 }
 
 func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
-	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
+	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
 
-	worker := c.workers[rs.Metadata.UID]
+	worker := c.workers[rs.Metadata.Uid]
 	worker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
-	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.UID)
+	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
 
-	worker := c.workers[rs.Metadata.UID]
+	worker := c.workers[rs.Metadata.Uid]
 	worker.UpdateReplicaset(rs)
 }
 
