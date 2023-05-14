@@ -3,14 +3,10 @@ package replicaset
 import (
 	"fmt"
 	"k8s/object"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"sync"
-)
-
-const (
-	RS_CREATE = iota
-	RS_DELETE
-	RS_UPDATE
 )
 
 type Controller interface {
@@ -24,19 +20,27 @@ type Controller interface {
 type controller struct {
 	workers map[string]Worker
 
-	//监听replicaset的变化并处理
+	//s监听replicaset的变化，handler处理
 	s       *subscriber.Subscriber
 	handler *RSChangeHandler
+
+	//client通过http进行replicaset的增改删
+	client *HTTPClient.Client
 }
 
 func (c *controller) Start(wg *sync.WaitGroup) {
+	// 该函数退出时将锁-1，确保主进程不会在该协程退出之前退出
 	defer wg.Done()
 
+	//创建client对replicaset进行增删改操作
+	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+
+	//创建subscribe监听replicaset的变化
 	c.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
 	c.handler = NewReplicasetChangeHandler(c)
-
 	err := c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
+		fmt.Println("subcribe rs failed")
 		return
 	}
 
@@ -59,23 +63,23 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 //}
 
 func (c *controller) AddReplicaset(rs object.ReplicaSet) {
-	fmt.Print("create new replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
+	fmt.Print("create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
-	quit := make(chan int)
-	worker := NewWorker(rs, quit)
-	c.workers[rs.Metadata.Uid] = worker
-	go worker.Start()
+	//quit := make(chan int)
+	//worker := NewWorker(rs, quit)
+	//c.workers[rs.Metadata.Uid] = worker
+	//go worker.Start()
 }
 
 func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
-	fmt.Print("delete replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
+	fmt.Print("delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	worker := c.workers[rs.Metadata.Uid]
 	worker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
-	fmt.Print("update replicaset: %s %s", rs.Metadata.Name, rs.Metadata.Uid)
+	fmt.Print("update replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	worker := c.workers[rs.Metadata.Uid]
 	worker.UpdateReplicaset(rs)

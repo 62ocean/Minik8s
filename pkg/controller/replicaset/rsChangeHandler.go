@@ -21,7 +21,8 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 		return
 	}
 
-	fmt.Println(msgObject)
+	//fmt.Println(msgObject)
+	//fmt.Println(msgObject.Value)
 
 	var rs object.ReplicaSet
 	err = json.Unmarshal([]byte(msgObject.Value), &rs)

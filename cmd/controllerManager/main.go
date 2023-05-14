@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"k8s/pkg/controller"
-	"log"
-	"os"
-	"time"
 )
 
 func init() {
@@ -16,18 +13,21 @@ func init() {
 	//	return
 	//}
 	//fmt.Println("aaaaa")
-	logFile, err := os.OpenFile("log/controllerManager/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Println("open log file failed, err:", err)
-		return
-	}
-	log.SetOutput(logFile)
-	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
-	log.SetPrefix("[controller manager]")
+
+	// TODO log不好用
+
+	//logFile, err := os.OpenFile("log/controllerManager/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	//if err != nil {
+	//	fmt.Println("open log file failed, err:", err)
+	//	return
+	//}
+	//log.SetOutput(logFile)
+	//log.SetFlags(log.Lshortfile | log.Lmicroseconds)
+	//log.SetPrefix("[controller manager]")
 }
 
 func main() {
-	log.Println("aaaaaa")
+	fmt.Println("acs")
 	m := controller.NewManager()
 	m.Start()
 }

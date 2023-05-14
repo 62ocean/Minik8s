@@ -25,5 +25,16 @@ func InitWebServer(container *restful.Container) {
 	podWS.Route(podWS.DELETE("/remove").To(RemovePod))
 	container.Add(podWS)
 
+	// replicaset
+	replicasetWS := new(restful.WebService)
+	replicasetWS.Path("/replicasets").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	replicasetWS.Route(replicasetWS.POST("/create").To(CreateReplicaset))
+	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
+	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
+	replicasetWS.Route(replicasetWS.DELETE("/remove").To(RemoveReplicaset))
+	container.Add(replicasetWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }
