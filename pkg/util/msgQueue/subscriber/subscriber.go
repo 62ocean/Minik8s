@@ -86,7 +86,7 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 	// 处理队列中消息的协程
 	go func() {
 		for d := range msgs {
-			fmt.Println("get msg now")
+			fmt.Println("Get msg now")
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
 		}
