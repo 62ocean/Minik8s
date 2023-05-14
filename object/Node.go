@@ -6,6 +6,6 @@ type NodeStorage struct {
 }
 
 type Node struct {
-	Name string
-	IP   string
+	Metadata Metadata
+	IP       string
 }

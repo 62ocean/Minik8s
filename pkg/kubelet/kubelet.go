@@ -3,6 +3,7 @@ package kubelet
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
@@ -13,7 +14,7 @@ const serverHost = "http://127.0.0.1:8080"
 
 type Kubelet struct {
 	client        *HTTPClient.Client
-	node          object.NodeStorage
+	node          object.Node
 	podSubscriber *subscriber.Subscriber
 	podQueue      string
 }
@@ -40,15 +41,18 @@ func (kl *Kubelet) Run() {
 }
 
 // NewKubelet kubelet对象的构造函数
-func NewKubelet() (*Kubelet, error) {
+func NewKubelet(name string) (*Kubelet, error) {
 	// 使用HTTP，构建node对象传递到APIServer处
 	client := HTTPClient.CreateHTTPClient(serverHost)
-	nodeInfo := object.NodeStorage{
-		Node: object.Node{
-			Name: "TestNode",
-			IP:   "127.0.0.1",
+	id, _ := uuid.NewUUID()
+	nodeInfo := object.Node{
+		Metadata: object.Metadata{
+			Name:      name,
+			Namespace: "default",
+			Uid:       id.String(),
 		},
-		Status: object.RUNNING,
+		// TODO 根据需要填入或生成IP
+		IP: "127.0.0.1",
 	}
 	info, _ := json.Marshal(nodeInfo)
 	podQueue := client.Post("/nodes/create", info)
@@ -57,6 +61,7 @@ func NewKubelet() (*Kubelet, error) {
 	// 建立消息监听队列
 	sub, _ := subscriber.NewSubscriber(global.MQHost)
 
+	// 创建kubelet监听队列
 	kub := Kubelet{
 		client:        client,
 		node:          nodeInfo,
