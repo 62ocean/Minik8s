@@ -17,7 +17,7 @@ type APIServer struct {
 	wsContainer *restful.Container
 	etcdWatcher *etcd.EtcdWatcher
 	podListener *listeners.PodListener
-	//TODO 在此添加其他listener……
+	// TODO 在此添加其他listener……
 }
 
 // CreateAPIServer 初始化APIServer结构体中的内容
@@ -59,41 +59,3 @@ func (s *APIServer) StartServer() {
 	defer server.Close()
 	log.Fatal(server.ListenAndServe())
 }
-
-//
-//func CreatePod() {
-//	fmt.Printf("apiserver: create pod\n")
-//}
-//
-//func DeletePod() {
-//	fmt.Printf("apiserver: delete pod\n")
-//}
-//
-//func DescribePod() {
-//	fmt.Printf("apiserver: describe pod\n")
-//}
-//
-//func DescribeService() {
-//	fmt.Printf("apiserver: describe service\n")
-//}
-//
-//func EtcdGetOne(key string) string {
-//	res := etcd.GetOne(key)
-//	if res == "" {
-//		fmt.Printf("get key %s from etcd failed", key)
-//	}
-//	return res
-//}
-//
-//func EtcdGetDirectory(prefix string) map[string]string {
-//	res := etcd.GetDirectory(prefix)
-//	if res == nil {
-//		fmt.Printf("get directory %s from etcd failed", prefix)
-//	}
-//	return res
-//}
-//
-//func EtcdPut(key string, val string) bool {
-//	res := etcd.Put(key, val)
-//	return res
-//}
