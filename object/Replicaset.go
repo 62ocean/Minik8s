@@ -8,9 +8,9 @@ type ReplicaSet struct {
 }
 
 type ReplicasetSpec struct {
-	Replicas    int         `yaml:"replicas"`
-	Selector    Selector    `yaml:"selector"`
-	PodTemplate PodTemplate `yaml:"template"`
+	Replicas    int      `yaml:"replicas"`
+	Selector    Selector `yaml:"selector"`
+	PodTemplate Pod      `yaml:"template"`
 }
 
 type Selector struct {
@@ -22,7 +22,7 @@ type MatchLabels struct {
 	Env string `yaml:"env"`
 }
 
-type PodTemplate struct {
-	Metadata `yaml:"metadata"`
-	PodSpec  PodSpec `yaml:"spec"`
-}
+//type PodTemplate struct {
+//	Metadata `yaml:"metadata"`
+//	PodSpec  PodSpec `yaml:"spec"`
+//}

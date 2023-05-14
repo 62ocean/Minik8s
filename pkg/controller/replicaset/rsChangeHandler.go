@@ -21,9 +21,6 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 		return
 	}
 
-	//fmt.Println(msgObject)
-	//fmt.Println(msgObject.Value)
-
 	var rs object.ReplicaSet
 	err = json.Unmarshal([]byte(msgObject.Value), &rs)
 	if err != nil {
@@ -31,17 +28,7 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 		return
 	}
 
-	//var msg_type int
-	//var msg_rs object.ReplicaSet
-
-	switch msgObject.EventType {
-	case object.CREATE:
-		h.c.AddReplicaset(rs)
-	case object.DELETE:
-		h.c.DeleteReplicaset(rs)
-	case object.UPDATE:
-		h.c.UpdateReplicaset(rs)
-	}
+	h.c.ReplicasetChangeHandler(msgObject.EventType, rs)
 }
 
 func NewReplicasetChangeHandler(c *controller) *RSChangeHandler {

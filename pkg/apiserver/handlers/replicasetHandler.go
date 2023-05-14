@@ -19,7 +19,7 @@ func CreateReplicaset(request *restful.Request, response *restful.Response) {
 		return
 	}
 	uid := rs.Metadata.Uid
-	key := "/registry/replicasets/" + uid
+	key := "/registry/replicasets/default/" + uid
 	rsString, _ := json.Marshal(rs)
 	res := etcd.Put(key, string(rsString))
 	response.AddHeader("Content-Type", "text/plain")
