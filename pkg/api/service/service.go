@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"k8s/object"
 	"os"
 )
 
@@ -14,7 +15,7 @@ func ServiceConfigTest() {
 		return
 	}
 	fmt.Println("文件内容：\n", string(dataBytes))
-	service := Service{}
+	service := object.Service{}
 	err = yaml.Unmarshal(dataBytes, &service)
 	if err != nil {
 		fmt.Println("解析yaml文件失败:", err)
