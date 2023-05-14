@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="ca617dda-7f04-4159-9589-2af257987f8d" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/apiserver/handlers/serviceHandler.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/handlers/serviceHandler.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/etcd/etcd.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/etcd/etcd.go" afterDir="false" />
+=======
+    <list default="true" id="8efea443-eb89-4e43-858f-88020435473a" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/apiserver/listeners/TestPodListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apiserver/listeners/TestPodListener.go" afterDir="false" />
+>>>>>>> apiserver
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,15 +34,25 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+<<<<<<< HEAD
   <component name="ProjectId" id="2PlqDfoz9Twmlgpo6Lns4uSvn0q" />
+=======
+  <component name="ProjectId" id="2OMNy7bC4gaFeXDz1QsdaeRXTjM" />
+>>>>>>> apiserver
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+<<<<<<< HEAD
     &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+=======
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+>>>>>>> apiserver
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
@@ -44,6 +60,7 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+<<<<<<< HEAD
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Administrator.DESKTOP-72VUBCO&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -54,6 +71,37 @@
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\object" />
     </key>
+=======
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Administrator.DESKTOP-72VUBCO/Desktop/k8s/cmd&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;go.autoimport&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\cmd" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\cmd\apiserver" />
+      <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\pkg\api\pod" />
+      <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\pkg" />
+      <recent name="C:\Users\Administrator.DESKTOP-72VUBCO\Desktop\k8s\pkg\api\service" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="go build k8s/cmd" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="k8s" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="k8s/cmd" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+>>>>>>> apiserver
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TypeScriptGeneratedFilesManager">
@@ -62,4 +110,22 @@
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
   </component>
+<<<<<<< HEAD
+=======
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/api/service/service.go</url>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/etcd/etcd.go</url>
+          <line>2</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+>>>>>>> apiserver
 </project>
