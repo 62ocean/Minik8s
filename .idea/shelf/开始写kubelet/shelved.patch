@@ -1,0 +1,154 @@
+Index: cmd/main.go
+===================================================================
+diff --git a/cmd/main.go b/cmd/main.go
+deleted file mode 100644
+--- a/cmd/main.go	(revision 2df35ca18fec7a389c8a3dac949ab54d26012caf)
++++ /dev/null	(revision 2df35ca18fec7a389c8a3dac949ab54d26012caf)
+@@ -1,43 +0,0 @@
+-package main
+-
+-import (
+-	"fmt"
+-	"gopkg.in/yaml.v3"
+-	"k8s/pkg/api/pod"
+-	"log"
+-	"os"
+-	"time"
+-)
+-
+-func init() {
+-	logFile, err := os.OpenFile("log/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+-	if err != nil {
+-		fmt.Println("open log file failed, err:", err)
+-		return
+-	}
+-	log.SetOutput(logFile)
+-	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
+-	log.SetPrefix("[Pod]")
+-}
+-
+-func main() {
+-	// 解析pod的yaml配置文件
+-	dataBytes, err := os.ReadFile("pkg/api/pod/podConfigTest.yaml")
+-	if err != nil {
+-		fmt.Println("读取文件失败：", err)
+-		return
+-	}
+-	var podData pod.Pod
+-	err2 := yaml.Unmarshal(dataBytes, &podData)
+-	if err2 != nil {
+-		fmt.Println("解析 yaml 文件失败：", err)
+-	}
+-	fmt.Println(podData)
+-
+-	// 根据配置文件创建容器
+-	err = pod.CreatePod(podData)
+-	if err != nil {
+-		fmt.Println(err.Error())
+-	}
+-
+-}
+Index: cmd/kubelet/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cmd/kubelet/main.go b/cmd/kubelet/main.go
+new file mode 100644
+--- /dev/null	(date 1682130708727)
++++ b/cmd/kubelet/main.go	(date 1682130708727)
+@@ -0,0 +1,43 @@
++package main
++
++import (
++	"fmt"
++	"gopkg.in/yaml.v3"
++	"k8s/pkg/kubelet/pod"
++	"log"
++	"os"
++	"time"
++)
++
++func init() {
++	logFile, err := os.OpenFile("log/"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
++	if err != nil {
++		fmt.Println("open log file failed, err:", err)
++		return
++	}
++	log.SetOutput(logFile)
++	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
++	log.SetPrefix("[Pod]")
++}
++
++func main() {
++	// 解析pod的yaml配置文件
++	dataBytes, err := os.ReadFile("pkg/api/kubelet/pod/podConfigTest.yaml")
++	if err != nil {
++		fmt.Println("读取文件失败：", err)
++		return
++	}
++	var podData pod.Pod
++	err2 := yaml.Unmarshal(dataBytes, &podData)
++	if err2 != nil {
++		fmt.Println("解析 yaml 文件失败：", err)
++	}
++	fmt.Println(podData)
++
++	// 根据配置文件创建容器
++	err = pod.CreatePod(podData)
++	if err != nil {
++		fmt.Println(err.Error())
++	}
++
++}
+Index: pkg/api/pod/container.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pkg/api/pod/container.go b/pkg/kubelet/pod/container.go
+rename from pkg/api/pod/container.go
+rename to pkg/kubelet/pod/container.go
+--- a/pkg/api/pod/container.go	(revision 2df35ca18fec7a389c8a3dac949ab54d26012caf)
++++ b/pkg/kubelet/pod/container.go	(date 1682083045142)
+@@ -233,6 +233,7 @@
+ 			Mounts:      mounts,
+ 			IpcMode:     container.IpcMode("container:" + pauseID),
+ 			UTSMode:     container.UTSMode("container" + pauseID),
++			PidMode:     container.PidMode("container" + pauseID),
+ 			Resources:   resourceConfig,
+ 		}, nil, nil, config.Name)
+ 		if err != nil {
+Index: pkg/kubelet/kubelet.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pkg/kubelet/kubelet.go b/pkg/kubelet/kubelet.go
+new file mode 100644
+--- /dev/null	(date 1682134200729)
++++ b/pkg/kubelet/kubelet.go	(date 1682134200729)
+@@ -0,0 +1,14 @@
++package kubelet
++
++type Kubelet struct {
++}
++
++// Run kubelet运行的入口函数
++func (kl *Kubelet) Run() {
++
++}
++
++// NewKubelet kubelet对象的构造函数
++func NewKubelet() (*Kubelet, error) {
++
++}
+diff --git a/pkg/api/pod/pod.go b/pkg/kubelet/pod/pod.go
+rename from pkg/api/pod/pod.go
+rename to pkg/kubelet/pod/pod.go
+diff --git a/pkg/api/pod/podConfigTest.yaml b/pkg/kubelet/pod/podConfigTest.yaml
+rename from pkg/api/pod/podConfigTest.yaml
+rename to pkg/kubelet/pod/podConfigTest.yaml
+diff --git a/pkg/api/pod/podTypes.go b/pkg/kubelet/pod/podTypes.go
+rename from pkg/api/pod/podTypes.go
+rename to pkg/kubelet/pod/podTypes.go

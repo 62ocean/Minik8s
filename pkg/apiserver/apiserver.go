@@ -24,11 +24,12 @@ type APIServer struct {
 // CreateAPIServer 初始化APIServer结构体中的内容
 func CreateAPIServer() (*APIServer, error) {
 	// etcd watcher
-	etcd.EtcdInit()
+	etcd.EtcdInit("")
 	etcdWatcher, err := etcd.NewEtcdWatcher([]string{global.EtcdHost})
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
+
 	}
 
 	// listeners

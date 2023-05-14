@@ -47,11 +47,6 @@ type PodSpec struct {
 	Volumes    []VolumeConfig `yaml:"volumes"`
 }
 
-type Labels struct {
-	App string `yaml:"app"`
-	Env string `yaml:"env"`
-}
-
 type ContainerMeta struct {
 	Name        string
 	ContainerID string

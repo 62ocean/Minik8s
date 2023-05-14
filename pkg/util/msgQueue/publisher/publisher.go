@@ -1,7 +1,10 @@
 package publisher
 
 import (
+	"encoding/json"
+	storagepb2 "github.com/coreos/etcd/storage/storagepb"
 	"github.com/streadway/amqp"
+	"k8s/object"
 )
 
 type Publisher struct {
@@ -19,7 +22,7 @@ func NewPublisher(host string) (*Publisher, error) {
 	return pub, nil
 }
 
-// Publish 向指定的交换机广播一条信息并立即返回，广播类型为FANOUT
+// Publish 向指定的交换机广播一条信息并立即返回，广播类型为 FANOUT
 func (p *Publisher) Publish(exchangeName string, body []byte, contentType string) error {
 	ch, err := p.connection.Channel()
 	if err != nil {
@@ -63,4 +66,13 @@ func (p *Publisher) CloseConnection() error {
 		}
 	}
 	return nil
+}
+
+func ConstructPublishMsg(kv storagepb2.KeyValue, eventType object.EventType) []byte {
+	ret := object.MQMessage{
+		EventType: eventType,
+		Value:     string(kv.Value),
+	}
+	jsonMsg, _ := json.Marshal(ret)
+	return jsonMsg
 }

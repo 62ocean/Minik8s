@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"k8s/pkg/apiserver"
+	"k8s/pkg/apiserver/flannel"
+	"k8s/pkg/etcd"
 	"log"
 	"os"
 	"time"
@@ -20,7 +22,14 @@ func init() {
 }
 
 func main() {
+
 	//etcd.EtcdTest()
+	//apiserver.StartServer()
+	//kubectl.CmdExec()
+	//fmt.Println("hello world")
+	//log.Println("test Log!")
+	etcd.EtcdInit("10.181.159.205:2379")
+	flannel.Exec()
 	server, _ := apiserver.CreateAPIServer()
 	server.StartServer()
 }
