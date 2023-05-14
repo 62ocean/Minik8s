@@ -10,6 +10,12 @@
 go get github.com/google/uuid
 ```
 
+每个api对象都有同样结构的**元数据**如下：
+- namespace：用来标识该 api 对象 是在哪个 namespace 下
+- name：为该 api 对象起一个名字
+- uid： k8s 自动为对象生成的，可以唯一标识该对象的字符串
+- labels：用户可对对象进行标记
+
 #### 集群数据
 ##### node
 
