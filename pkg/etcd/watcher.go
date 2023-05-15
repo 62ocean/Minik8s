@@ -20,7 +20,7 @@ type Listener interface {
 	OnSet(kv mvccpb.KeyValue)
 	OnCreate(kv mvccpb.KeyValue)
 	OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
-	OnDelete(kv mvccpb.KeyValue)
+	OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
 }
 
 // EtcdWatcher ETCD key监视器
@@ -149,7 +149,7 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 						listener.OnModify(*ev.Kv, *ev.PrevKv)
 					}
 				case mvccpb.DELETE:
-					listener.OnDelete(*ev.Kv)
+					listener.OnDelete(*ev.Kv, *ev.PrevKv)
 				}
 			}
 		}

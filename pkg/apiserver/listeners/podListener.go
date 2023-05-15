@@ -56,9 +56,9 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 }
 
 // OnDelete etcd中对应资源被删除时回调
-func (p PodListener) OnDelete(kv mvccpb.KeyValue) {
-	log.Printf("ETCD: delete kye:" + string(kv.Key) + "\n")
-	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.DELETE)
+func (p PodListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
+	log.Printf("ETCD: delete kye:" + string(prevkv.Key) + "\n")
+	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.DELETE)
 	err := p.publisher.Publish("pods_node", jsonMsg, "DEL")
 	if err != nil {
 		fmt.Println(err.Error())

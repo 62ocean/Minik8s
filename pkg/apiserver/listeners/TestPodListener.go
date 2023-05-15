@@ -38,7 +38,7 @@ func (p podListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	return
 }
 
-func (p podListener) OnDelete(kv mvccpb.KeyValue) {
+func (p podListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	fmt.Printf("delete kye:" + string(kv.Key) + "\n")
 	return
 }
