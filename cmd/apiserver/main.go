@@ -21,7 +21,6 @@ func init() {
 }
 
 func main() {
-
 	//etcd.EtcdTest()
 	//apiserver.StartServer()
 	//kubectl.CmdExec()
