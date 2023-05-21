@@ -1,5 +1,7 @@
 package object
 
+import "time"
+
 type Status int
 type EventType int
 
@@ -22,10 +24,11 @@ type MQMessage struct {
 }
 
 type Metadata struct {
-	Name      string `yaml:"name"`
-	Labels    Labels `yaml:"labels"`
-	Namespace string
-	Uid       string
+	Name              string `yaml:"name"`
+	Labels            Labels `yaml:"labels"`
+	Namespace         string
+	Uid               string
+	CreationTimestamp time.Time
 }
 
 type Labels struct {

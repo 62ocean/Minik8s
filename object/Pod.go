@@ -58,6 +58,7 @@ type Pod struct {
 	Kind       string   `yaml:"kind"`
 	Metadata   Metadata `yaml:"metadata"`
 	Spec       PodSpec  `yaml:"spec"`
+	IP         string
 }
 
 type PodStorage struct {
