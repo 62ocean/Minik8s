@@ -22,6 +22,7 @@ type Config struct {
 	flannelNetwork string
 	//子网段
 	flannelSubnet        string
+	flannelSubnetPrefix  string
 	flannelSubnetGateway string
 	nodeIP               string
 	nodeID               string
@@ -85,6 +86,7 @@ func ConfigInit() {
 	conf.dockerNet = fmt.Sprintf("%s.%s.1/24", flannelNetworkPrefix, conf.nodeID)
 	conf.flannelNetwork = flannelNetwork
 	conf.flannelSubnet = fmt.Sprintf("%s.%s.0/24", flannelNetworkPrefix, conf.nodeID)
+	conf.flannelSubnetPrefix = fmt.Sprintf("%s.%s", flannelNetworkPrefix, conf.nodeID)
 	conf.flannelSubnetGateway = fmt.Sprintf("%s.%s.1", flannelNetworkPrefix, conf.nodeID)
 
 	fmt.Printf("==================================== Starting Flanneld ===================================\n")
@@ -110,7 +112,7 @@ func SetDockerBipNet() {
 }
 
 func InitIptables() {
-	// 设置filter表ACCEPT链默认规则为允许通过
+	// 设置filter表FORWARD链默认规则为允许通过
 	pod.RunCommand("iptables -t filter -P FORWARD ACCEPT")
 	// nat表POSTROUTING链插入规则，允许目标为flannelNetwork的包通过
 	cmd := fmt.Sprintf("iptables -t nat -I POSTROUTING -d %s -j ACCEPT", conf.flannelNetwork)
@@ -130,6 +132,7 @@ func GetLocalNodeNetwork() pod.NodeNetwork {
 		Docker0MacAddr: GetLocalMacAddr("docker0"),
 		Subnet:         conf.flannelSubnet,
 		Gateway:        conf.flannelSubnetGateway,
+		SubnetPrefix:   conf.flannelSubnetPrefix,
 	}
 }
 

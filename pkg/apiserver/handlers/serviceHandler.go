@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
 	"log"
+	"net/http"
 )
 
 func CreateService(request *restful.Request, response *restful.Response) {
@@ -23,7 +26,19 @@ func CreateService(request *restful.Request, response *restful.Response) {
 	serviceString, _ := json.Marshal(*service)
 	res := etcd.Put(key, string(serviceString))
 	response.AddHeader("Content-Type", "text/plain")
-	
+
+	if !res {
+		err := response.WriteErrorString(http.StatusNotFound, "Service could not be persisted")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		serviceQueue := "services"
+		_, err := response.Write([]byte(serviceQueue))
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
 }
 
 func GetService(request *restful.Request, response *restful.Response)    {}
