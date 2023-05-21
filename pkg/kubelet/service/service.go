@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"k8s/object"
 	"k8s/pkg/global"
+	kube_proxy "k8s/pkg/kube-proxy"
 	"k8s/pkg/util/HTTPClient"
 	"os"
 )
@@ -27,10 +28,15 @@ func ServiceConfigTest() {
 	fmt.Printf("解析结果：\n + service -> %+v\n", service)
 }
 
+func ServiceInit() {
+	kube_proxy.KubeProxyInit()
+}
+
 func CreateService(serviceConfig object.Service) {
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
 	resp := client.Get("/pods/getAll")
 	podsBody, _ := json.Marshal(resp)
+	// 把selector对应的pod放到service对象里
 	var allPods []object.Pod
 	json.Unmarshal(podsBody, allPods)
 	for _, pod := range allPods {
@@ -40,5 +46,31 @@ func CreateService(serviceConfig object.Service) {
 			}
 		}
 	}
+	// 配置iptable
+	kube_proxy.RegisterService(serviceConfig)
 
+}
+
+func DeleteePod(service object.Service, pod object.Pod) {
+	// 删除当前iptable
+	kube_proxy.DeleteService(service)
+
+	// 删除pod
+	var index int
+	for i, p := range service.Spec.Pods {
+		if p.Metadata.Uid == pod.Metadata.Uid {
+			index = i
+			break
+		}
+	}
+	service.Spec.Pods = append(service.Spec.Pods[:index], service.Spec.Pods[index+1:]...)
+
+	// 重新配置iptable
+	kube_proxy.RegisterService(service)
+}
+
+func AddPod(service object.Service, pod object.Pod) {
+	kube_proxy.DeleteService(service)
+	service.Spec.Pods = append(service.Spec.Pods, pod)
+	kube_proxy.RegisterService(service)
 }

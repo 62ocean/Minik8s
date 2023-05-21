@@ -23,13 +23,13 @@ func getFreeClusterIP() string {
 
 }
 
-func serviceInit() {
+func KubeProxyInit() {
 	// 创建规则链 KUBE-SERVICES
 	cmd := fmt.Sprintf("iptables -N KUBE-SERVICES")
 	RunCommand(cmd)
 }
 
-func registerService(service object.Service) {
+func RegisterService(service object.Service) {
 	ports := service.Spec.Ports
 	clusterIP := service.Spec.ClusterIP
 	if clusterIP == "" {
@@ -58,6 +58,47 @@ func registerService(service object.Service) {
 			RunCommand(cmd)
 
 			cmd = fmt.Sprintf("iptables -A %s -p %s -j DNAT --to-destination %s:%d", sepChain, protocol, pod.IP, port.TargetPort)
+			RunCommand(cmd)
 		}
+	}
+}
+
+// 注册的镜像操作
+func DeleteService(service object.Service) {
+	ports := service.Spec.Ports
+	clusterIP := service.Spec.ClusterIP
+	if clusterIP == "" {
+		fmt.Println("cluster IP is NULL")
+		return
+	}
+
+	for _, port := range ports {
+		protocol := string(port.Protocol)
+		svcChain := fmt.Sprintf("KUBE-SVC-%s%d", bytes.ToUpper([]byte(service.Metadata.Name)), port.Port)
+
+		cmd := fmt.Sprintf("iptables -D KUBE-SERVICES -p %s -d %s/32 --dport %d -j %s", protocol, clusterIP, port.Port, svcChain)
+		RunCommand(cmd)
+
+		pods := service.Spec.Pods
+		podsLen := len(service.Spec.Pods)
+		for i, pod := range pods {
+			sepChain := fmt.Sprintf("KUBE-SEP-%s-POD%d", bytes.ToUpper([]byte(service.Metadata.Name)), i)
+
+			if i == podsLen-1 {
+				cmd = fmt.Sprintf("iptables -D %s -j %s", svcChain, sepChain)
+			} else {
+				pro := 1.0 / (float64(podsLen) - float64(i))
+				cmd = fmt.Sprintf("iptables -D %s --probability %f -j %s", svcChain, pro, sepChain)
+			}
+			RunCommand(cmd)
+
+			cmd = fmt.Sprintf("iptables -D %s -p %s -j DNAT --to-destination %s:%d", sepChain, protocol, pod.IP, port.TargetPort)
+			RunCommand(cmd)
+
+			RunCommand(fmt.Sprintf("iptables -X %s", sepChain))
+		}
+
+		cmd = fmt.Sprintf("iptables -X %s", svcChain)
+		RunCommand(cmd)
 	}
 }
