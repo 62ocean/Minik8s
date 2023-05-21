@@ -21,6 +21,7 @@ type NodeNetwork struct {
 	IpAddr         string
 	Subnet         string
 	Gateway        string
+	SubnetPrefix   string
 }
 
 func NewVxlanDevice(Name string, Vni int, DstPort int, MasterBridge string) *VxlanDevice {

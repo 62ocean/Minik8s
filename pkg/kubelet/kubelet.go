@@ -10,7 +10,7 @@ import (
 	"k8s/pkg/util/msgQueue/subscriber"
 )
 
-const serverHost = "http://127.0.0.1:8080"
+//const serverHost = "http://127.0.0.1:8080"
 
 type Kubelet struct {
 	client        *HTTPClient.Client
@@ -43,7 +43,7 @@ func (kl *Kubelet) Run() {
 // NewKubelet kubelet对象的构造函数
 func NewKubelet(name string) (*Kubelet, error) {
 	// 使用HTTP，构建node对象传递到APIServer处
-	client := HTTPClient.CreateHTTPClient(serverHost)
+	client := HTTPClient.CreateHTTPClient(global.ServerHost)
 	id, _ := uuid.NewUUID()
 	nodeInfo := object.Node{
 		Metadata: object.Metadata{

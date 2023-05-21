@@ -11,9 +11,9 @@ const (
 )
 
 type Metadata struct {
-	Name string `yaml:"name"`
-	//Labels            Labels `yaml:"labels"`
-	Labels            map[string]string `yaml:"labels"`
+	Name   string `yaml:"name"`
+	Labels Labels `yaml:"labels"`
+	//Labels            map[string]string `yaml:"labels"`
 	Namespace         string
 	Uid               string
 	CreationTimestamp time.Time

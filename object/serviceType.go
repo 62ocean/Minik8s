@@ -12,9 +12,9 @@ package object
 type Protocol string
 
 const (
-	ProtocolTCP  Protocol = "TCP"
-	ProtocolUDP  Protocol = "UDP"
-	ProtocolSCTP Protocol = "SCTP"
+	ProtocolTCP  Protocol = "tcp"
+	ProtocolUDP  Protocol = "udp"
+	ProtocolSCTP Protocol = "sctp"
 )
 
 //type Volume struct {
@@ -76,9 +76,9 @@ type ServiceType string
 type ServiceSpec struct {
 	Type      ServiceType
 	Ports     []ServicePort
-	Selector  map[string]string
+	Selector  Labels
 	ClusterIP string
-	pods      []Pod
+	Pods      []Pod
 }
 
 type Service struct {

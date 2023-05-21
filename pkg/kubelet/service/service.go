@@ -1,9 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"k8s/object"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
 	"os"
 )
 
@@ -22,4 +25,20 @@ func ServiceConfigTest() {
 		return
 	}
 	fmt.Printf("解析结果：\n + service -> %+v\n", service)
+}
+
+func CreateService(serviceConfig object.Service) {
+	client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	resp := client.Get("/pods/getAll")
+	podsBody, _ := json.Marshal(resp)
+	var allPods []object.Pod
+	json.Unmarshal(podsBody, allPods)
+	for _, pod := range allPods {
+		if serviceConfig.Spec.Selector.App == pod.Metadata.Labels.App {
+			if serviceConfig.Spec.Selector.Env == pod.Metadata.Labels.Env {
+				serviceConfig.Spec.Pods = append(serviceConfig.Spec.Pods, pod)
+			}
+		}
+	}
+
 }
