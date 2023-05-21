@@ -2,8 +2,8 @@ package publisher
 
 import (
 	"encoding/json"
-	storagepb2 "github.com/coreos/etcd/storage/storagepb"
 	"github.com/streadway/amqp"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	"k8s/object"
 )
 
@@ -68,10 +68,11 @@ func (p *Publisher) CloseConnection() error {
 	return nil
 }
 
-func ConstructPublishMsg(kv storagepb2.KeyValue, eventType object.EventType) []byte {
+func ConstructPublishMsg(kv mvccpb.KeyValue, prevKV mvccpb.KeyValue, eventType object.EventType) []byte {
 	ret := object.MQMessage{
 		EventType: eventType,
 		Value:     string(kv.Value),
+		PrevValue: string(prevKV.Value),
 	}
 	jsonMsg, _ := json.Marshal(ret)
 	return jsonMsg

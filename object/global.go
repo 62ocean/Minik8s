@@ -18,6 +18,7 @@ const (
 type MQMessage struct {
 	EventType EventType
 	Value     string
+	PrevValue string
 }
 
 type Metadata struct {

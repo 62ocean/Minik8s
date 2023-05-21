@@ -43,8 +43,9 @@ type VolumeConfig struct {
 }
 
 type PodSpec struct {
-	Containers []Container    `yaml:"containers"`
-	Volumes    []VolumeConfig `yaml:"volumes"`
+	Containers    []Container    `yaml:"containers"`
+	Volumes       []VolumeConfig `yaml:"volumes"`
+	ContainerMeta []ContainerMeta
 }
 
 type ContainerMeta struct {
@@ -62,4 +63,5 @@ type Pod struct {
 type PodStorage struct {
 	Config Pod
 	Status Status
+	Node   string //放node的uid
 }

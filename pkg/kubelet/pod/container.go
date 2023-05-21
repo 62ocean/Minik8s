@@ -301,7 +301,7 @@ func createPause(ports *[]int) (string, error) {
 		ExposedPorts: exports,
 	}, &container.HostConfig{
 		IpcMode: container.IpcMode("shareable"),
-		UTSMode: container.UTSMode("shareable"),
+		//UTSMode: container.UTSMode("shareable"),
 	}, nil, nil, "pause")
 	return resp.ID, err
 }

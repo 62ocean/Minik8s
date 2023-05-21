@@ -2,8 +2,8 @@ package etcd
 
 import (
 	"context"
-	"github.com/coreos/etcd/clientv3"
-	storagepb2 "github.com/coreos/etcd/storage/storagepb"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	"go.etcd.io/etcd/client/v3"
 	"sync"
 	"time"
 )
@@ -17,10 +17,10 @@ var (
 
 // Listener 对外通知
 type Listener interface {
-	OnSet(kv storagepb2.KeyValue)
-	OnCreate(kv storagepb2.KeyValue)
-	OnModify(kv storagepb2.KeyValue)
-	OnDelete(kv storagepb2.KeyValue)
+	OnSet(kv mvccpb.KeyValue)
+	OnCreate(kv mvccpb.KeyValue)
+	OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
+	OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
 }
 
 // EtcdWatcher ETCD key监视器
@@ -127,9 +127,9 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 
 	var watchChan clientv3.WatchChan
 	if prefix {
-		watchChan = watcher.client.Watch(context.Background(), key, clientv3.WithPrefix(), clientv3.WithRev(getResp.Header.Revision+1))
+		watchChan = watcher.client.Watch(context.Background(), key, clientv3.WithPrefix(), clientv3.WithRev(getResp.Header.Revision+1), clientv3.WithPrevKV())
 	} else {
-		watchChan = watcher.client.Watch(context.Background(), key, clientv3.WithRev(getResp.Header.Revision+1))
+		watchChan = watcher.client.Watch(context.Background(), key, clientv3.WithRev(getResp.Header.Revision+1), clientv3.WithPrevKV())
 	}
 	for {
 		select {
@@ -142,14 +142,14 @@ func (watcher *EtcdWatcher) watch(ctx context.Context, key string, prefix bool, 
 			}
 			for _, ev := range resp.Events {
 				switch ev.Type {
-				case storagepb2.PUT:
+				case mvccpb.PUT:
 					if ev.Kv.Version == 1 {
 						listener.OnCreate(*ev.Kv)
 					} else {
-						listener.OnModify(*ev.Kv)
+						listener.OnModify(*ev.Kv, *ev.PrevKv)
 					}
-				case storagepb2.DELETE:
-					listener.OnDelete(*ev.Kv)
+				case mvccpb.DELETE:
+					listener.OnDelete(*ev.Kv, *ev.PrevKv)
 				}
 			}
 		}
