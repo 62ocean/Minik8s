@@ -1,2 +1,6 @@
 ./log/*.log
+<<<<<<< HEAD
 ./.idea
+=======
+.idea
+>>>>>>> fcdca8038c800a8c1d95a2db516d70aff93a02b9
