@@ -134,6 +134,7 @@ func (h podHandler) Handle(jsonMsg []byte) {
 }
 
 // ----------------------POD WORKER----------------------
+
 func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	//启动pod与相关容器
 	log.Println("begin to crate pod" + podInfo.Config.Metadata.Name)
