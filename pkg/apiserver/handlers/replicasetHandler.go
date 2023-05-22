@@ -38,6 +38,15 @@ func CreateReplicaset(request *restful.Request, response *restful.Response) {
 	}
 }
 
+func GetAllReplicaset(request *restful.Request, response *restful.Response) {
+	rsMap := etcd.GetDirectory("/registry/replicasets")
+	msg, _ := json.Marshal(rsMap)
+	_, err := response.Write([]byte(msg))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 func GetReplicaset(request *restful.Request, response *restful.Response)    {}
 func UpdateReplicaset(request *restful.Request, response *restful.Response) {}
 func RemoveReplicaset(request *restful.Request, response *restful.Response) {}

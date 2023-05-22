@@ -85,7 +85,7 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 	num := 0
 	maxRepIndex := 0
 	for _, value := range *podList {
-		fmt.Println(value)
+		//fmt.Println(value)
 		var pod object.PodStorage
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
