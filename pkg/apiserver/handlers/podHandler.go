@@ -38,7 +38,6 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 		}
 	} else {
 		podQueue := "pods"
-		//err := response.WriteEntity(string(podQueue))
 		_, err := response.Write([]byte(podQueue))
 		if err != nil {
 			fmt.Println(err.Error())
@@ -48,16 +47,30 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 
 func GetPod(request *restful.Request, response *restful.Response) {}
 func UpdatePod(request *restful.Request, response *restful.Response) {
-	//newPodInfo := object.PodStorage{}
-	//err := request.ReadEntity(newPodInfo)
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
-	//newVal, _ := json.Marshal(newPodInfo)
-	//key := "/registry/pods/" + newPodInfo
-	//etcd.Put()
-
+	newPodInfo := object.PodStorage{}
+	err := request.ReadEntity(&newPodInfo)
+	fmt.Println(newPodInfo)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	newVal, _ := json.Marshal(&newPodInfo)
+	key := "/registry/pods/default/" + newPodInfo.Config.Metadata.Uid
+	var ret string
+	if etcd.GetOne(key) == "" {
+		ret = "non-existed pod"
+		err1 := response.WriteErrorString(500, ret)
+		if err1 != nil {
+			fmt.Println(err1.Error())
+		}
+	} else {
+		etcd.Put(key, string(newVal))
+		ret = "ok"
+		_, err1 := response.Write([]byte(ret))
+		if err1 != nil {
+			fmt.Println(err1.Error())
+		}
+	}
 }
 func RemovePod(request *restful.Request, response *restful.Response) {}
 func GetAllPod(request *restful.Request, response *restful.Response) {

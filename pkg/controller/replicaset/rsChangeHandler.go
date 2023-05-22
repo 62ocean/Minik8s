@@ -33,7 +33,6 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 
 func NewReplicasetChangeHandler(c *controller) *RSChangeHandler {
 	h := &RSChangeHandler{}
-
 	h.c = c
 
 	return h

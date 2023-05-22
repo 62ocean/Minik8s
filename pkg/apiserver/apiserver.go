@@ -18,6 +18,7 @@ type APIServer struct {
 	etcdWatcher        *etcd.EtcdWatcher
 	podListener        *listeners.PodListener
 	replicasetListener *listeners.ReplicasetListener
+	serviceListener    *listeners.ServiceListener
 	//TODO 在此添加其他listener……
 }
 
@@ -35,6 +36,7 @@ func CreateAPIServer() (*APIServer, error) {
 	// listeners
 	podListener := listeners.NewPodListener()
 	replicasetListener := listeners.NewReplicasetListener()
+	serviceListner := listeners.NewServiceListener()
 
 	// HTTP server
 	wsContainer := restful.NewContainer()
@@ -47,6 +49,7 @@ func CreateAPIServer() (*APIServer, error) {
 		podListener:        podListener,
 		wsContainer:        wsContainer,
 		replicasetListener: replicasetListener,
+		serviceListener:    serviceListner,
 	}
 
 	return &server, nil
@@ -57,47 +60,10 @@ func (s *APIServer) StartServer() {
 	// watch
 	s.etcdWatcher.AddWatch("/registry/pods/", true, s.podListener)
 	s.etcdWatcher.AddWatch("/registry/replicasets/", true, s.replicasetListener)
+	s.etcdWatcher.AddWatch("/registry/services/", true, s.serviceListener)
 
 	// list
 	server := &http.Server{Addr: ":8080", Handler: s.wsContainer}
 	defer server.Close()
 	log.Fatal(server.ListenAndServe())
 }
-
-//
-//func CreatePod() {
-//	fmt.Printf("apiserver: create pod\n")
-//}
-//
-//func DeletePod() {
-//	fmt.Printf("apiserver: delete pod\n")
-//}
-//
-//func DescribePod() {
-//	fmt.Printf("apiserver: describe pod\n")
-//}
-//
-//func DescribeService() {
-//	fmt.Printf("apiserver: describe service\n")
-//}
-//
-//func EtcdGetOne(key string) string {
-//	res := etcd.GetOne(key)
-//	if res == "" {
-//		fmt.Printf("get key %s from etcd failed", key)
-//	}
-//	return res
-//}
-//
-//func EtcdGetDirectory(prefix string) map[string]string {
-//	res := etcd.GetDirectory(prefix)
-//	if res == nil {
-//		fmt.Printf("get directory %s from etcd failed", prefix)
-//	}
-//	return res
-//}
-//
-//func EtcdPut(key string, val string) bool {
-//	res := etcd.Put(key, val)
-//	return res
-//}

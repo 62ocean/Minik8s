@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"k8s/object"
 	"k8s/pkg/controller/replicaset"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
