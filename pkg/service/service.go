@@ -28,9 +28,9 @@ func ServiceConfigTest() {
 	fmt.Printf("解析结果：\n + service -> %+v\n", service)
 }
 
-func ServiceInit() {
-	kube_proxy.KubeProxyInit()
-}
+//func ServiceInit() {
+//	kube_proxy.KubeProxyInit()
+//}
 
 func CreateService(serviceConfig object.Service) {
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
