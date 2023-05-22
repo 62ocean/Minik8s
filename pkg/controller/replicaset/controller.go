@@ -1,6 +1,7 @@
 package replicaset
 
 import (
+	"encoding/json"
 	"fmt"
 	"k8s/object"
 	"k8s/pkg/controller/replicaset/worker"
@@ -12,6 +13,7 @@ import (
 
 type Controller interface {
 	Start(wg *sync.WaitGroup)
+	ReplicasetInit() error
 	ReplicasetChangeHandler(eventType object.EventType, rs object.ReplicaSet)
 	AddReplicaset(rs object.ReplicaSet)
 	DeleteReplicaset(rs object.ReplicaSet)
@@ -36,15 +38,47 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	//创建client对replicaset进行增删改操作
 	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 
+	//初始化当前etcd中的replicaset
+	err := c.ReplicasetInit()
+	if err != nil {
+		fmt.Println("rs init failed")
+		return
+	}
+
 	//创建subscribe监听replicaset的变化
 	c.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
 	c.handler = NewReplicasetChangeHandler(c)
-	err := c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
+	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
 		fmt.Println("subcribe rs failed")
 		return
 	}
 
+}
+
+func (c *controller) ReplicasetInit() error {
+	//得到所有的rs列表
+	response := c.client.Get("/replicasets/getAll")
+	rsList := new(map[string]string)
+	err := json.Unmarshal([]byte(response), rsList)
+	if err != nil {
+		fmt.Println("unmarshall podlist failed")
+		return err
+	}
+
+	// 为当前的所有replicaset都启动一个worker
+	for _, value := range *rsList {
+		fmt.Println(value)
+		var rs object.ReplicaSet
+		err := json.Unmarshal([]byte(value), &rs)
+		if err != nil {
+			fmt.Println("unmarshall rs failed")
+			return err
+		}
+		c.AddReplicaset(rs)
+	}
+
+	return nil
 }
 
 func (c *controller) ReplicasetChangeHandler(eventType object.EventType, rs object.ReplicaSet) {

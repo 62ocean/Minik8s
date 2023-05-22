@@ -1,14 +1,8 @@
 package controller
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/google/uuid"
-	"k8s/object"
+	//"k8s/object"
 	"k8s/pkg/controller/replicaset"
-	"k8s/pkg/global"
-	"k8s/pkg/util/HTTPClient"
-	"k8s/pkg/util/parseYaml"
 	"sync"
 )
 
@@ -34,16 +28,16 @@ func (m *manager) Start() {
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
-	id, _ := uuid.NewUUID()
-	replicasetData.Metadata.Uid = id.String()
-	var rsJson []byte
-	rsJson, _ = json.Marshal(replicasetData)
-	//fmt.Println("rsJson: \n" + string(rsJson))
-
-	client := HTTPClient.CreateHTTPClient(global.ServerHost)
-	client.Post("/replicasets/create", rsJson)
-	fmt.Println("add replicaset ok!")
+	//replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
+	//id, _ := uuid.NewUUID()
+	//replicasetData.Metadata.Uid = id.String()
+	//var rsJson []byte
+	//rsJson, _ = json.Marshal(replicasetData)
+	////fmt.Println("rsJson: \n" + string(rsJson))
+	//
+	//client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	//client.Post("/replicasets/create", rsJson)
+	//fmt.Println("add replicaset ok!")
 	//--------------------------------------
 
 	// 等待所有协程执行完毕
