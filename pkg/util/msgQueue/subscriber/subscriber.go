@@ -90,6 +90,7 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
 		}
+		fmt.Println("forever协程运行到要结束的地方咯")
 		forever <- true
 	}()
 
@@ -155,14 +156,18 @@ func (p *Subscriber) SubscribeWithSync(exchangeName string, handler Handler, wg 
 	}
 
 	// 处理队列中消息的协程
+	forever := make(chan bool)
 	go func() {
 		for d := range msgs {
 			fmt.Println("Get msg now")
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
-			wg.Done()
 		}
+		fmt.Println("协程运行到要结束的地方咯")
+		forever <- true
 	}()
+	<-forever
+	wg.Done()
 	return nil
 }
 

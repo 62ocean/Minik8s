@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"k8s/object"
+	"log"
 )
 
 type PodSyncHandler struct {
@@ -12,7 +13,7 @@ type PodSyncHandler struct {
 
 func (h *PodSyncHandler) Handle(msg []byte) {
 
-	fmt.Println("pod receive msg: " + string(msg))
+	log.Println("pod receive msg: " + string(msg))
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)
@@ -21,8 +22,8 @@ func (h *PodSyncHandler) Handle(msg []byte) {
 		return
 	}
 
-	var pod object.Pod
-	err = json.Unmarshal([]byte(msgObject.Value), &pod)
+	var pod object.PodStorage
+	err = json.Unmarshal([]byte(msgObject.PrevValue), &pod)
 	if err != nil {
 		fmt.Println("[worker] unmarshall changed pod failed")
 		return

@@ -39,12 +39,17 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 	_ = json.Unmarshal(kv.Value, &podStorage)
 	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.CREATE)
 	var err error
+	// forward to relicaset
+	log.Println("publish CREATE to pods")
+	err = p.publisher.Publish("pods", jsonMsg, "CREATE")
 	// forward to kubelet
 	if podStorage.Node != "" {
+		log.Println("publish CREATE to pods_node")
 		err = p.publisher.Publish("pods_node", jsonMsg, "CREATE")
 	}
 	// forward to scheduler
 	if podStorage.Node == "" {
+		log.Println("publish CREATE to pods_sched")
 		err = p.publisher.Publish("pods_sched", jsonMsg, "CREATE")
 	}
 	if err != nil {
@@ -61,12 +66,17 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	_ = json.Unmarshal(kv.Value, &podStorage)
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.UPDATE)
 	var err error
+	// forward to relicaset
+	log.Println("publish PUT to pods")
+	err = p.publisher.Publish("pods", jsonMsg, "PUT")
 	// forward to kubelet
 	if podStorage.Node != "" {
+		log.Println("publish PUT to pods_node")
 		err = p.publisher.Publish("pods_node", jsonMsg, "PUT")
 	}
 	// forward to scheduler
 	if podStorage.Node == "" {
+		log.Println("publish PUT to pods_sched")
 		err = p.publisher.Publish("pods_sched", jsonMsg, "PUT")
 	}
 	if err != nil {
@@ -80,8 +90,13 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 func (p PodListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: delete kye:" + string(prevkv.Key) + "\n")
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.DELETE)
+	var err error
+	// forward to relicaset
+	log.Println("publish DEL to pods")
+	err = p.publisher.Publish("pods", jsonMsg, "DEL")
 	// forward to kubelet
-	err := p.publisher.Publish("pods_node", jsonMsg, "DEL")
+	log.Println("publish DEL to pods_node")
+	err = p.publisher.Publish("pods_node", jsonMsg, "DEL")
 	if err != nil {
 		fmt.Println(err.Error())
 		return

@@ -71,13 +71,25 @@ func (s *Scheduler) Run() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	// 开始监听消息队列中pod的增量信息
-	err := s.subscriber.SubscribeWithSync(s.podQueue, subscriber.Handler(s.podHandler), &wg)
+	go func() {
+		err := s.subscriber.SubscribeWithSync(s.podQueue, subscriber.Handler(s.podHandler), &wg)
+		if err != nil {
+			fmt.Printf(err.Error())
+			_ = s.subscriber.CloseConnection()
+			wg.Done()
+		}
+	}()
+
 	// 开始监听node的增量信息
-	err = s.subscriber.SubscribeWithSync(s.nodeQueue, subscriber.Handler(s.nodeHandler), &wg)
-	if err != nil {
-		fmt.Printf(err.Error())
-		_ = s.subscriber.CloseConnection()
-	}
+	go func() {
+		err := s.subscriber.SubscribeWithSync(s.nodeQueue, subscriber.Handler(s.nodeHandler), &wg)
+		if err != nil {
+			fmt.Printf(err.Error())
+			_ = s.subscriber.CloseConnection()
+			wg.Done()
+		}
+	}()
+
 	// 阻塞主协程，当至少有一个MQ停止监听时，主协程退出
 	wg.Wait()
 }
@@ -97,13 +109,14 @@ func (h podHandler) Handle(jsonMsg []byte) {
 	_ = json.Unmarshal([]byte(msg.PrevValue), &prevPodStorage)
 	switch msg.EventType {
 	case object.CREATE:
+		if podStorage.Node == "" {
+			h.sched.roundRobin(&podStorage)
+		}
 	case object.UPDATE:
 		if podStorage.Node == "" {
 			h.sched.roundRobin(&podStorage)
 		}
-		break
 	case object.DELETE:
-		break
 	}
 }
 

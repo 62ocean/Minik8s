@@ -8,6 +8,8 @@ import (
 	"k8s/pkg/etcd"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 func CreatePod(request *restful.Request, response *restful.Response) {
@@ -18,12 +20,14 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 		log.Println(err)
 		return
 	}
-	uid := pod.Metadata.Uid
-	key := "/registry/pods/default/" + uid
+	name := pod.Metadata.Name
+	replica := getReplicaIndex(name)
 	podStorage := object.PodStorage{
-		Config: *pod,
-		Status: object.STOPPED,
+		Config:  *pod,
+		Status:  object.STOPPED,
+		Replica: replica,
 	}
+	key := "/registry/pods/default/" + name
 	podString, _ := json.Marshal(podStorage)
 	res := etcd.Put(key, string(podString))
 	response.AddHeader("Content-Type", "text/plain")
@@ -34,6 +38,7 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 		}
 	} else {
 		podQueue := "pods"
+		//err := response.WriteEntity(string(podQueue))
 		_, err := response.Write([]byte(podQueue))
 		if err != nil {
 			fmt.Println(err.Error())
@@ -51,7 +56,7 @@ func UpdatePod(request *restful.Request, response *restful.Response) {
 		return
 	}
 	newVal, _ := json.Marshal(&newPodInfo)
-	key := "/registry/pods/default/" + newPodInfo.Config.Metadata.Uid
+	key := "/registry/pods/default/" + newPodInfo.Config.Metadata.Name
 	var ret string
 	if etcd.GetOne(key) == "" {
 		ret = "non-existed pod"
@@ -76,4 +81,14 @@ func GetAllPod(request *restful.Request, response *restful.Response) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func getReplicaIndex(name string) int {
+	lastHyphen := strings.LastIndex(name, "-")
+	replica, err := strconv.Atoi(name[lastHyphen+1:])
+	if err != nil || replica == -1 {
+		replica = 0
+	}
+	log.Println("Get index from name: " + name + ", replica: " + strconv.Itoa(replica))
+	return replica
 }

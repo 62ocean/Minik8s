@@ -104,7 +104,6 @@ func (h podHandler) Handle(jsonMsg []byte) {
 		if podStorage.Node == h.nodeID {
 			h.kub.createPod(podStorage)
 		}
-		break
 	case object.UPDATE:
 		if prevPodStorage.Node == h.nodeID {
 			if podStorage.Node != h.nodeID {
@@ -124,12 +123,10 @@ func (h podHandler) Handle(jsonMsg []byte) {
 				h.kub.createPod(podStorage)
 			}
 		}
-		break
 	case object.DELETE:
 		if prevPodStorage.Node == h.nodeID {
 			h.kub.deletePod(prevPodStorage)
 		}
-		break
 	}
 }
 

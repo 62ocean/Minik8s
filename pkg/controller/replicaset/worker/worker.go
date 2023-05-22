@@ -8,6 +8,8 @@ import (
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
+	"log"
+	"strconv"
 )
 
 type Worker interface {
@@ -16,7 +18,7 @@ type Worker interface {
 	UpdateReplicaset(rs object.ReplicaSet)
 	//PodSyncHandler()
 
-	GetSelectedPodNum() int
+	GetSelectedPodNum() (int, int)
 	SyncPods()
 }
 
@@ -41,7 +43,7 @@ func (w *worker) Start() {
 	//		return
 	//	}
 	//}
-	fmt.Println("worker start")
+	log.Println("worker start")
 
 	//创建client对pod进行增删改操作
 	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
@@ -49,13 +51,13 @@ func (w *worker) Start() {
 	w.SyncPods()
 
 	//创建subscribe监听pod的变化
-	//w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
-	//w.handler = NewPodSyncHandler(w)
-	//err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
-	//if err != nil {
-	//	fmt.Println("subcribe pods failed")
-	//	return
-	//}
+	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	w.handler = NewPodSyncHandler(w)
+	err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
+	if err != nil {
+		fmt.Println("subcribe pods failed")
+		return
+	}
 }
 
 func (w *worker) Stop() {
@@ -68,37 +70,41 @@ func (w *worker) UpdateReplicaset(rs object.ReplicaSet) {
 	//w.PodChangeHandler()
 }
 
-func (w *worker) GetSelectedPodNum() int {
+func (w *worker) GetSelectedPodNum() (int, int) {
 	//得到所有的pod列表
 	response := w.client.Get("/pods/getAll")
 	podList := new(map[string]string)
 	err := json.Unmarshal([]byte(response), podList)
 	if err != nil {
 		fmt.Println("unmarshall podlist failed")
-		return -1
+		return -1, -1
 	}
 
-	//fmt.Println(podList)
+	//log.Println(podList)
 
 	// 统计符合要求的pod个数
 	num := 0
+	maxRepIndex := 0
 	for _, value := range *podList {
-		fmt.Println(value)
-		var pod object.Pod
+		log.Println(value)
+		var pod object.PodStorage
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
 			fmt.Println("unmarshall pod failed")
-			return -1
+			return -1, -1
 		}
-		if pod.Metadata.Labels.App == w.target.Spec.Selector.MatchLabels.App &&
-			pod.Metadata.Labels.Env == w.target.Spec.Selector.MatchLabels.Env {
+		if pod.Config.Metadata.Labels.App == w.target.Spec.Selector.MatchLabels.App &&
+			pod.Config.Metadata.Labels.Env == w.target.Spec.Selector.MatchLabels.Env {
 			num++
+			if pod.Replica > maxRepIndex {
+				maxRepIndex = pod.Replica
+			}
 		}
 	}
 
-	fmt.Println(num)
+	log.Println(num)
 
-	return num
+	return num, maxRepIndex
 }
 
 //func (w *worker) PodSyncHandler(pod object.Pod) {
@@ -128,14 +134,18 @@ func (w *worker) GetSelectedPodNum() int {
 func (w *worker) SyncPods() {
 	podTemplate := w.target.Spec.PodTemplate
 
-	rsPodNum := w.GetSelectedPodNum()
+	rsPodNum, maxRepIndex := w.GetSelectedPodNum()
 	for rsPodNum != w.target.Spec.Replicas {
 		if rsPodNum < w.target.Spec.Replicas {
-
+			// 修改pod uid，名字以及容器名称 (ps要用深拷贝，防止修改podTemplate)
+			temp := &podTemplate
+			newPod := *temp
+			maxRepIndex = maxRepIndex + 1
 			id, _ := uuid.NewUUID()
-			podTemplate.Metadata.Uid = id.String()
+			newPod.Metadata.Uid = id.String()
+			newPod.Metadata.Name = podTemplate.Metadata.Name + "-" + strconv.Itoa(maxRepIndex)
 			var podJson []byte
-			podJson, _ = json.Marshal(podTemplate)
+			podJson, _ = json.Marshal(newPod)
 
 			w.client.Post("/pods/create", podJson)
 

@@ -3,13 +3,14 @@ kind: ReplicaSet
 metadata:
   name: rs-example
 spec:
-  replicas: 6
+  replicas: 3
   selector:
     matchLabels:
       app: nginx
       env: prod
   template:
     metadata:
+      name: nginx
       labels:
         app: nginx
         env: prod
