@@ -50,13 +50,13 @@ func (w *worker) Start() {
 	w.SyncPods()
 
 	//创建subscribe监听pod的变化
-	//w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
-	//w.handler = NewPodSyncHandler(w)
-	//err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
-	//if err != nil {
-	//	fmt.Println("subcribe pods failed")
-	//	return
-	//}
+	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	w.handler = NewPodSyncHandler(w)
+	err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
+	if err != nil {
+		fmt.Println("subcribe pods failed")
+		return
+	}
 }
 
 func (w *worker) Stop() {

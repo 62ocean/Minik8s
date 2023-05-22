@@ -41,7 +41,6 @@ func (c *Client) Get(url string) string {
 			panic(err)
 		}
 	}
-
 	return result.String()
 }
 
