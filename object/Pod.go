@@ -60,6 +60,7 @@ type Pod struct {
 }
 
 type PodStorage struct {
-	Config Pod
-	Status Status
+	Config  Pod
+	Status  Status
+	Replica int
 }
