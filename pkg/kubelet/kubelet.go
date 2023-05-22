@@ -104,7 +104,6 @@ func (h podHandler) Handle(jsonMsg []byte) {
 		if podStorage.Node == h.nodeID {
 			h.kub.createPod(podStorage)
 		}
-		break
 	case object.UPDATE:
 		if prevPodStorage.Node == h.nodeID {
 			if podStorage.Node != h.nodeID {
@@ -124,16 +123,15 @@ func (h podHandler) Handle(jsonMsg []byte) {
 				h.kub.createPod(podStorage)
 			}
 		}
-		break
 	case object.DELETE:
 		if prevPodStorage.Node == h.nodeID {
 			h.kub.deletePod(prevPodStorage)
 		}
-		break
 	}
 }
 
 // ----------------------POD WORKER----------------------
+
 func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	//启动pod与相关容器
 	log.Println("begin to crate pod" + podInfo.Config.Metadata.Name)

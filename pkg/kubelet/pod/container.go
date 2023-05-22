@@ -163,7 +163,7 @@ func isVolumeExisted(name string) (bool, error) {
 /*----------------------Container------------------------*/
 
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container) ([]object.ContainerMeta, error) {
+func CreateContainers(containerConfigs []object.Container, podName string) ([]object.ContainerMeta, error) {
 	var result []object.ContainerMeta
 	var totalPort []int
 	dupMap := make(map[int32]bool)
@@ -180,13 +180,13 @@ func CreateContainers(containerConfigs []object.Container) ([]object.ContainerMe
 	}
 
 	//create pause container
-	pauseID, err3 := createPause(&totalPort)
+	pauseID, err3 := createPause(&totalPort, podName)
 	if err3 != nil {
 		fmt.Println(err3.Error())
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, object.ContainerMeta{Name: "pause", ContainerID: pauseID})
+	result = append(result, object.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -233,9 +233,9 @@ func CreateContainers(containerConfigs []object.Container) ([]object.ContainerMe
 			NetworkMode: container.NetworkMode("container:" + pauseID),
 			Mounts:      mounts,
 			IpcMode:     container.IpcMode("container:" + pauseID),
-			UTSMode:     container.UTSMode("container" + pauseID),
-			Resources:   resourceConfig,
-		}, nil, nil, config.Name)
+			//UTSMode:     container.UTSMode("container:" + pauseID),
+			Resources: resourceConfig,
+		}, nil, nil, config.Name+"_"+podName)
 		if err != nil {
 			return nil, err
 		}
@@ -284,7 +284,7 @@ func RemoveContainer(containerID string) {
 }
 
 // 创建pause容器用于管理网络
-func createPause(ports *[]int) (string, error) {
+func createPause(ports *[]int, podName string) (string, error) {
 	var exports nat.PortSet
 	exports = make(nat.PortSet, len(*ports))
 	for _, port := range *ports {
@@ -302,7 +302,7 @@ func createPause(ports *[]int) (string, error) {
 	}, &container.HostConfig{
 		IpcMode: container.IpcMode("shareable"),
 		//UTSMode: container.UTSMode("shareable"),
-	}, nil, nil, "pause")
+	}, nil, nil, "pause_"+podName)
 	return resp.ID, err
 }
 

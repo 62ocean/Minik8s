@@ -8,6 +8,7 @@ import (
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
+	"log"
 	"strconv"
 )
 
@@ -42,7 +43,7 @@ func (w *worker) Start() {
 	//		return
 	//	}
 	//}
-	fmt.Println("worker start")
+	log.Println("worker start")
 
 	//创建client对pod进行增删改操作
 	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
@@ -50,13 +51,13 @@ func (w *worker) Start() {
 	w.SyncPods()
 
 	//创建subscribe监听pod的变化
-	//w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
-	//w.handler = NewPodSyncHandler(w)
-	//err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
-	//if err != nil {
-	//	fmt.Println("subcribe pods failed")
-	//	return
-	//}
+	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	w.handler = NewPodSyncHandler(w)
+	err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
+	if err != nil {
+		fmt.Println("subcribe pods failed")
+		return
+	}
 }
 
 func (w *worker) Stop() {
@@ -79,13 +80,13 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 		return -1, -1
 	}
 
-	//fmt.Println(podList)
+	//log.Println(podList)
 
 	// 统计符合要求的pod个数
 	num := 0
 	maxRepIndex := 0
 	for _, value := range *podList {
-		fmt.Println(value)
+		log.Println(value)
 		var pod object.PodStorage
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
@@ -101,7 +102,7 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 		}
 	}
 
-	fmt.Println(num)
+	log.Println(num)
 
 	return num, maxRepIndex
 }
@@ -143,14 +144,6 @@ func (w *worker) SyncPods() {
 			id, _ := uuid.NewUUID()
 			newPod.Metadata.Uid = id.String()
 			newPod.Metadata.Name = podTemplate.Metadata.Name + "-" + strconv.Itoa(maxRepIndex)
-			oldContainers := podTemplate.Spec.Containers
-			var newContainers []object.Container
-			for _, c := range oldContainers {
-				newC := c
-				newC.Name = c.Name + "-" + strconv.Itoa(maxRepIndex)
-				newContainers = append(newContainers, newC)
-			}
-			newPod.Spec.Containers = newContainers
 			var podJson []byte
 			podJson, _ = json.Marshal(newPod)
 
