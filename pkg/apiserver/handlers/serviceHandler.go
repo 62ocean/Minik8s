@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
+	service2 "k8s/pkg/kubelet/service"
 	"log"
 	"net/http"
 )
@@ -39,6 +40,7 @@ func CreateService(request *restful.Request, response *restful.Response) {
 			fmt.Println(err.Error())
 		}
 	}
+	service2.CreateService(*service)
 }
 
 func GetService(request *restful.Request, response *restful.Response)    {}

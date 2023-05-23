@@ -3,6 +3,13 @@ package controller
 import (
 	//"k8s/object"
 	"k8s/pkg/controller/replicaset"
+	"encoding/json"
+	"github.com/google/uuid"
+	"k8s/pkg/controller/replicaset"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
+	"log"
 	"sync"
 )
 

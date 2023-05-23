@@ -6,36 +6,37 @@ import (
 	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/util/msgQueue/publisher"
-	log "log"
+	"log"
 )
 
-/*-----------------Replicaset Etcd Listener---------------*/
+/*-----------------Pod Etcd Listener---------------*/
 
-type ReplicasetListener struct {
+type NodeListener struct {
 	publisher *publisher.Publisher
 }
 
-func NewReplicasetListener() *ReplicasetListener {
+func NewNodeListener() *NodeListener {
 	newPublisher, _ := publisher.NewPublisher(global.MQHost)
-	listener := ReplicasetListener{
+	listener := NodeListener{
 		publisher: newPublisher,
 	}
 	return &listener
 }
 
-/*-----------------Replicaset Etcd Handler-----------------*/
+/*-----------------Pod Etcd Handler-----------------*/
 
 // OnSet apiserver设置了对该资源的监听时回调
-func (p ReplicasetListener) OnSet(kv mvccpb.KeyValue) {
+func (p NodeListener) OnSet(kv mvccpb.KeyValue) {
 	log.Printf("ETCD: set watcher of key " + string(kv.Key) + "\n")
 	return
 }
 
 // OnCreate etcd中对应资资源被创建时回调
-func (p ReplicasetListener) OnCreate(kv mvccpb.KeyValue) {
-	log.Printf("ETCD: create key:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
+func (p NodeListener) OnCreate(kv mvccpb.KeyValue) {
+	log.Printf("ETCD: create kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
 	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.CREATE)
-	err := p.publisher.Publish("replicasets", jsonMsg, "CREATE")
+	// forward to scheduler
+	err := p.publisher.Publish("nodes", jsonMsg, "CREATE")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -44,10 +45,11 @@ func (p ReplicasetListener) OnCreate(kv mvccpb.KeyValue) {
 }
 
 // OnModify etcd中对应资源被修改时回调
-func (p ReplicasetListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
-	log.Printf("ETCD: modified new kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
+func (p NodeListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
+	log.Printf("ETCD: modify kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.UPDATE)
-	err := p.publisher.Publish("replicasets", jsonMsg, "PUT")
+	// forward to scheduler
+	err := p.publisher.Publish("nodes", jsonMsg, "PUT")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -56,10 +58,11 @@ func (p ReplicasetListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
 }
 
 // OnDelete etcd中对应资源被删除时回调
-func (p ReplicasetListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
+func (p NodeListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: delete kye:" + string(prevkv.Key) + "\n")
-	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.DELETE)
-	err := p.publisher.Publish("replicasets", jsonMsg, "DEL")
+	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.DELETE)
+	// forward to scheduler
+	err := p.publisher.Publish("nodes", jsonMsg, "DEL")
 	if err != nil {
 		fmt.Println(err.Error())
 		return

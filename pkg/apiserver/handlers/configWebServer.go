@@ -12,6 +12,7 @@ func InitWebServer(container *restful.Container) {
 	nodeWS.Route(nodeWS.GET("/get").To(GetNode))
 	nodeWS.Route(nodeWS.POST("/update").To(UpdateNode))
 	nodeWS.Route(nodeWS.DELETE("/remove").To(RemoveNode))
+	nodeWS.Route(nodeWS.GET("/getAll").To(GetAllNode))
 	container.Add(nodeWS)
 
 	// pod

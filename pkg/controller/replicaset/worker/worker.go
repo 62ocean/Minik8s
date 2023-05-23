@@ -8,6 +8,7 @@ import (
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
+	"log"
 	"strconv"
 )
 
@@ -42,7 +43,7 @@ func (w *worker) Start() {
 	//		return
 	//	}
 	//}
-	fmt.Println("worker start")
+	log.Println("worker start")
 
 	//创建client对pod进行增删改操作
 	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
@@ -79,7 +80,7 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 		return -1, -1
 	}
 
-	//fmt.Println(podList)
+	//log.Println(podList)
 
 	// 统计符合要求的pod个数
 	num := 0
@@ -101,7 +102,7 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 		}
 	}
 
-	fmt.Println(num)
+	log.Println(num)
 
 	return num, maxRepIndex
 }
@@ -143,14 +144,6 @@ func (w *worker) SyncPods() {
 			id, _ := uuid.NewUUID()
 			newPod.Metadata.Uid = id.String()
 			newPod.Metadata.Name = podTemplate.Metadata.Name + "-" + strconv.Itoa(maxRepIndex)
-			oldContainers := podTemplate.Spec.Containers
-			var newContainers []object.Container
-			for _, c := range oldContainers {
-				newC := c
-				newC.Name = c.Name + "-" + strconv.Itoa(maxRepIndex)
-				newContainers = append(newContainers, newC)
-			}
-			newPod.Spec.Containers = newContainers
 			var podJson []byte
 			podJson, _ = json.Marshal(newPod)
 
