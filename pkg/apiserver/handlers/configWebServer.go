@@ -12,6 +12,7 @@ func InitWebServer(container *restful.Container) {
 	nodeWS.Route(nodeWS.GET("/get").To(GetNode))
 	nodeWS.Route(nodeWS.POST("/update").To(UpdateNode))
 	nodeWS.Route(nodeWS.DELETE("/remove").To(RemoveNode))
+	nodeWS.Route(nodeWS.GET("/getAll").To(GetAllNode))
 	container.Add(nodeWS)
 
 	// pod
@@ -22,7 +23,7 @@ func InitWebServer(container *restful.Container) {
 	podWS.Route(podWS.POST("/create").To(CreatePod))
 	podWS.Route(podWS.GET("/get").To(GetPod))
 	podWS.Route(podWS.POST("/update").To(UpdatePod))
-	podWS.Route(podWS.DELETE("/remove").To(RemovePod))
+	podWS.Route(podWS.POST("/remove").To(RemovePod))
 	podWS.Route(podWS.GET("/getAll").To(GetAllPod))
 	container.Add(podWS)
 
@@ -35,6 +36,7 @@ func InitWebServer(container *restful.Container) {
 	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
 	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
 	replicasetWS.Route(replicasetWS.DELETE("/remove").To(RemoveReplicaset))
+	replicasetWS.Route(replicasetWS.GET("/getAll").To(GetAllReplicaset))
 	container.Add(replicasetWS)
 
 	// service

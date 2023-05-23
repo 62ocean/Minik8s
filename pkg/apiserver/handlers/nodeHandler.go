@@ -44,3 +44,11 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 func GetNode(request *restful.Request, response *restful.Response)    {}
 func UpdateNode(request *restful.Request, response *restful.Response) {}
 func RemoveNode(request *restful.Request, response *restful.Response) {}
+func GetAllNode(request *restful.Request, response *restful.Response) {
+	nodeMap := etcd.GetDirectory("/registry/nodes")
+	msg, _ := json.Marshal(nodeMap)
+	_, err := response.Write([]byte(msg))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}

@@ -1,7 +1,14 @@
 package controller
 
 import (
+	_ "encoding/json"
+	_ "github.com/google/uuid"
+	//"k8s/object"
 	"k8s/pkg/controller/replicaset"
+	_ "k8s/pkg/global"
+	_ "k8s/pkg/util/HTTPClient"
+	_ "k8s/pkg/util/parseYaml"
+	_ "log"
 	"sync"
 )
 
@@ -24,8 +31,8 @@ func (m *manager) Start() {
 
 	go m.replicasetController.Start(&wg)
 
-	// test: add a replicaset to apiserver
-	// --------------------------------------
+	//test: add a replicaset to apiserver
+	//--------------------------------------
 
 	//replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
 	//id, _ := uuid.NewUUID()
