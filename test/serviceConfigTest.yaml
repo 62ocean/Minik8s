@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: example-prod
 spec:
+  clusterIP: 10.10.10.10
   selector:
     app: nginx
     env: prod
