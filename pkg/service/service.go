@@ -13,7 +13,7 @@ import (
 
 func ServiceConfigTest() {
 	fmt.Println("测试 service 配置文件读取")
-	dataBytes, err := os.ReadFile("pkg/api/service/serviceConfigTest.yaml")
+	dataBytes, err := os.ReadFile("test/serviceConfigTest.yaml")
 	if err != nil {
 		fmt.Println("读取文件失败:", err)
 		return
@@ -28,9 +28,9 @@ func ServiceConfigTest() {
 	fmt.Printf("解析结果：\n + service -> %+v\n", service)
 }
 
-func ServiceInit() {
-	kube_proxy.KubeProxyInit()
-}
+//func ServiceInit() {
+//	kube_proxy.KubeProxyInit()
+//}
 
 func CreateService(serviceConfig object.Service) {
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)

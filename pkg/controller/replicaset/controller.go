@@ -8,6 +8,7 @@ import (
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
+	"log"
 	"sync"
 )
 
@@ -96,7 +97,7 @@ func (c *controller) ReplicasetChangeHandler(eventType object.EventType, rs obje
 }
 
 func (c *controller) AddReplicaset(rs object.ReplicaSet) {
-	fmt.Print("create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	quit := make(chan int)
 	RSworker := worker.NewWorker(rs, quit)
@@ -105,14 +106,14 @@ func (c *controller) AddReplicaset(rs object.ReplicaSet) {
 }
 
 func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
-	fmt.Print("delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	//RSworker := c.workers[rs.Metadata.Uid]
 	//RSworker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
-	fmt.Print("update replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("update replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	RSworker := c.workers[rs.Metadata.Uid]
 	RSworker.UpdateReplicaset(rs)

@@ -64,6 +64,7 @@ type Pod struct {
 type PodStorage struct {
 	Config  Pod
 	Status  Status
+	Node    string //放node的uid
 	Replica int
 	Node    string //放node的uid
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"k8s/object"
+	"log"
 )
 
 type RSChangeHandler struct {
@@ -12,8 +13,7 @@ type RSChangeHandler struct {
 
 func (h *RSChangeHandler) Handle(msg []byte) {
 
-	fmt.Println("handle rs change!\n")
-	fmt.Println("replicaset receive msg: " + string(msg))
+	log.Println("replicaset receive msg: " + string(msg))
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"k8s/object"
+	"log"
 )
 
 type PodSyncHandler struct {
@@ -12,7 +13,7 @@ type PodSyncHandler struct {
 
 func (h *PodSyncHandler) Handle(msg []byte) {
 
-	fmt.Println("pod receive msg: " + string(msg))
+	log.Println("pod receive msg: " + string(msg))
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)
