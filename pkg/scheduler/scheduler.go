@@ -171,6 +171,9 @@ var roundIndex = 0
 
 func (s *Scheduler) roundRobin(pod *object.PodStorage) {
 	nodeNum := len(s.nodeList)
+	if nodeNum == 0 {
+		log.Println("no node now, scheduler just return")
+	}
 	pod.Node = s.nodeList[roundIndex%nodeNum].Node.Metadata.Uid
 	updateMsg, _ := json.Marshal(pod)
 	response := s.client.Post("/pods/update", updateMsg)
