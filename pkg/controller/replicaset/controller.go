@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"k8s/object"
-	"k8s/pkg/controller/replicaset/worker"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
@@ -22,7 +21,7 @@ type Controller interface {
 }
 
 type controller struct {
-	workers map[string]worker.Worker
+	workers map[string]Worker
 
 	//s监听replicaset的变化，handler处理
 	s       *subscriber.Subscriber
@@ -42,7 +41,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	//初始化当前etcd中的replicaset
 	err := c.ReplicasetInit()
 	if err != nil {
-		fmt.Println("rs init failed")
+		fmt.Println("[rs controller] rs init failed")
 		return
 	}
 
@@ -51,7 +50,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	c.handler = NewReplicasetChangeHandler(c)
 	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
-		fmt.Println("subcribe rs failed")
+		fmt.Println("[rs controller] subcribe rs failed")
 		return
 	}
 
@@ -63,7 +62,7 @@ func (c *controller) ReplicasetInit() error {
 	rsList := new(map[string]string)
 	err := json.Unmarshal([]byte(response), rsList)
 	if err != nil {
-		fmt.Println("unmarshall podlist failed")
+		fmt.Println("[rs controller] unmarshall rslist failed")
 		return err
 	}
 
@@ -73,7 +72,7 @@ func (c *controller) ReplicasetInit() error {
 		var rs object.ReplicaSet
 		err := json.Unmarshal([]byte(value), &rs)
 		if err != nil {
-			fmt.Println("unmarshall rs failed")
+			fmt.Println("[rs controller] unmarshall rs failed")
 			return err
 		}
 		c.AddReplicaset(rs)
@@ -97,22 +96,22 @@ func (c *controller) ReplicasetChangeHandler(eventType object.EventType, rs obje
 }
 
 func (c *controller) AddReplicaset(rs object.ReplicaSet) {
-	log.Print("create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("[rs controller] create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
-	RSworker := worker.NewWorker(rs)
+	RSworker := NewWorker(rs)
 	c.workers[rs.Metadata.Uid] = RSworker
 	go RSworker.Start()
 }
 
 func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
-	log.Print("delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("[rs controller] delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	RSworker := c.workers[rs.Metadata.Uid]
 	RSworker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
-	log.Print("update replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
+	log.Print("[rs controller] update replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
 	RSworker := c.workers[rs.Metadata.Uid]
 	RSworker.UpdateReplicaset(rs)
@@ -120,7 +119,7 @@ func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
 
 func NewController() Controller {
 	c := &controller{}
-	c.workers = make(map[string]worker.Worker)
+	c.workers = make(map[string]Worker)
 
 	return c
 }

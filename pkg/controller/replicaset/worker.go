@@ -1,4 +1,4 @@
-package worker
+package replicaset
 
 import (
 	"encoding/json"
@@ -35,7 +35,7 @@ type worker struct {
 
 func (w *worker) Start() {
 
-	log.Println("worker start")
+	log.Println("[rs worker] worker start")
 
 	//创建client对pod进行增删改操作
 	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
@@ -47,7 +47,7 @@ func (w *worker) Start() {
 	w.handler = NewPodSyncHandler(w)
 	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler))
 	if err != nil {
-		fmt.Println("subcribe pods failed")
+		fmt.Println("[rs worker] subcribe pods failed")
 		return
 	}
 }
@@ -55,7 +55,7 @@ func (w *worker) Start() {
 func (w *worker) Stop() {
 	err := w.s.CloseConnection()
 	if err != nil {
-		fmt.Println("close connection error")
+		fmt.Println("[rs worker] close connection error")
 		return
 	}
 }
@@ -72,7 +72,7 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 	podList := new(map[string]string)
 	err := json.Unmarshal([]byte(response), podList)
 	if err != nil {
-		fmt.Println("unmarshall podlist failed")
+		fmt.Println("[rs worker] unmarshall podlist failed")
 		return -1, -1, nil
 	}
 
@@ -87,7 +87,7 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 		var pod object.PodStorage
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
-			fmt.Println("unmarshall pod failed")
+			fmt.Println("[rs worker] unmarshall pod failed")
 			return -1, -1, nil
 		}
 		if pod.Config.Metadata.Labels.App == w.target.Spec.Selector.MatchLabels.App &&
@@ -100,7 +100,8 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 		}
 	}
 
-	log.Println(num)
+	log.Println("[rs worker] " + w.target.Metadata.Uid + " : " + strconv.Itoa(num))
+	//log.Println(num)
 
 	return num, maxRepIndex, seqNum
 }
@@ -127,7 +128,7 @@ func (w *worker) SyncPods() {
 
 		} else if rsPodNum > w.target.Spec.Replicas {
 			rmPodName := podTemplate.Metadata.Name + "-" + strconv.Itoa(seqNum[0])
-			fmt.Println("remove seq num: " + strconv.Itoa(seqNum[0]))
+			fmt.Println("[rs worker] remove seq num: " + strconv.Itoa(seqNum[0]))
 			seqNum = seqNum[1:]
 
 			var podJson []byte

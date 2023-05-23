@@ -30,7 +30,6 @@ func init() {
 }
 
 func main() {
-	fmt.Println("acs")
 	m := controller.NewManager()
 	m.Start()
 }
