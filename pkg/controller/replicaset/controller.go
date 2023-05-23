@@ -68,7 +68,7 @@ func (c *controller) ReplicasetInit() error {
 
 	// 为当前的所有replicaset都启动一个worker
 	for _, value := range *rsList {
-		fmt.Println(value)
+		//fmt.Println(value)
 		var rs object.ReplicaSet
 		err := json.Unmarshal([]byte(value), &rs)
 		if err != nil {
@@ -82,6 +82,8 @@ func (c *controller) ReplicasetInit() error {
 }
 
 func (c *controller) ReplicasetChangeHandler(eventType object.EventType, rs object.ReplicaSet) {
+
+	//fmt.Print(rs)
 
 	switch eventType {
 	case object.CREATE:
@@ -99,14 +101,14 @@ func (c *controller) AddReplicaset(rs object.ReplicaSet) {
 	quit := make(chan int)
 	RSworker := worker.NewWorker(rs, quit)
 	c.workers[rs.Metadata.Uid] = RSworker
-	RSworker.Start()
+	go RSworker.Start()
 }
 
 func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
 	fmt.Print("delete replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
-	RSworker := c.workers[rs.Metadata.Uid]
-	RSworker.Stop()
+	//RSworker := c.workers[rs.Metadata.Uid]
+	//RSworker.Stop()
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {
