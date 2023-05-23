@@ -53,7 +53,7 @@ func (w *worker) Start() {
 	//创建subscribe监听pod的变化
 	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
 	w.handler = NewPodSyncHandler(w)
-	err := w.s.Subscribe("pods", subscriber.Handler(w.handler))
+	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler))
 	if err != nil {
 		fmt.Println("subcribe pods failed")
 		return
@@ -154,10 +154,6 @@ func (w *worker) SyncPods() {
 			rsPodNum++
 
 		} else if rsPodNum > w.target.Spec.Replicas {
-			// deletePodsToApiserver
-			//replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
-			//id, _ := uuid.NewUUID()
-			//replicasetData.Metadata.Uid = id.String()
 			rmPodName := podTemplate.Metadata.Name + "-" + strconv.Itoa(seqNum[0])
 			fmt.Println("remove seq num: " + strconv.Itoa(seqNum[0]))
 			seqNum = seqNum[1:]
@@ -168,11 +164,6 @@ func (w *worker) SyncPods() {
 			w.client.Post("/pods/remove", podJson)
 
 			rsPodNum--
-			////fmt.Println("rsJson: \n" + string(rsJson))
-			//
-			//client := HTTPClient.CreateHTTPClient(global.ServerHost)
-			//client.Post("/replicasets/create", rsJson)
-			//fmt.Println("add replicaset ok!")
 		}
 	}
 
