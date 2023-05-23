@@ -77,7 +77,7 @@ type ServiceSpec struct {
 	Type      ServiceType
 	Ports     []ServicePort
 	Selector  Labels
-	ClusterIP string
+	ClusterIP string `yaml:"clusterIP"`
 	Pods      []Pod
 }
 
