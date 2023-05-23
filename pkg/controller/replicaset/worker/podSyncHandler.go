@@ -1,9 +1,6 @@
 package worker
 
 import (
-	"encoding/json"
-	"fmt"
-	"k8s/object"
 	"log"
 )
 
@@ -15,21 +12,29 @@ func (h *PodSyncHandler) Handle(msg []byte) {
 
 	log.Println("pod receive msg: " + string(msg))
 
-	var msgObject object.MQMessage
-	err := json.Unmarshal(msg, &msgObject)
-	if err != nil {
-		fmt.Println("[worker] unmarshall msg failed")
-		return
-	}
-
-	//var pod object.Pod
-	//err = json.Unmarshal([]byte(msgObject.Value), &pod)
+	//var msgObject object.MQMessage
+	//err := json.Unmarshal(msg, &msgObject)
+	//if err != nil {
+	//	fmt.Println("[worker] unmarshall msg failed")
+	//	return
+	//}
+	//
+	//var podStorage object.PodStorage
+	//err = json.Unmarshal([]byte(msgObject.Value), &podStorage)
+	//if msgObject.EventType == object.DELETE {
+	//	err = json.Unmarshal([]byte(msgObject.PrevValue), &podStorage)
+	//} else {
+	//	err = json.Unmarshal([]byte(msgObject.Value), &podStorage)
+	//}
 	//if err != nil {
 	//	fmt.Println("[worker] unmarshall changed pod failed")
 	//	return
 	//}
 
+	//if podStorage.Config.Metadata.Labels.App == h.w.target.Spec.Selector.MatchLabels.App &&
+	//	podStorage.Config.Metadata.Labels.Env == h.w.target.Spec.Selector.MatchLabels.Env {
 	h.w.SyncPods()
+	//}
 }
 
 func NewPodSyncHandler(w *worker) *PodSyncHandler {

@@ -36,12 +36,16 @@ func (p PodListener) OnSet(kv mvccpb.KeyValue) {
 func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 	log.Printf("ETCD: create kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
 	podStorage := object.PodStorage{}
-	_ = json.Unmarshal(kv.Value, &podStorage)
+
 	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.CREATE)
 	var err error
+
 	// forward to relicaset
-	log.Println("publish CREATE to pods")
-	err = p.publisher.Publish("pods", jsonMsg, "CREATE")
+	log.Println("publish CREATE to pods_XXX")
+	_ = json.Unmarshal(kv.Value, &podStorage)
+	err = p.publisher.Publish("pods_"+podStorage.Config.Metadata.Labels.App, jsonMsg, "CREATE")
+
+	//_ = json.Unmarshal(kv.Value, &podStorage)
 	// forward to kubelet
 	if podStorage.Node != "" {
 		log.Println("publish CREATE to pods_node")
@@ -56,11 +60,11 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
-	err = p.publisher.Publish("pods", jsonMsg, "CREATE")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//err = p.publisher.Publish("pods", jsonMsg, "CREATE")
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 	return
 }
 
@@ -68,12 +72,21 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: modify kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
 	podStorage := object.PodStorage{}
-	_ = json.Unmarshal(kv.Value, &podStorage)
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.UPDATE)
 	var err error
 	// forward to relicaset
-	log.Println("publish PUT to pods")
-	err = p.publisher.Publish("pods", jsonMsg, "PUT")
+	log.Println("publish PUT to pods_XXX")
+
+	_ = json.Unmarshal(kv.Value, &podStorage)
+	exchangeName1 := "pods_" + podStorage.Config.Metadata.Labels.App
+	err = p.publisher.Publish(exchangeName1, jsonMsg, "PUT")
+	_ = json.Unmarshal(prevkv.Value, &podStorage)
+	exchangeName2 := "pods_" + podStorage.Config.Metadata.Labels.App
+	if exchangeName1 != exchangeName2 {
+		err = p.publisher.Publish(exchangeName2, jsonMsg, "PUT")
+	}
+
+	_ = json.Unmarshal(kv.Value, &podStorage)
 	// forward to kubelet
 	if podStorage.Node != "" {
 		log.Println("publish PUT to pods_node")
@@ -88,11 +101,11 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
-	err = p.publisher.Publish("pods", jsonMsg, "PUT")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//err = p.publisher.Publish("pods", jsonMsg, "PUT")
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 	return
 }
 
@@ -101,9 +114,13 @@ func (p PodListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: delete kye:" + string(prevkv.Key) + "\n")
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.DELETE)
 	var err error
+	var podStorage object.PodStorage
+
 	// forward to relicaset
-	log.Println("publish DEL to pods")
-	err = p.publisher.Publish("pods", jsonMsg, "DEL")
+	log.Println("publish DEL to pods_XXX")
+	_ = json.Unmarshal([]byte(prevkv.Value), &podStorage)
+	err = p.publisher.Publish("pods_"+podStorage.Config.Metadata.Labels.App, jsonMsg, "DEL")
+
 	// forward to kubelet
 	log.Println("publish DEL to pods_node")
 	err = p.publisher.Publish("pods_node", jsonMsg, "DEL")
@@ -111,10 +128,10 @@ func (p PodListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
-	err = p.publisher.Publish("pods", jsonMsg, "DEL")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//err = p.publisher.Publish("pods", jsonMsg, "DEL")
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 	return
 }
