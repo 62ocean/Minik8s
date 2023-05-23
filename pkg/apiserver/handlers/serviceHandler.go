@@ -6,7 +6,7 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
-	service2 "k8s/pkg/kubelet/service"
+	service2 "k8s/pkg/service"
 	"log"
 	"net/http"
 )

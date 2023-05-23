@@ -66,5 +66,4 @@ type PodStorage struct {
 	Status  Status
 	Node    string //放node的uid
 	Replica int
-	Node    string //放node的uid
 }
