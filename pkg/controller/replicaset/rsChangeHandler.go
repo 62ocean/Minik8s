@@ -23,7 +23,12 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 	}
 
 	var rs object.ReplicaSet
-	err = json.Unmarshal([]byte(msgObject.Value), &rs)
+	if msgObject.EventType == object.DELETE {
+		err = json.Unmarshal([]byte(msgObject.PrevValue), &rs)
+	} else {
+		err = json.Unmarshal([]byte(msgObject.Value), &rs)
+	}
+
 	if err != nil {
 		fmt.Println("[rscontroller] unmarshall changed replicaset failed")
 		return

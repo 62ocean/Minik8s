@@ -56,6 +56,11 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
+	err = p.publisher.Publish("pods", jsonMsg, "CREATE")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	return
 }
 
@@ -83,6 +88,11 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
+	err = p.publisher.Publish("pods", jsonMsg, "PUT")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	return
 }
 
@@ -97,6 +107,11 @@ func (p PodListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	// forward to kubelet
 	log.Println("publish DEL to pods_node")
 	err = p.publisher.Publish("pods_node", jsonMsg, "DEL")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	err = p.publisher.Publish("pods", jsonMsg, "DEL")
 	if err != nil {
 		fmt.Println(err.Error())
 		return

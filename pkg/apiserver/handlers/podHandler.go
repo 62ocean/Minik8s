@@ -73,7 +73,19 @@ func UpdatePod(request *restful.Request, response *restful.Response) {
 		}
 	}
 }
-func RemovePod(request *restful.Request, response *restful.Response) {}
+func RemovePod(request *restful.Request, response *restful.Response) {
+	rmPodInfo := object.PodStorage{}
+	err := request.ReadEntity(&rmPodInfo)
+	if err != nil {
+		return
+	}
+	key := "/registry/pods/default/" + rmPodInfo.Config.Metadata.Name + "-" + strconv.Itoa(rmPodInfo.Replica)
+	fmt.Println("delete key : " + key)
+	noError := etcd.Del(key)
+	if !noError {
+		fmt.Println("delete pod error")
+	}
+}
 func GetAllPod(request *restful.Request, response *restful.Response) {
 	podMap := etcd.GetDirectory("/registry/pods")
 	msg, _ := json.Marshal(podMap)

@@ -36,6 +36,7 @@ func InitWebServer(container *restful.Container) {
 	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
 	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
 	replicasetWS.Route(replicasetWS.DELETE("/remove").To(RemoveReplicaset))
+	replicasetWS.Route(replicasetWS.GET("/getAll").To(GetAllReplicaset))
 	container.Add(replicasetWS)
 
 	// service

@@ -67,7 +67,7 @@ func (w *worker) Stop() {
 func (w *worker) UpdateReplicaset(rs object.ReplicaSet) {
 	w.target = rs
 
-	//w.PodChangeHandler()
+	w.SyncPods()
 }
 
 func (w *worker) GetSelectedPodNum() (int, int) {
@@ -86,7 +86,7 @@ func (w *worker) GetSelectedPodNum() (int, int) {
 	num := 0
 	maxRepIndex := 0
 	for _, value := range *podList {
-		log.Println(value)
+		//fmt.Println(value)
 		var pod object.PodStorage
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
@@ -153,6 +153,16 @@ func (w *worker) SyncPods() {
 
 		} else if rsPodNum > w.target.Spec.Replicas {
 			// deletePodsToApiserver
+			//replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
+			//id, _ := uuid.NewUUID()
+			//replicasetData.Metadata.Uid = id.String()
+			//var podJson []byte
+			//podJson, _ = json.Marshal()
+			////fmt.Println("rsJson: \n" + string(rsJson))
+			//
+			//client := HTTPClient.CreateHTTPClient(global.ServerHost)
+			//client.Post("/replicasets/create", rsJson)
+			//fmt.Println("add replicaset ok!")
 		}
 	}
 
