@@ -49,7 +49,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	//创建subscribe监听replicaset的变化
 	c.s, _ = subscriber.NewSubscriber(global.MQHost)
 	c.handler = NewReplicasetChangeHandler(c)
-	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler), nil)
+	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
 		fmt.Println("subcribe rs failed")
 		return
@@ -99,8 +99,7 @@ func (c *controller) ReplicasetChangeHandler(eventType object.EventType, rs obje
 func (c *controller) AddReplicaset(rs object.ReplicaSet) {
 	log.Print("create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 
-	quit := make(chan bool)
-	RSworker := worker.NewWorker(rs, quit)
+	RSworker := worker.NewWorker(rs)
 	c.workers[rs.Metadata.Uid] = RSworker
 	go RSworker.Start()
 }

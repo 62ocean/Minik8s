@@ -24,7 +24,6 @@ type Worker interface {
 
 type worker struct {
 	target object.ReplicaSet
-	quit   chan bool
 
 	//s监听pod的变化，handler处理
 	s       *subscriber.Subscriber
@@ -46,7 +45,7 @@ func (w *worker) Start() {
 	//创建subscribe监听pod的变化
 	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
 	w.handler = NewPodSyncHandler(w)
-	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler), w.quit)
+	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler))
 	if err != nil {
 		fmt.Println("subcribe pods failed")
 		return
@@ -54,7 +53,11 @@ func (w *worker) Start() {
 }
 
 func (w *worker) Stop() {
-	w.quit <- true
+	err := w.s.CloseConnection()
+	if err != nil {
+		fmt.Println("close connection error")
+		return
+	}
 }
 
 func (w *worker) UpdateReplicaset(rs object.ReplicaSet) {
@@ -138,9 +141,8 @@ func (w *worker) SyncPods() {
 
 }
 
-func NewWorker(rs object.ReplicaSet, quit0 chan bool) Worker {
+func NewWorker(rs object.ReplicaSet) Worker {
 	return &worker{
 		target: rs,
-		quit:   quit0,
 	}
 }

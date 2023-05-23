@@ -26,7 +26,7 @@ func NewSubscriber(host string) (*Subscriber, error) {
 }
 
 // Subscribe 将队列与指定交换机绑定并开始监听，传入参数为队列名称、
-func (p *Subscriber) Subscribe(exchangeName string, handler Handler, quit chan bool) error {
+func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 	ch, err := p.connection.Channel()
 	if err != nil {
 		return err
@@ -82,10 +82,7 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler, quit chan b
 		return err
 	}
 
-	//forever := make(chan bool)
-	if quit == nil {
-		quit = make(chan bool)
-	}
+	forever := make(chan bool)
 	// 处理队列中消息的协程
 	go func() {
 		for d := range msgs {
@@ -94,10 +91,10 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler, quit chan b
 			handler.Handle(d.Body)
 		}
 		fmt.Println("forever协程运行到要结束的地方咯")
-		quit <- true
+		forever <- true
 	}()
 
-	<-quit
+	<-forever
 	println("stop subscribe!!!")
 	return nil
 }
