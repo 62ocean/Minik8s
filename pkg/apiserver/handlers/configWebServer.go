@@ -23,7 +23,7 @@ func InitWebServer(container *restful.Container) {
 	podWS.Route(podWS.POST("/create").To(CreatePod))
 	podWS.Route(podWS.GET("/get").To(GetPod))
 	podWS.Route(podWS.POST("/update").To(UpdatePod))
-	podWS.Route(podWS.DELETE("/remove").To(RemovePod))
+	podWS.Route(podWS.POST("/remove").To(RemovePod))
 	podWS.Route(podWS.GET("/getAll").To(GetAllPod))
 	container.Add(podWS)
 

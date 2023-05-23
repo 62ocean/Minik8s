@@ -47,7 +47,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	}
 
 	//创建subscribe监听replicaset的变化
-	c.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	c.s, _ = subscriber.NewSubscriber(global.MQHost)
 	c.handler = NewReplicasetChangeHandler(c)
 	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
