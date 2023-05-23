@@ -1,0 +1,10 @@
+k8s.example1.com {
+  etcd {
+    endpoint http://localhost:2379
+    path /coredns
+  }
+}
+. {
+  forward . 144.144.144.144
+  cache 30
+}
