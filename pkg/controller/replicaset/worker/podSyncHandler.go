@@ -22,12 +22,12 @@ func (h *PodSyncHandler) Handle(msg []byte) {
 		return
 	}
 
-	var pod object.PodStorage
-	err = json.Unmarshal([]byte(msgObject.PrevValue), &pod)
-	if err != nil {
-		fmt.Println("[worker] unmarshall changed pod failed")
-		return
-	}
+	//var pod object.Pod
+	//err = json.Unmarshal([]byte(msgObject.Value), &pod)
+	//if err != nil {
+	//	fmt.Println("[worker] unmarshall changed pod failed")
+	//	return
+	//}
 
 	h.w.SyncPods()
 }
