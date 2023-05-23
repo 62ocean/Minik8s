@@ -24,7 +24,7 @@ type Worker interface {
 
 type worker struct {
 	target object.ReplicaSet
-	quit   chan int
+	quit   chan bool
 
 	//s监听pod的变化，handler处理
 	s       *subscriber.Subscriber
@@ -35,14 +35,7 @@ type worker struct {
 }
 
 func (w *worker) Start() {
-	//for {
-	//	// watch(topic_pod, PodChangeHandler)
-	//
-	//	select {
-	//	case <-w.quit:
-	//		return
-	//	}
-	//}
+
 	log.Println("worker start")
 
 	//创建client对pod进行增删改操作
@@ -53,7 +46,7 @@ func (w *worker) Start() {
 	//创建subscribe监听pod的变化
 	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
 	w.handler = NewPodSyncHandler(w)
-	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler))
+	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler), w.quit)
 	if err != nil {
 		fmt.Println("subcribe pods failed")
 		return
@@ -61,7 +54,7 @@ func (w *worker) Start() {
 }
 
 func (w *worker) Stop() {
-	w.quit <- 1
+	w.quit <- true
 }
 
 func (w *worker) UpdateReplicaset(rs object.ReplicaSet) {
@@ -109,30 +102,6 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 	return num, maxRepIndex, seqNum
 }
 
-//func (w *worker) PodSyncHandler(pod object.Pod) {
-//	// TODO 上锁
-//
-//	// 设msg.pod为发生变化的Pod
-//
-//	if pod.Metadata.Labels.App != w.target.Spec.Selector.MatchLabels.App ||
-//		pod.Metadata.Labels.Env != w.target.Spec.Selector.MatchLabels.Env {
-//		return
-//	} else {
-//		// list(pods)
-//		//var podsList []object.Pod
-//		//rsPodNum := 0
-//		//
-//		//for _, value := range podsList {
-//		//	if value.Metadata.Labels.App == w.target.Spec.Selector.MatchLabels.App &&
-//		//		value.Metadata.Labels.Env == w.target.Spec.Selector.MatchLabels.Env {
-//		//		rsPodNum++
-//		//	}
-//		//}
-//
-//		w.SyncPods(w.GetSelectedPodNum())
-//	}
-//}
-
 func (w *worker) SyncPods() {
 	podTemplate := w.target.Spec.PodTemplate
 
@@ -169,7 +138,7 @@ func (w *worker) SyncPods() {
 
 }
 
-func NewWorker(rs object.ReplicaSet, quit0 chan int) Worker {
+func NewWorker(rs object.ReplicaSet, quit0 chan bool) Worker {
 	return &worker{
 		target: rs,
 		quit:   quit0,
