@@ -14,5 +14,5 @@ func (h handler) Handle(msg []byte) {
 func main() {
 	s, _ := NewSubscriber("amqp://guest:guest@localhost:5672/")
 	h := handler{}
-	s.Subscribe("nodeQueue", Handler(h))
+	s.Subscribe("nodeQueue", Handler(h), nil)
 }
