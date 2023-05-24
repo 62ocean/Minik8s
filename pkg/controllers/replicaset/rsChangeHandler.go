@@ -13,12 +13,12 @@ type RSChangeHandler struct {
 
 func (h *RSChangeHandler) Handle(msg []byte) {
 
-	log.Println("[rs controller] replicaset receive msg: " + string(msg))
+	log.Println("[rs controllers] replicaset receive msg: " + string(msg))
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)
 	if err != nil {
-		fmt.Println("[rs controller] unmarshall msg failed")
+		fmt.Println("[rs controllers] unmarshall msg failed")
 		return
 	}
 
@@ -30,7 +30,7 @@ func (h *RSChangeHandler) Handle(msg []byte) {
 	}
 
 	if err != nil {
-		fmt.Println("[rs controller] unmarshall changed replicaset failed")
+		fmt.Println("[rs controllers] unmarshall changed replicaset failed")
 		return
 	}
 
