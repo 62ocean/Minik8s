@@ -23,7 +23,7 @@ type Controller interface {
 
 // 使用接口避免包依赖循环
 type manager interface {
-	GetrsController() replicaset.Controller
+	GetRSController() replicaset.Controller
 }
 
 type controller struct {
@@ -100,9 +100,16 @@ func (c *controller) HpaInit() error {
 func (c *controller) AddHpa(hpa object.Hpa) {
 	log.Print("[hpa controllers] create hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//HPAworker := NewWorker(hpa)
-	//c.workers[hpa.Metadata.Uid] = HPAworker
-	//go HPAworker.Start()
+	RSworkers := c.m.GetRSController().GetAllWorkers()
+	targetRSworker, ok := RSworkers[hpa.Spec.ScaleTargetRef.Name]
+	if !ok {
+		log.Println("[hpa controller] create hpa failed (target rs doesn't exist)")
+		return
+	}
+
+	HPAworker := NewWorker(hpa, c.cache, targetRSworker)
+	c.workers[hpa.Metadata.Uid] = HPAworker
+	go HPAworker.Start()
 }
 
 func (c *controller) DeleteHpa(hpa object.Hpa) {

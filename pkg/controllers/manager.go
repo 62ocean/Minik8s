@@ -1,9 +1,17 @@
 package controllers
 
 import (
+	"encoding/json"
 	_ "encoding/json"
+	"fmt"
+	"github.com/google/uuid"
 	_ "github.com/google/uuid"
+	"k8s/object"
 	"k8s/pkg/controllers/hpa"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
+
 	//"k8s/object"
 	"k8s/pkg/controllers/replicaset"
 	_ "k8s/pkg/global"
@@ -48,24 +56,28 @@ func (m *Manager) Start() {
 	//test: add a hpa to apiserver
 	//--------------------------------------
 
-	//hpaData := parseYaml.ParseYaml[object.Hpa]("test/hpaConfigTest.yaml")
-	//id, _ := uuid.NewUUID()
-	//hpaData.Metadata.Uid = id.String()
-	//var rsJson []byte
-	//rsJson, _ = json.Marshal(hpaData)
-	////fmt.Println("rsJson: \n" + string(rsJson))
-	//
-	//client := HTTPClient.CreateHTTPClient(global.ServerHost)
-	//client.Post("/hpas/create", rsJson)
-	//fmt.Println("add hpa ok!")
+	hpaData := parseYaml.ParseYaml[object.Hpa]("test/hpaConfigTest.yaml")
+	id, _ := uuid.NewUUID()
+	hpaData.Metadata.Uid = id.String()
+	var rsJson []byte
+	rsJson, _ = json.Marshal(hpaData)
+	//fmt.Println("rsJson: \n" + string(rsJson))
+
+	client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	client.Post("/hpas/create", rsJson)
+	fmt.Println("add hpa ok!")
 	//--------------------------------------
 
 	// 等待所有协程执行完毕
 	wg.Wait()
 }
 
-func (m *Manager) GetrsController() replicaset.Controller {
+func (m *Manager) GetRSController() replicaset.Controller {
 	return m.replicasetController
+}
+
+func (m *Manager) GetHPAController() hpa.Controller {
+	return m.hpaController
 }
 
 func NewManager() *Manager {

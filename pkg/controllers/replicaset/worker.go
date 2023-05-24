@@ -20,6 +20,8 @@ type Worker interface {
 
 	GetSelectedPodNum() (int, int, []int)
 	SyncPods()
+
+	GetRS() object.ReplicaSet
 }
 
 type worker struct {
@@ -140,6 +142,10 @@ func (w *worker) SyncPods() {
 		}
 	}
 
+}
+
+func (w *worker) GetRS() object.ReplicaSet {
+	return w.target
 }
 
 func NewWorker(rs object.ReplicaSet) Worker {
