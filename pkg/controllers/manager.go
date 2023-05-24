@@ -1,11 +1,11 @@
-package controller
+package controllers
 
 import (
 	_ "encoding/json"
 	_ "github.com/google/uuid"
-	"k8s/pkg/controller/hpa"
+	"k8s/pkg/controllers/hpa"
 	//"k8s/object"
-	"k8s/pkg/controller/replicaset"
+	"k8s/pkg/controllers/replicaset"
 	_ "k8s/pkg/global"
 	_ "k8s/pkg/util/HTTPClient"
 	_ "k8s/pkg/util/parseYaml"
@@ -17,16 +17,12 @@ const (
 	controllerNum = 2
 )
 
-type Manager interface {
-	Start()
-}
-
-type manager struct {
+type Manager struct {
 	replicasetController replicaset.Controller
 	hpaController        hpa.Controller
 }
 
-func (m *manager) Start() {
+func (m *Manager) Start() {
 
 	var wg sync.WaitGroup
 	wg.Add(controllerNum)
@@ -68,12 +64,16 @@ func (m *manager) Start() {
 	wg.Wait()
 }
 
-func NewManager() Manager {
-	m := &manager{}
+func (m *Manager) GetrsController() replicaset.Controller {
+	return m.replicasetController
+}
+
+func NewManager() *Manager {
+	m := &Manager{}
 
 	// 创建各种controller
 	m.replicasetController = replicaset.NewController()
-	m.hpaController = hpa.NewController()
+	m.hpaController = hpa.NewController(m)
 
 	return m
 }

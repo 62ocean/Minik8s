@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"k8s/object"
+	"k8s/pkg/controllers/replicaset"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
@@ -20,7 +21,17 @@ type Controller interface {
 	UpdateHpa(rs object.Hpa)
 }
 
+// 使用接口避免包依赖循环
+type manager interface {
+	GetrsController() replicaset.Controller
+}
+
 type controller struct {
+	//controller manager的接口， 用于与其他controller的通信
+	m manager
+
+	cache Cache
+
 	workers map[string]Worker
 
 	//s监听hpa的变化，handler处理
@@ -41,9 +52,12 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	//初始化当前etcd中的hpa
 	err := c.HpaInit()
 	if err != nil {
-		fmt.Println("[hpa controller] hpa init failed")
+		fmt.Println("[hpa controllers] hpa init failed")
 		return
 	}
+
+	// cache开始自动同步pod的状态
+	go c.cache.SyncLoop()
 
 	//创建subscribe监听hpa的变化
 	c.s, _ = subscriber.NewSubscriber(global.MQHost)
@@ -52,7 +66,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	}
 	err = c.s.Subscribe("hpas", subscriber.Handler(c.handler))
 	if err != nil {
-		fmt.Println("[hpa controller] subscribe hpa failed")
+		fmt.Println("[hpa controllers] subscribe hpa failed")
 		return
 	}
 
@@ -64,7 +78,7 @@ func (c *controller) HpaInit() error {
 	hpaList := new(map[string]string)
 	err := json.Unmarshal([]byte(response), hpaList)
 	if err != nil {
-		fmt.Println("[hpa controller] unmarshall hpalist failed")
+		fmt.Println("[hpa controllers] unmarshall hpalist failed")
 		return err
 	}
 
@@ -74,7 +88,7 @@ func (c *controller) HpaInit() error {
 		var hpa object.Hpa
 		err := json.Unmarshal([]byte(value), &hpa)
 		if err != nil {
-			fmt.Println("[hpa controller] unmarshall hpa failed")
+			fmt.Println("[hpa controllers] unmarshall hpa failed")
 			return err
 		}
 		c.AddHpa(hpa)
@@ -84,30 +98,32 @@ func (c *controller) HpaInit() error {
 }
 
 func (c *controller) AddHpa(hpa object.Hpa) {
-	log.Print("[hpa controller] create hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
+	log.Print("[hpa controllers] create hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//RSworker := NewWorker(rs)
-	//c.workers[rs.Metadata.Uid] = RSworker
-	//go RSworker.Start()
+	//HPAworker := NewWorker(hpa)
+	//c.workers[hpa.Metadata.Uid] = HPAworker
+	//go HPAworker.Start()
 }
 
 func (c *controller) DeleteHpa(hpa object.Hpa) {
-	log.Print("[hpa controller] delete hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
+	log.Print("[hpa controllers] delete hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//RSworker := c.workers[rs.Metadata.Uid]
-	//RSworker.Stop()
+	//HPAworker := c.workers[hpa.Metadata.Uid]
+	//HPAworker.Stop()
 
 }
 func (c *controller) UpdateHpa(hpa object.Hpa) {
-	log.Print("[hpa controller] update hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
+	log.Print("[hpa controllers] update hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//RSworker := c.workers[rs.Metadata.Uid]
-	//RSworker.UpdateReplicaset(rs)
+	//HPAworker := c.workers[hpa.Metadata.Uid]
+	//HPAworker.UpdateHpa(hpa)
 }
 
-func NewController() Controller {
+func NewController(manager manager) Controller {
 	c := &controller{}
 	c.workers = make(map[string]Worker)
+	c.m = manager
+	c.cache = NewCache()
 
 	return c
 }
@@ -118,12 +134,12 @@ type hpaHandler struct {
 }
 
 func (h *hpaHandler) Handle(msg []byte) {
-	log.Println("[hpa controller] hpa receive msg: " + string(msg))
+	log.Println("[hpa controllers] hpa receive msg: " + string(msg))
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)
 	if err != nil {
-		fmt.Println("[hpa controller] unmarshall msg failed")
+		fmt.Println("[hpa controllers] unmarshall msg failed")
 		return
 	}
 
@@ -135,7 +151,7 @@ func (h *hpaHandler) Handle(msg []byte) {
 	}
 
 	if err != nil {
-		fmt.Println("[hpa controller] unmarshall changed hpa failed")
+		fmt.Println("[hpa controllers] unmarshall changed hpa failed")
 		return
 	}
 
