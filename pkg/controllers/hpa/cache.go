@@ -42,7 +42,7 @@ func (cache *cache) SyncLoop() {
 	for range ticker.C {
 		log.Println("[hpa cache] update pod status")
 		cache.UpdatePodStatus()
-		fmt.Println(cache.podList)
+		//fmt.Println(cache.podList)
 	}
 }
 

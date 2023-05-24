@@ -70,6 +70,6 @@ type PodStorage struct {
 }
 
 type RunningMetrics struct {
-	CPUStatus int
-	MemStatus int
+	CPUUtil float64
+	MemUtil float64
 }
