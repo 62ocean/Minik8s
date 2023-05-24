@@ -10,6 +10,9 @@ import (
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"log"
+	"strconv"
+	"sync"
+	"time"
 )
 
 //----------------KUBELET---------------------
@@ -21,6 +24,7 @@ type Kubelet struct {
 	podQueue      string
 	podHandler    podHandler
 	pods          []object.PodStorage
+	mutex         sync.Mutex
 }
 
 // NewKubelet kubelet对象的构造函数
@@ -67,7 +71,8 @@ func (kub *Kubelet) Run() {
 	json.Unmarshal([]byte(response), podList)
 
 	// 遍历pod列表，运行在本node上的pod予以启动
-	log.Println("Len of PodList: " + string(len(*podList)))
+	log.Println("Len of PodList: " + strconv.Itoa(len(*podList)))
+	kub.mutex.Lock()
 	for _, val := range *podList {
 		podInfo := object.PodStorage{}
 		_ = json.Unmarshal([]byte(val), &podInfo)
@@ -75,6 +80,17 @@ func (kub *Kubelet) Run() {
 			kub.createPod(podInfo)
 		}
 	}
+	kub.mutex.Unlock()
+
+	//开启协程监听本地container变化 (每隔一秒轮询一次)
+	go func() {
+		// 等待初始化工作结束再开始监听
+		time.Sleep(time.Second * 10)
+		for {
+			kub.watchPods()
+			time.Sleep(time.Second * 3)
+		}
+	}()
 
 	// 开始监听消息队列中pod的增量信息
 	err := kub.podSubscriber.Subscribe(kub.podQueue, subscriber.Handler(kub.podHandler))
@@ -84,6 +100,14 @@ func (kub *Kubelet) Run() {
 	}
 }
 
+// StopKubelet 释放kubelet资源
+func StopKubelet(kl *Kubelet) {
+	if kl == nil {
+		return
+	}
+	kl.client.Del("/nodes/remove/" + kl.node.IP)
+}
+
 // --------------------POD STATUS LISTENER----------------
 type podHandler struct {
 	nodeID string
@@ -91,6 +115,7 @@ type podHandler struct {
 }
 
 func (h podHandler) Handle(jsonMsg []byte) {
+	h.kub.mutex.Lock()
 	log.Println("Node get subscribe: " + string(jsonMsg))
 	msg := object.MQMessage{}
 	podStorage := object.PodStorage{}
@@ -98,7 +123,6 @@ func (h podHandler) Handle(jsonMsg []byte) {
 	_ = json.Unmarshal(jsonMsg, &msg)
 	_ = json.Unmarshal([]byte(msg.Value), &podStorage)
 	_ = json.Unmarshal([]byte(msg.PrevValue), &prevPodStorage)
-	log.Println("type： " + string(rune(msg.EventType)))
 	switch msg.EventType {
 	case object.CREATE:
 		if podStorage.Node == h.nodeID {
@@ -115,6 +139,7 @@ func (h podHandler) Handle(jsonMsg []byte) {
 					// 对本node已有节点进行修改（若非单纯的状态变化，直接删除了pod重创即可）
 					h.kub.deletePod(prevPodStorage)
 					h.kub.createPod(podStorage)
+					h.kub.watchPods()
 				}
 			}
 		} else {
@@ -128,13 +153,14 @@ func (h podHandler) Handle(jsonMsg []byte) {
 			h.kub.deletePod(prevPodStorage)
 		}
 	}
+	h.kub.mutex.Unlock()
 }
 
 // ----------------------POD WORKER----------------------
 
-func (kub Kubelet) createPod(podInfo object.PodStorage) {
+func (kub *Kubelet) createPod(podInfo object.PodStorage) {
 	//启动pod与相关容器
-	log.Println("begin to crate pod" + podInfo.Config.Metadata.Name)
+	log.Println("Begin to crate pod" + podInfo.Config.Metadata.Name)
 	err := pod.CreatePod(&podInfo.Config)
 	if err != nil {
 		log.Println("Create pod error:")
@@ -143,12 +169,7 @@ func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	}
 
 	// 运行相关容器
-	err = pod.StartPod(&podInfo.Config)
-	if err != nil {
-		log.Println("Create pod error:")
-		log.Println(err.Error())
-		return
-	}
+	pod.StartPod(&podInfo.Config)
 
 	//通知apiServer保存status
 	podInfo.Status = object.RUNNING
@@ -162,20 +183,10 @@ func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	}
 }
 
-func (kub Kubelet) deletePod(podInfo object.PodStorage) {
+func (kub *Kubelet) deletePod(podInfo object.PodStorage) {
 	log.Println("begin to delete pod" + podInfo.Config.Metadata.Name)
 	//删除pod与相关容器
-	err := pod.RemovePod(&podInfo.Config)
-	if err != nil {
-		log.Println("Remove pod error:")
-		log.Println(err.Error())
-		return
-	}
-	//通知apiServer保存status(不保存，防止数据竞争)————scheduler要在改位置的时候把STATUS设置为STOPPED
-	//podInfo.Status = object.STOPPED
-	//updateMsg, _ := json.Marshal(podInfo)
-	//resp := kub.client.Post("/pods/update", updateMsg)
-	//if resp == "ok" {
+	pod.RemovePod(&podInfo.Config)
 	var newPods []object.PodStorage
 	for _, v := range kub.pods {
 		if v.Config.Metadata.Uid != podInfo.Config.Metadata.Uid {
@@ -183,5 +194,27 @@ func (kub Kubelet) deletePod(podInfo object.PodStorage) {
 		}
 	}
 	kub.pods = newPods
+}
 
+// 定期监视本地容器,在不影响pod的情况下在自动重启容器（ps 双层循环嵌套，一个node管多个pod，一个pod有多个container）
+func (kub *Kubelet) watchPods() {
+	kub.mutex.Lock()
+	for _, myPod := range kub.pods {
+		update, err := pod.SyncPod(&myPod.Config)
+		if err != nil {
+			fmt.Println(err.Error())
+			kub.mutex.Unlock()
+			return
+		}
+		if update {
+			updateMsg, _ := json.Marshal(myPod)
+			resp := kub.client.Post("/pods/update", updateMsg)
+			if resp == "ok" {
+				log.Println("update pod's containers")
+			} else {
+				log.Println("cannot update pod's containers")
+			}
+		}
+	}
+	kub.mutex.Unlock()
 }

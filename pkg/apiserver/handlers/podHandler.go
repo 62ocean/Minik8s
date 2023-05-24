@@ -50,7 +50,7 @@ func GetPod(request *restful.Request, response *restful.Response) {}
 func UpdatePod(request *restful.Request, response *restful.Response) {
 	newPodInfo := object.PodStorage{}
 	err := request.ReadEntity(&newPodInfo)
-	fmt.Println(newPodInfo)
+	log.Println(newPodInfo)
 	if err != nil {
 		log.Println(err)
 		return
@@ -79,12 +79,12 @@ func RemovePod(request *restful.Request, response *restful.Response) {
 	if err != nil {
 		return
 	}
-	fmt.Println(rmPodName)
+	log.Println(rmPodName)
 	key := "/registry/pods/default/" + rmPodName
-	fmt.Println("delete key : " + key)
+	log.Println("delete key : " + key)
 	noError := etcd.Del(key)
 	if !noError {
-		fmt.Println("delete pod error")
+		log.Println("delete pod error")
 	}
 }
 func GetAllPod(request *restful.Request, response *restful.Response) {
