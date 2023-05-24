@@ -21,12 +21,8 @@ func CreatePod(podConfig *object2.Pod) error {
 	for _, configItem := range podConfig.Spec.Containers {
 		images = append(images, configItem.Image)
 	}
-	err := ListImage()
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-	err = PullImages(images)
+
+	err := PullImages(images)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -50,31 +46,29 @@ func CreatePod(podConfig *object2.Pod) error {
 
 	// 打印容器信息
 	for _, it := range containerMeta {
-		fmt.Println(it.Name, " id:", it.ContainerID)
+		log.Println(it.Name, " id:", it.ContainerID)
 	}
 
 	return nil
 }
 
-func StartPod(podConfig *object2.Pod) error {
+func StartPod(podConfig *object2.Pod) {
 	containerMeta := podConfig.Spec.ContainerMeta
 	// 开启容器
 	for _, it := range containerMeta {
 		StartContainer(it.ContainerID)
 	}
-	return nil
 }
 
-func ClosePod(podConfig *object2.Pod) error {
+func ClosePod(podConfig *object2.Pod) {
 	containerMeta := podConfig.Spec.ContainerMeta
 	// 关闭容器
 	for _, it := range containerMeta {
 		StopContainer(it.ContainerID)
 	}
-	return nil
 }
 
-func RemovePod(podConfig *object2.Pod) error {
+func RemovePod(podConfig *object2.Pod) {
 	log.Println("remove pod now")
 	containerMeta := podConfig.Spec.ContainerMeta
 	// 关闭容器
@@ -87,5 +81,20 @@ func RemovePod(podConfig *object2.Pod) error {
 		log.Println("remove container " + it.Name)
 		RemoveContainer(it.ContainerID)
 	}
-	return nil
+}
+
+// SyncPod 返回的bool值若为true表示pod状态需要更新了
+func SyncPod(podConfig *object2.Pod) (update bool, err error) {
+	for _, container := range podConfig.Spec.ContainerMeta {
+		if SyncLocalContainer(container) == false {
+			// container目前不存在了，我们选择把容器都关了重新起个pod
+			RemovePod(podConfig)
+			err = CreatePod(podConfig)
+			if err != nil {
+				return false, err
+			}
+			return true, nil
+		}
+	}
+	return false, nil
 }

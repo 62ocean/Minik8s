@@ -136,7 +136,7 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 	switch msg.EventType {
 	case object.CREATE:
 		h.sched.nodeList = append(h.sched.nodeList, nodeStorage)
-		break
+		h.sched.scheduleAllPod()
 	case object.UPDATE:
 		// TODO: 暂时没考虑node状态被修改的问题，建议是node要停止工作的话直接从etcd里删掉？
 		var newList []object.NodeStorage
@@ -148,7 +148,6 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 			}
 		}
 		h.sched.nodeList = newList
-		break
 	case object.DELETE:
 		var newList []object.NodeStorage
 		for _, node := range h.sched.nodeList {
@@ -161,7 +160,6 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 		h.sched.nodeList = newList
 		// 将分布在该node上的pod重新调配至其他node上
 		h.sched.reschedule(prevNodeStorage.Node.Metadata.Uid)
-		break
 	}
 }
 
@@ -172,13 +170,23 @@ var roundIndex = 0
 func (s *Scheduler) roundRobin(pod *object.PodStorage) {
 	nodeNum := len(s.nodeList)
 	if nodeNum == 0 {
-		log.Println("no node now, scheduler just return")
-	}
-	pod.Node = s.nodeList[roundIndex%nodeNum].Node.Metadata.Uid
-	updateMsg, _ := json.Marshal(pod)
-	response := s.client.Post("/pods/update", updateMsg)
-	if response != "ok" {
-		fmt.Println("err when alloc node for pod " + pod.Config.Metadata.Name + " response: " + response)
+		if pod.Node == "" {
+			return
+		}
+		pod.Node = ""
+		updateMsg, _ := json.Marshal(pod)
+		response := s.client.Post("/pods/update", updateMsg)
+		if response != "ok" {
+			fmt.Println("err when alloc node for pod " + pod.Config.Metadata.Name + " response: " + response)
+		}
+	} else {
+		pod.Node = s.nodeList[roundIndex%nodeNum].Node.Metadata.Uid
+		updateMsg, _ := json.Marshal(pod)
+		response := s.client.Post("/pods/update", updateMsg)
+		if response != "ok" {
+			fmt.Println("err when alloc node for pod " + pod.Config.Metadata.Name + " response: " + response)
+		}
+
 	}
 }
 
