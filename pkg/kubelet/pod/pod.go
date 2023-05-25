@@ -3,12 +3,13 @@ package pod
 import (
 	"fmt"
 	object2 "k8s/object"
+	"k8s/pkg/kubelet/cache"
 	"log"
 )
 
 var ipCnt = 0
 
-func CreatePod(podConfig *object2.Pod) error {
+func CreatePod(podConfig object2.Pod) ([]cache.ContainerMeta, error) {
 	// 分配podip
 	//localNodeNetWork := flannel.GetLocalNodeNetwork()
 	////subnetPrefix: x.x.x
@@ -25,52 +26,49 @@ func CreatePod(podConfig *object2.Pod) error {
 	err := PullImages(images)
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return nil, err
 	}
 
 	// 创建emptyDir数据卷（pod中的各个容器共享）
 	_, err = createVolumes(podConfig.Spec.Volumes)
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return nil, err
 	}
 
 	// 创建pod中的容器并运行
-	var containerMeta []object2.ContainerMeta
+	var containerMeta []cache.ContainerMeta
 	containerMeta, err = CreateContainers(podConfig.Spec.Containers, podConfig.Metadata.Name)
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return nil, err
 	}
-	podConfig.Spec.ContainerMeta = containerMeta
 
 	// 打印容器信息
 	for _, it := range containerMeta {
 		log.Println(it.Name, " id:", it.ContainerID)
 	}
 
-	return nil
+	return containerMeta, nil
 }
 
-func StartPod(podConfig *object2.Pod) {
-	containerMeta := podConfig.Spec.ContainerMeta
+func StartPod(containers []cache.ContainerMeta) {
 	// 开启容器
-	for _, it := range containerMeta {
+	for _, it := range containers {
 		StartContainer(it.ContainerID)
 	}
 }
 
-func ClosePod(podConfig *object2.Pod) {
-	containerMeta := podConfig.Spec.ContainerMeta
+func ClosePod(containers []cache.ContainerMeta) {
 	// 关闭容器
-	for _, it := range containerMeta {
+	for _, it := range containers {
 		StopContainer(it.ContainerID)
 	}
 }
 
-func RemovePod(podConfig *object2.Pod) {
+func RemovePod(podConfig *cache.PodCache) {
 	log.Println("remove pod now")
-	containerMeta := podConfig.Spec.ContainerMeta
+	containerMeta := podConfig.ContainerMeta
 	// 关闭容器
 	for _, it := range containerMeta {
 		log.Println("stop container " + it.Name)
@@ -83,16 +81,11 @@ func RemovePod(podConfig *object2.Pod) {
 	}
 }
 
-// SyncPod 返回的bool值若为true表示pod状态需要更新了
-func SyncPod(podConfig *object2.Pod) (update bool, err error) {
-	for _, container := range podConfig.Spec.ContainerMeta {
+// SyncPod 返回的bool值若为true表示pod需要更新重启了
+func SyncPod(podConfig *cache.PodCache) (update bool, err error) {
+	for _, container := range podConfig.ContainerMeta {
 		if SyncLocalContainer(container) == false {
-			// container目前不存在了，我们选择把容器都关了重新起个pod
-			RemovePod(podConfig)
-			err = CreatePod(podConfig)
-			if err != nil {
-				return false, err
-			}
+			// container目前不存在了，我们选择把pod都关了重新起个pod
 			return true, nil
 		}
 	}

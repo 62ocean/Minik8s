@@ -31,7 +31,6 @@ func init() {
 
 func main() {
 	kl, _ := kubelet.NewKubelet("node1")
-	// TODO: 被用户无情打断时是没法执行defer的，此处的容错机制待实现
 	defer kubelet.StopKubelet(kl)
 	// 创建kubelet对象
 	kl.Run()

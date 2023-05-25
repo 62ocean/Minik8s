@@ -13,6 +13,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"io"
 	"k8s/object"
+	"k8s/pkg/kubelet/cache"
 	"log"
 	"strconv"
 	"strings"
@@ -180,7 +181,7 @@ func ListContainer() ([]types.Container, error) {
 }
 
 // SyncLocalContainer 查看本地是否正在运行该容器
-func SyncLocalContainer(container object.ContainerMeta) bool {
+func SyncLocalContainer(container cache.ContainerMeta) bool {
 	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{
 		All: true,
 	})
@@ -205,8 +206,8 @@ func SyncLocalContainer(container object.ContainerMeta) bool {
 }
 
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container, podName string) ([]object.ContainerMeta, error) {
-	var result []object.ContainerMeta
+func CreateContainers(containerConfigs []object.Container, podName string) ([]cache.ContainerMeta, error) {
+	var result []cache.ContainerMeta
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -228,7 +229,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, object.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
+	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -284,7 +285,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, object.ContainerMeta{
+		result = append(result, cache.ContainerMeta{
 			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
 		})
