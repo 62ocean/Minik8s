@@ -43,14 +43,8 @@ type VolumeConfig struct {
 }
 
 type PodSpec struct {
-	Containers    []Container    `yaml:"containers"`
-	Volumes       []VolumeConfig `yaml:"volumes"`
-	ContainerMeta []ContainerMeta
-}
-
-type ContainerMeta struct {
-	Name        string
-	ContainerID string
+	Containers []Container    `yaml:"containers"`
+	Volumes    []VolumeConfig `yaml:"volumes"`
 }
 
 type Pod struct {
