@@ -45,7 +45,7 @@ func (w *worker) Start() {
 	w.SyncPods()
 
 	//创建subscribe监听pod的变化
-	w.s, _ = subscriber.NewSubscriber("amqp://guest:guest@localhost:5672/")
+	w.s, _ = subscriber.NewSubscriber(global.MQHost)
 	w.handler = NewPodSyncHandler(w)
 	err := w.s.Subscribe("pods_"+w.target.Spec.Selector.MatchLabels.App, subscriber.Handler(w.handler))
 	if err != nil {

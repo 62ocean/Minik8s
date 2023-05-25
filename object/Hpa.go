@@ -31,6 +31,6 @@ type Resource struct {
 }
 
 type Target struct {
-	Type               string `yaml:"type"`
-	AverageUtilization int    `yaml:"averageUtilization"`
+	Type               string  `yaml:"type"`
+	AverageUtilization float64 `yaml:"averageUtilization"`
 }

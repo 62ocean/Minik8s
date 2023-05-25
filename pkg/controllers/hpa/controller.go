@@ -136,6 +136,7 @@ func NewController(manager manager) Controller {
 }
 
 // --------------------hpa change handler----------------
+
 type hpaHandler struct {
 	c *controller
 }
