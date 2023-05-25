@@ -5,11 +5,21 @@ import (
 	"k8s/pkg/kubelet"
 	"log"
 	"os"
+	"runtime"
 )
 
 func init() {
-	//logFile, err := os.OpenFile("log/kubelet"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	logFile, err := os.OpenFile("log/kubelet.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	sysType := runtime.GOOS
+	var logFile *os.File
+	var err error
+	if sysType == "linux" || sysType == "darwin" {
+		// LINUX系统或者MAC
+		logFile, err = os.OpenFile("../../log/kubelet.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
+	}
+	if sysType == "windows" {
+		// windows系统
+		logFile, err = os.OpenFile("log/kubelet.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
+	}
 	if err != nil {
 		fmt.Println("open log file failed, err:", err)
 		return
@@ -20,7 +30,8 @@ func init() {
 }
 
 func main() {
-	// 创建kubelet对象
 	kl, _ := kubelet.NewKubelet("node1")
+	defer kubelet.StopKubelet(kl)
+	// 创建kubelet对象
 	kl.Run()
 }

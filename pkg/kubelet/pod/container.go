@@ -13,8 +13,10 @@ import (
 	"github.com/docker/go-connections/nat"
 	"io"
 	"k8s/object"
+	"k8s/pkg/kubelet/cache"
 	"log"
 	"strconv"
+	"strings"
 )
 
 var Client = newClient()
@@ -162,9 +164,50 @@ func isVolumeExisted(name string) (bool, error) {
 
 /*----------------------Container------------------------*/
 
+// ListContainer 列出镜像
+func ListContainer() ([]types.Container, error) {
+	containers, err := Client.ContainerList(Ctx, types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	for _, c := range containers {
+		str := "Name: " + c.Names[0] + " Status: " + c.Status
+		fmt.Println(str)
+	}
+	return containers, nil
+}
+
+// SyncLocalContainer 查看本地是否正在运行该容器
+func SyncLocalContainer(container cache.ContainerMeta) bool {
+	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	for _, c := range curList {
+		for _, curName := range c.Names {
+			// ps. docker给出的容器名称前面都会加个"/"（虽然不知道是为啥）
+			if curName == "/"+container.Name {
+				if strings.Contains(c.Status, "Exited") {
+					fmt.Println("Container " + container.Name + " is exited, try to restart it now")
+					StartContainer(container.ContainerID)
+				}
+				return true
+			}
+		}
+	}
+	fmt.Println("Container " + container.Name + " is not existed, try to create it now")
+	return false
+}
+
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container, podName string) ([]object.ContainerMeta, error) {
-	var result []object.ContainerMeta
+func CreateContainers(containerConfigs []object.Container, podName string) ([]cache.ContainerMeta, error) {
+	var result []cache.ContainerMeta
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -186,7 +229,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, object.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
+	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -242,8 +285,8 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, object.ContainerMeta{
-			Name:        config.Name,
+		result = append(result, cache.ContainerMeta{
+			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
 		})
 	}
@@ -267,7 +310,11 @@ func StopContainer(containerID string) {
 		Timeout: &timeout,
 	})
 	if err != nil {
-		fmt.Println(err.Error())
+		if client.IsErrNotFound(err) {
+			log.Println("container " + containerID + " is not found, no need to stop it")
+		} else {
+			fmt.Println(err.Error())
+		}
 	} else {
 		log.Printf("Container %s is stopped\n", containerID)
 	}
@@ -277,7 +324,11 @@ func StopContainer(containerID string) {
 func RemoveContainer(containerID string) {
 	err := Client.ContainerRemove(Ctx, containerID, types.ContainerRemoveOptions{})
 	if err != nil {
-		fmt.Println(err.Error())
+		if client.IsErrNotFound(err) {
+			log.Println("container " + containerID + " is not found, no need to remove it")
+		} else {
+			fmt.Println(err.Error())
+		}
 	} else {
 		log.Printf("Container %s is removed\n", containerID)
 	}

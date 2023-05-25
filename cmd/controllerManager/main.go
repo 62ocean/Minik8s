@@ -5,21 +5,21 @@ import (
 	"k8s/pkg/controllers"
 	"log"
 	"os"
+	"runtime"
 )
 
 func init() {
-	//err := os.MkdirAll("../../log/controllerManager/", 755)
-	//fmt.Println("aaaaa")
-	//if err != nil {
-	//	fmt.Println("create dir failed")
-	//	return
-	//}
-	//fmt.Println("aaaaa")
-	//
-	//TODO log不好用
-
-	//logFile, err := os.OpenFile("log/controllers manage"+time.Now().Format("15_04_05")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	logFile, err := os.OpenFile("log/controllers manage.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	sysType := runtime.GOOS
+	var logFile *os.File
+	var err error
+	if sysType == "linux" || sysType == "darwin" {
+		// LINUX系统或者MAC
+		logFile, err = os.OpenFile("../../log/controllerManager.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
+	}
+	if sysType == "windows" {
+		// windows系统
+		logFile, err = os.OpenFile("log/controllerManager.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
+	}
 	if err != nil {
 		fmt.Println("open log file failed, err:", err)
 		return
