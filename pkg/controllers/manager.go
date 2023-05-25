@@ -33,7 +33,8 @@ func (m *Manager) Start() {
 	wg.Add(controllerNum)
 
 	go m.replicasetController.Start(&wg)
-	go m.hpaController.Start(&wg)
+	//注释hpa, 便于调试其他功能
+	//go m.hpaController.Start(&wg)
 
 	//test: add a replicaset to apiserver
 	//--------------------------------------

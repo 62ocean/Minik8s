@@ -18,8 +18,8 @@ func CreateHpa(request *restful.Request, response *restful.Response) {
 		log.Println(err)
 		return
 	}
-	uid := hpa.Metadata.Uid
-	key := "/registry/hpas/default/" + uid
+	//uid := hpa.Metadata.Uid
+	key := "/registry/hpas/default/" + hpa.Metadata.Name
 	rsString, _ := json.Marshal(hpa)
 	res := etcd.Put(key, string(rsString))
 	response.AddHeader("Content-Type", "text/plain")
