@@ -1,8 +1,6 @@
 package replicaset
 
-import (
-	"log"
-)
+import "log"
 
 type PodSyncHandler struct {
 	w *worker
@@ -10,7 +8,7 @@ type PodSyncHandler struct {
 
 func (h *PodSyncHandler) Handle(msg []byte) {
 
-	log.Println("[rs worker] pod receive msg: " + string(msg))
+	log.Println("[rs worker] receive pod change msg")
 
 	//var msgObject object.MQMessage
 	//err := json.Unmarshal(msg, &msgObject)

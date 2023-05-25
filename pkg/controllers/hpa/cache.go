@@ -3,7 +3,6 @@ package hpa
 import (
 	"encoding/json"
 	"fmt"
-	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"log"
 	"time"
@@ -35,7 +34,7 @@ func (cache *cache) UpdatePodStatus() {
 
 func (cache *cache) SyncLoop() {
 
-	cache.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	//cache.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 
 	//每隔10s同步一次pod状态
 	ticker := time.NewTicker(time.Second * 10)
@@ -50,8 +49,9 @@ func (cache *cache) GetPodStatusList() map[string]string {
 	return cache.podList
 }
 
-func NewCache() Cache {
+func NewCache(client *HTTPClient.Client) Cache {
 	c := &cache{}
+	c.client = client
 
 	return c
 }
