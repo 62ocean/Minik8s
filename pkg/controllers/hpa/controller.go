@@ -115,15 +115,15 @@ func (c *controller) AddHpa(hpa object.Hpa) {
 func (c *controller) DeleteHpa(hpa object.Hpa) {
 	log.Print("[hpa controllers] delete hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//HPAworker := c.workers[hpa.Metadata.Uid]
-	//HPAworker.Stop()
+	HPAworker := c.workers[hpa.Metadata.Uid]
+	HPAworker.Stop()
 
 }
 func (c *controller) UpdateHpa(hpa object.Hpa) {
 	log.Print("[hpa controllers] update hpa: " + hpa.Metadata.Name + "  uid: " + hpa.Metadata.Uid)
 
-	//HPAworker := c.workers[hpa.Metadata.Uid]
-	//HPAworker.UpdateHpa(hpa)
+	HPAworker := c.workers[hpa.Metadata.Uid]
+	HPAworker.UpdateHpa(hpa)
 }
 
 func NewController(manager manager) Controller {
