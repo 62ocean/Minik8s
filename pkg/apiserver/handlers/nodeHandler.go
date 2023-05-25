@@ -43,7 +43,25 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 
 func GetNode(request *restful.Request, response *restful.Response)    {}
 func UpdateNode(request *restful.Request, response *restful.Response) {}
-func RemoveNode(request *restful.Request, response *restful.Response) {}
+func RemoveNode(request *restful.Request, response *restful.Response) {
+	NodeIP := request.PathParameter("ip")
+	log.Println("Get delete node request, ip: " + NodeIP)
+	del := etcd.Del("/registry/nodes/default/" + NodeIP)
+	if del == false {
+		fmt.Println("del node " + NodeIP + " failed")
+		err := response.WriteErrorString(http.StatusBadGateway, "delete fails")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	} else {
+		ret := "ok"
+		_, err := response.Write([]byte(ret))
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+}
+
 func GetAllNode(request *restful.Request, response *restful.Response) {
 	nodeMap := etcd.GetDirectory("/registry/nodes")
 	msg, _ := json.Marshal(nodeMap)

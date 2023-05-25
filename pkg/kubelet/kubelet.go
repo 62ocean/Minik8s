@@ -6,10 +6,14 @@ import (
 	"github.com/google/uuid"
 	"k8s/object"
 	"k8s/pkg/global"
+	"k8s/pkg/kubelet/cache"
 	"k8s/pkg/kubelet/pod"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"log"
+	"strconv"
+	"sync"
+	"time"
 )
 
 //----------------KUBELET---------------------
@@ -20,7 +24,8 @@ type Kubelet struct {
 	podSubscriber *subscriber.Subscriber
 	podQueue      string
 	podHandler    podHandler
-	pods          []object.PodStorage
+	pods          []cache.PodCache
+	mutex         sync.Mutex
 }
 
 // NewKubelet kubelet对象的构造函数
@@ -38,7 +43,9 @@ func NewKubelet(name string) (*Kubelet, error) {
 	}
 	info, _ := json.Marshal(nodeInfo)
 	response := client.Post("/nodes/create", info)
-	fmt.Println("get response from APIServer" + response)
+	fmt.Println("get response from APIServer when register node: " + response)
+	// TODO 目前只能等待一段时间让scheduler分配好node再获取pod列表，之后考虑定期sync pod list
+	time.Sleep(time.Millisecond * 500)
 
 	// 建立消息监听队列
 	sub, _ := subscriber.NewSubscriber(global.MQHost)
@@ -67,7 +74,8 @@ func (kub *Kubelet) Run() {
 	json.Unmarshal([]byte(response), podList)
 
 	// 遍历pod列表，运行在本node上的pod予以启动
-	log.Println("Len of PodList: " + string(len(*podList)))
+	kub.mutex.Lock()
+	log.Println("Len of PodList: " + strconv.Itoa(len(*podList)))
 	for _, val := range *podList {
 		podInfo := object.PodStorage{}
 		_ = json.Unmarshal([]byte(val), &podInfo)
@@ -75,6 +83,17 @@ func (kub *Kubelet) Run() {
 			kub.createPod(podInfo)
 		}
 	}
+	kub.mutex.Unlock()
+
+	//开启协程监听本地container变化 (每隔一秒轮询一次)
+	go func() {
+		// 等待初始化工作结束再开始监听
+		time.Sleep(time.Second * 10)
+		for {
+			kub.watchPods()
+			time.Sleep(time.Second * 3)
+		}
+	}()
 
 	// 开始监听消息队列中pod的增量信息
 	err := kub.podSubscriber.Subscribe(kub.podQueue, subscriber.Handler(kub.podHandler))
@@ -84,6 +103,14 @@ func (kub *Kubelet) Run() {
 	}
 }
 
+// StopKubelet 释放kubelet资源
+func StopKubelet(kl *Kubelet) {
+	if kl == nil {
+		return
+	}
+	kl.client.Del("/nodes/remove/" + kl.node.IP)
+}
+
 // --------------------POD STATUS LISTENER----------------
 type podHandler struct {
 	nodeID string
@@ -91,6 +118,7 @@ type podHandler struct {
 }
 
 func (h podHandler) Handle(jsonMsg []byte) {
+	h.kub.mutex.Lock()
 	log.Println("Node get subscribe: " + string(jsonMsg))
 	msg := object.MQMessage{}
 	podStorage := object.PodStorage{}
@@ -98,7 +126,6 @@ func (h podHandler) Handle(jsonMsg []byte) {
 	_ = json.Unmarshal(jsonMsg, &msg)
 	_ = json.Unmarshal([]byte(msg.Value), &podStorage)
 	_ = json.Unmarshal([]byte(msg.PrevValue), &prevPodStorage)
-	log.Println("type： " + string(rune(msg.EventType)))
 	switch msg.EventType {
 	case object.CREATE:
 		if podStorage.Node == h.nodeID {
@@ -128,14 +155,15 @@ func (h podHandler) Handle(jsonMsg []byte) {
 			h.kub.deletePod(prevPodStorage)
 		}
 	}
+	h.kub.mutex.Unlock()
 }
 
 // ----------------------POD WORKER----------------------
 
-func (kub Kubelet) createPod(podInfo object.PodStorage) {
+func (kub *Kubelet) createPod(podInfo object.PodStorage) {
 	//启动pod与相关容器
-	log.Println("begin to crate pod" + podInfo.Config.Metadata.Name)
-	err := pod.CreatePod(&podInfo.Config)
+	log.Println("Begin to crate pod" + podInfo.Config.Metadata.Name)
+	containers, err := pod.CreatePod(podInfo.Config)
 	if err != nil {
 		log.Println("Create pod error:")
 		log.Println(err.Error())
@@ -143,12 +171,7 @@ func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	}
 
 	// 运行相关容器
-	err = pod.StartPod(&podInfo.Config)
-	if err != nil {
-		log.Println("Create pod error:")
-		log.Println(err.Error())
-		return
-	}
+	pod.StartPod(containers)
 
 	//通知apiServer保存status
 	podInfo.Status = object.RUNNING
@@ -156,32 +179,59 @@ func (kub Kubelet) createPod(podInfo object.PodStorage) {
 	resp := kub.client.Post("/pods/update", updateMsg)
 	if resp == "ok" {
 		log.Println("update pod's status to RUNNING")
-		kub.pods = append(kub.pods, podInfo)
+		podCache := cache.PodCache{
+			ContainerMeta: containers,
+			PodStorage:    podInfo,
+		}
+		kub.pods = append(kub.pods, podCache)
 	} else {
 		log.Println("cannot update pod's status after create")
 	}
 }
 
-func (kub Kubelet) deletePod(podInfo object.PodStorage) {
+func (kub *Kubelet) deletePod(podInfo object.PodStorage) {
 	log.Println("begin to delete pod" + podInfo.Config.Metadata.Name)
+
 	//删除pod与相关容器
-	err := pod.RemovePod(&podInfo.Config)
-	if err != nil {
-		log.Println("Remove pod error:")
-		log.Println(err.Error())
+	podCache := kub.getPodCache(&podInfo)
+	if podCache == nil {
+		log.Println("no related pod cache in node")
 		return
 	}
-	//通知apiServer保存status(不保存，防止数据竞争)————scheduler要在改位置的时候把STATUS设置为STOPPED
-	//podInfo.Status = object.STOPPED
-	//updateMsg, _ := json.Marshal(podInfo)
-	//resp := kub.client.Post("/pods/update", updateMsg)
-	//if resp == "ok" {
-	var newPods []object.PodStorage
+	pod.RemovePod(podCache)
+	var newPods []cache.PodCache
 	for _, v := range kub.pods {
-		if v.Config.Metadata.Uid != podInfo.Config.Metadata.Uid {
+		if v.PodStorage.Config.Metadata.Uid != podCache.PodStorage.Config.Metadata.Uid {
 			newPods = append(newPods, v)
 		}
 	}
 	kub.pods = newPods
+}
 
+// 定期监视本地容器,在不影响pod的情况下在自动重启容器（ps 双层循环嵌套，一个node管多个pod，一个pod有多个container）
+func (kub *Kubelet) watchPods() {
+	kub.mutex.Lock()
+	for _, myPod := range kub.pods {
+		update, err := pod.SyncPod(&myPod)
+		if err != nil {
+			fmt.Println(err.Error())
+			kub.mutex.Unlock()
+			return
+		}
+		if update {
+			kub.deletePod(myPod.PodStorage)
+			kub.createPod(myPod.PodStorage)
+		}
+	}
+	kub.mutex.Unlock()
+}
+
+// -----------------------------TOOLS---------------------------
+func (kub *Kubelet) getPodCache(storage *object.PodStorage) *cache.PodCache {
+	for _, podCache := range kub.pods {
+		if podCache.PodStorage.Config.Metadata.Uid == storage.Config.Metadata.Uid {
+			return &podCache
+		}
+	}
+	return nil
 }
