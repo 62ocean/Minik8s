@@ -47,7 +47,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	//创建client对hpa进行增删改操作
-	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	//c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 
 	//初始化当前etcd中的hpa
 	err := c.HpaInit()
@@ -107,7 +107,7 @@ func (c *controller) AddHpa(hpa object.Hpa) {
 		return
 	}
 
-	HPAworker := NewWorker(hpa, c.cache, targetRSworker)
+	HPAworker := NewWorker(hpa, c.cache, targetRSworker, c.client)
 	c.workers[hpa.Metadata.Uid] = HPAworker
 	go HPAworker.Start()
 }
@@ -126,11 +126,12 @@ func (c *controller) UpdateHpa(hpa object.Hpa) {
 	HPAworker.UpdateHpa(hpa)
 }
 
-func NewController(manager manager) Controller {
+func NewController(manager manager, client *HTTPClient.Client) Controller {
 	c := &controller{}
 	c.workers = make(map[string]Worker)
 	c.m = manager
 	c.cache = NewCache()
+	c.client = client
 
 	return c
 }

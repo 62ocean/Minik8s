@@ -40,7 +40,7 @@ func (w *worker) Start() {
 	log.Println("[rs worker] worker start")
 
 	//创建client对pod进行增删改操作
-	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	//w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 	//worker启动时先检查一下pod数量是否符合要求
 	w.SyncPods()
 
@@ -148,8 +148,9 @@ func (w *worker) GetRS() object.ReplicaSet {
 	return w.target
 }
 
-func NewWorker(rs object.ReplicaSet) Worker {
+func NewWorker(rs object.ReplicaSet, client *HTTPClient.Client) Worker {
 	return &worker{
 		target: rs,
+		client: client,
 	}
 }
