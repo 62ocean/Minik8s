@@ -27,6 +27,12 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 		Status:  object.STOPPED,
 		Replica: replica,
 	}
+
+	//-----------虚构pod的cpu/memory状态------------
+	podStorage.RunningMetrics.CPUUtil = 30
+	podStorage.RunningMetrics.MemUtil = 30
+	//--------------------------------------------
+
 	key := "/registry/pods/default/" + name
 	podString, _ := json.Marshal(podStorage)
 	res := etcd.Put(key, string(podString))
