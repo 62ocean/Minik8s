@@ -39,7 +39,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	//创建client对replicaset进行增删改操作
-	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	//c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 
 	//初始化当前etcd中的replicaset
 	err := c.ReplicasetInit()
@@ -106,7 +106,7 @@ func (c *controller) AddReplicaset(rs object.ReplicaSet) {
 		return
 	}
 
-	RSworker := NewWorker(rs)
+	RSworker := NewWorker(rs, c.client)
 	c.workers[rs.Metadata.Name] = RSworker
 	go RSworker.Start()
 }
@@ -129,9 +129,10 @@ func (c *controller) GetAllWorkers() map[string]Worker {
 	return c.workers
 }
 
-func NewController() Controller {
+func NewController(client *HTTPClient.Client) Controller {
 	c := &controller{}
 	c.workers = make(map[string]Worker)
+	c.client = client
 
 	return c
 }

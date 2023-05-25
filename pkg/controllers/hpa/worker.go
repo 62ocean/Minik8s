@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"k8s/object"
 	"k8s/pkg/controllers/replicaset"
-	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"log"
 	"math"
@@ -35,7 +34,7 @@ type worker struct {
 func (w *worker) Start() {
 	//每隔15s检查一次
 	w.ticker = time.NewTicker(time.Second * 15)
-	w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	//w.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 
 	for range w.ticker.C {
 
@@ -117,10 +116,11 @@ func (w *worker) UpdateHpa(hpa object.Hpa) {
 	// 暂时不考虑hpa的目标rs发生改变的情况
 }
 
-func NewWorker(hpa object.Hpa, cache Cache, RSworker replicaset.Worker) Worker {
+func NewWorker(hpa object.Hpa, cache Cache, RSworker replicaset.Worker, client *HTTPClient.Client) Worker {
 	return &worker{
 		target:   hpa,
 		cache:    cache,
 		RSworker: RSworker,
+		client:   client,
 	}
 }
