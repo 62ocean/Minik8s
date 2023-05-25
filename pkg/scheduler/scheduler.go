@@ -8,6 +8,7 @@ import (
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"log"
+	"strconv"
 	"sync"
 )
 
@@ -138,7 +139,6 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 		h.sched.nodeList = append(h.sched.nodeList, nodeStorage)
 		h.sched.scheduleAllPod()
 	case object.UPDATE:
-		// TODO: 暂时没考虑node状态被修改的问题，建议是node要停止工作的话直接从etcd里删掉？
 		var newList []object.NodeStorage
 		for _, node := range h.sched.nodeList {
 			if node.Node.Metadata.Uid == nodeStorage.Node.Metadata.Uid {
@@ -159,7 +159,7 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 		}
 		h.sched.nodeList = newList
 		// 将分布在该node上的pod重新调配至其他node上
-		h.sched.reschedule(prevNodeStorage.Node.Metadata.Uid)
+		h.sched.scheduleAllPod()
 	}
 }
 
@@ -186,7 +186,6 @@ func (s *Scheduler) roundRobin(pod *object.PodStorage) {
 		if response != "ok" {
 			fmt.Println("err when alloc node for pod " + pod.Config.Metadata.Name + " response: " + response)
 		}
-
 	}
 }
 
@@ -202,30 +201,42 @@ func (s *Scheduler) scheduleAllPod() {
 	json.Unmarshal([]byte(response), podList)
 
 	// 遍历pod列表，给没有节点的pod选择node节点
-	log.Println("Len of PodList: " + string(len(*podList)))
+	log.Println("Len of PodList: " + strconv.Itoa(len(*podList)))
 	for _, val := range *podList {
 		podInfo := object.PodStorage{}
 		_ = json.Unmarshal([]byte(val), &podInfo)
-		if podInfo.Node == "" {
+		if !s.isNodeValid(podInfo.Node) {
 			s.roundRobin(&podInfo)
 		}
 	}
 }
 
-// 将原本跑在某一node上的pod全部重新分配（用于该node被停止或被删除）
-func (s *Scheduler) reschedule(nodeUid string) {
-	// 发送HTTP请求获取Pod列表
-	response := s.client.Get("/pods/getAll")
-	podList := new(map[string]string)
-	json.Unmarshal([]byte(response), podList)
+//// 将原本跑在某一node上的pod全部重新分配（用于该node被停止或被删除）
+//func (s *Scheduler) reschedule(nodeUid string) {
+//	// 发送HTTP请求获取Pod列表
+//	response := s.client.Get("/pods/getAll")
+//	podList := new(map[string]string)
+//	json.Unmarshal([]byte(response), podList)
+//
+//	// 遍历pod列表，给没有节点的pod选择node节点
+//	log.Println("Len of PodList: " + string(len(*podList)))
+//	for _, val := range *podList {
+//		podInfo := object.PodStorage{}
+//		_ = json.Unmarshal([]byte(val), &podInfo)
+//		if podInfo.Node == "" || podInfo.Node == nodeUid {
+//			s.roundRobin(&podInfo)
+//		}
+//	}
+//}
 
-	// 遍历pod列表，给没有节点的pod选择node节点
-	log.Println("Len of PodList: " + string(len(*podList)))
-	for _, val := range *podList {
-		podInfo := object.PodStorage{}
-		_ = json.Unmarshal([]byte(val), &podInfo)
-		if podInfo.Node == "" || podInfo.Node == nodeUid {
-			s.roundRobin(&podInfo)
+func (s *Scheduler) isNodeValid(node string) bool {
+	if node == "" {
+		return false
+	}
+	for _, n := range s.nodeList {
+		if n.Node.Metadata.Uid == node {
+			return true
 		}
 	}
+	return false
 }

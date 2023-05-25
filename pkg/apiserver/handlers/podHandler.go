@@ -58,9 +58,16 @@ func UpdatePod(request *restful.Request, response *restful.Response) {
 	newVal, _ := json.Marshal(&newPodInfo)
 	key := "/registry/pods/default/" + newPodInfo.Config.Metadata.Name
 	var ret string
-	if etcd.GetOne(key) == "" {
+	oldValue := etcd.GetOne(key)
+	if oldValue == "" {
 		ret = "non-existed pod"
 		err1 := response.WriteErrorString(500, ret)
+		if err1 != nil {
+			fmt.Println(err1.Error())
+		}
+	} else if oldValue == string(newVal) {
+		ret = "ok"
+		_, err1 := response.Write([]byte(ret))
 		if err1 != nil {
 			fmt.Println(err1.Error())
 		}
@@ -73,6 +80,7 @@ func UpdatePod(request *restful.Request, response *restful.Response) {
 		}
 	}
 }
+
 func RemovePod(request *restful.Request, response *restful.Response) {
 	var rmPodName string
 	err := request.ReadEntity(&rmPodName)
