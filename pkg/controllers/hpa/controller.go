@@ -46,25 +46,11 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	// 该函数退出时将锁-1，确保主进程不会在该协程退出之前退出
 	defer wg.Done()
 
-	//创建client对hpa进行增删改操作
-	//c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
-
-	//初始化当前etcd中的hpa
-	err := c.HpaInit()
-	if err != nil {
-		fmt.Println("[hpa controllers] hpa init failed")
-		return
-	}
-
 	// cache开始自动同步pod的状态
 	go c.cache.SyncLoop()
 
-	//创建subscribe监听hpa的变化
-	c.s, _ = subscriber.NewSubscriber(global.MQHost)
-	c.handler = &hpaHandler{
-		c: c,
-	}
-	err = c.s.Subscribe("hpas", subscriber.Handler(c.handler))
+	//开始监听hpa变化
+	err := c.s.Subscribe("hpas", subscriber.Handler(c.handler))
 	if err != nil {
 		fmt.Println("[hpa controllers] subscribe hpa failed")
 		return
@@ -130,8 +116,21 @@ func NewController(manager manager, client *HTTPClient.Client) Controller {
 	c := &controller{}
 	c.workers = make(map[string]Worker)
 	c.m = manager
-	c.cache = NewCache()
+	c.cache = NewCache(client)
 	c.client = client
+
+	//初始化当前etcd中的hpa
+	err := c.HpaInit()
+	if err != nil {
+		fmt.Println("[hpa controllers] hpa init failed")
+		return nil
+	}
+
+	//创建subscribe监听hpa的变化
+	c.s, _ = subscriber.NewSubscriber(global.MQHost)
+	c.handler = &hpaHandler{
+		c: c,
+	}
 
 	return c
 }

@@ -38,20 +38,8 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	// 该函数退出时将锁-1，确保主进程不会在该协程退出之前退出
 	defer wg.Done()
 
-	//创建client对replicaset进行增删改操作
-	//c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
-
-	//初始化当前etcd中的replicaset
-	err := c.ReplicasetInit()
-	if err != nil {
-		fmt.Println("[rs controllers] rs init failed")
-		return
-	}
-
-	//创建subscribe监听replicaset的变化
-	c.s, _ = subscriber.NewSubscriber(global.MQHost)
-	c.handler = NewReplicasetChangeHandler(c)
-	err = c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
+	// 开始监听rs变化
+	err := c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
 		fmt.Println("[rs controllers] subcribe rs failed")
 		return
@@ -133,6 +121,17 @@ func NewController(client *HTTPClient.Client) Controller {
 	c := &controller{}
 	c.workers = make(map[string]Worker)
 	c.client = client
+
+	//初始化当前etcd中的replicaset
+	err := c.ReplicasetInit()
+	if err != nil {
+		fmt.Println("[rs controllers] rs init failed")
+		return nil
+	}
+
+	//创建subscribe监听replicaset的变化
+	c.s, _ = subscriber.NewSubscriber(global.MQHost)
+	c.handler = NewReplicasetChangeHandler(c)
 
 	return c
 }

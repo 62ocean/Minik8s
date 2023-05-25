@@ -82,7 +82,8 @@ func (w *worker) Start() {
 		log.Printf("[hpa worker] hpa: %s,(memory) expect pod num: %d\n", w.target.Metadata.Name, num2)
 
 		//HorizontalPodAutoscaler 采用为每个指标推荐的最大比例，并将工作负载设置为该大小（前提是这不大于你配置的总体最大值）。
-		if (num1 > rsPodNum || num2 > rsPodNum) && rsPodNum < w.target.Spec.MaxReplicas {
+		if ((num1 > rsPodNum || num2 > rsPodNum) && rsPodNum < w.target.Spec.MaxReplicas) ||
+			(rsPodNum < w.target.Spec.MinReplicas) {
 			// 增加replica数量 (+1)
 			newrs := w.RSworker.GetRS()
 			newrs.Spec.Replicas++
@@ -92,7 +93,8 @@ func (w *worker) Start() {
 			w.client.Post("/replicasets/update", rsJson)
 
 			log.Printf("[hpa worker] hpa: %s, add replica\n", w.target.Metadata.Name)
-		} else if num1 < rsPodNum && num2 < rsPodNum && rsPodNum > w.target.Spec.MinReplicas {
+		} else if (num1 < rsPodNum && num2 < rsPodNum && rsPodNum > w.target.Spec.MinReplicas) ||
+			(rsPodNum > w.target.Spec.MaxReplicas) {
 			// 减少replica数量 (-1)
 			newrs := w.RSworker.GetRS()
 			newrs.Spec.Replicas--
