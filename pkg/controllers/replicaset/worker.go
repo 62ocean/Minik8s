@@ -130,7 +130,7 @@ func (w *worker) SyncPods() {
 
 		} else if rsPodNum > w.target.Spec.Replicas {
 			rmPodName := podTemplate.Metadata.Name + "-" + strconv.Itoa(seqNum[0])
-			fmt.Println("[rs worker] remove seq num: " + strconv.Itoa(seqNum[0]))
+			log.Println("[rs worker] remove seq num: " + strconv.Itoa(seqNum[0]))
 			seqNum = seqNum[1:]
 
 			var podJson []byte

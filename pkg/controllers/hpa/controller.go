@@ -142,7 +142,7 @@ type hpaHandler struct {
 }
 
 func (h *hpaHandler) Handle(msg []byte) {
-	log.Println("[hpa controllers] hpa receive msg: " + string(msg))
+	log.Println("[hpa controllers] receive hpa change msg")
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)
