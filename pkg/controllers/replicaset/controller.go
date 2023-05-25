@@ -102,7 +102,7 @@ func (c *controller) AddReplicaset(rs object.ReplicaSet) {
 	log.Println("[rs controllers] create replicaset: " + rs.Metadata.Name + "  uid: " + rs.Metadata.Uid)
 	_, ok := c.workers[rs.Metadata.Name]
 	if ok {
-		log.Println("[rs controllers] create replicaset failed! (replicaset name already exists int the same namespace)")
+		log.Println("[rs controllers] create replicaset failed! (replicaset name already exists in the same namespace)")
 		return
 	}
 
