@@ -68,7 +68,7 @@ func (c *controller) HpaInit() error {
 		return err
 	}
 
-	// 为当前的所有replicaset都启动一个worker
+	// 为当前的所有hpa都启动一个worker
 	for _, value := range *hpaList {
 		//fmt.Println(value)
 		var hpa object.Hpa
