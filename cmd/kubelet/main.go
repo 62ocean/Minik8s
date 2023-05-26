@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"k8s/pkg/apiserver/flannel"
 	"k8s/pkg/kubelet"
 	"log"
 	"os"
@@ -30,6 +31,7 @@ func init() {
 }
 
 func main() {
+	flannel.ConfigInit()
 	// 创建kubelet对象
 	kl, _ := kubelet.NewKubelet("node1")
 	kl.Run()

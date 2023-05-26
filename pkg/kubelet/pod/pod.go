@@ -3,18 +3,20 @@ package pod
 import (
 	"fmt"
 	object2 "k8s/object"
+	"k8s/pkg/apiserver/flannel"
 	"log"
 )
 
-var ipCnt = 0
+var ipCnt = 2
 
 func CreatePod(podConfig *object2.Pod) error {
 	// 分配podip
-	//localNodeNetWork := flannel.GetLocalNodeNetwork()
-	////subnetPrefix: x.x.x
-	//subnet := fmt.Sprintf("%s.%d", localNodeNetWork.SubnetPrefix, ipCnt)
-	//ipCnt++
-	//podConfig.IP = subnet
+	localNodeNetWork := flannel.GetLocalNodeNetwork()
+	fmt.Println(localNodeNetWork.SubnetPrefix)
+	//subnetPrefix: x.x.x
+	subnet := fmt.Sprintf("%s.%d", localNodeNetWork.SubnetPrefix, ipCnt)
+	ipCnt++
+	podConfig.IP = subnet
 
 	// 拉取镜像
 	var images []string

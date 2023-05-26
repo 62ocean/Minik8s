@@ -37,7 +37,7 @@ func main() {
 	//fmt.Println("hello world")
 	//log.Println("test Log!")
 	//etcd.EtcdInit(global.EtcdHost)
-	//flannel.Exec()
+
 	server, _ := apiserver.CreateAPIServer()
 	server.StartServer()
 }

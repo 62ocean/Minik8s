@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.etcd.io/etcd/api/v3/mvccpb"
-	"go.etcd.io/etcd/client/v3"
 	"k8s/pkg/api/pod"
 	"time"
+
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var cli *clientv3.Client
@@ -75,6 +76,9 @@ func GetOne(key string) string {
 // 获取key的前缀为prefix的所有键值对
 func GetDirectory(prefix string) map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	if cli == nil {
+		fmt.Println("666")
+	}
 	getResp, err := cli.Get(ctx, prefix, clientv3.WithPrefix())
 	cancel()
 	if err != nil {

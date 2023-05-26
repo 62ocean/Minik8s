@@ -41,7 +41,7 @@ func (m *manager) Start() {
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yml")
+	replicasetData := parseYaml.ParseReplicasetYaml("../../test/ReplicasetConfigTest.yml")
 	id, _ := uuid.NewUUID()
 	replicasetData.Metadata.Uid = id.String()
 	var rsJson []byte

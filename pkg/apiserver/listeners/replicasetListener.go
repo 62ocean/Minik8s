@@ -58,7 +58,7 @@ func (p ReplicasetListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue)
 // OnDelete etcd中对应资源被删除时回调
 func (p ReplicasetListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: delete kye:" + string(prevkv.Key) + "\n")
-	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.DELETE)
+	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.DELETE)
 	err := p.publisher.Publish("replicasets", jsonMsg, "DEL")
 	if err != nil {
 		fmt.Println(err.Error())

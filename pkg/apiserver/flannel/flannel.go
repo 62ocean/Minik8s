@@ -77,7 +77,7 @@ func ConfigInit() {
 	//}
 
 	// config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
-	config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
+	config := readConfiguration("./flannel.properties")
 
 	conf.etcdEndpoint = config["etcd-endpoint"]
 	conf.etcdPrefix = etcdPrefix
@@ -168,20 +168,20 @@ func main() {
 func Exec() {
 
 	ConfigInit()
-	//SetDockerBipNet()
+	SetDockerBipNet()
 
-	//InitIptables()
-	//vx := pod.NewVxlanDevice("vxlan0", vni, vxlanDstPort, "docker0")
-	//val, _ := json.Marshal(GetLocalNodeNetwork())
-	//cli := etcd.GetEtcdClient(conf.etcdEndpoint)
-	//if cli == nil {
-	//	fmt.Printf("connect failed\n")
-	//}
-	//vx.Create()
-	//SetupCloseHandler(vx)
-	//// 为flannel网络当前存在的节点配置路由等
-	//addCurrentNodes(vx)
-	//// 将当前节点注册到etcd
-	//etcd.Put(conf.etcdPrefix+"/"+conf.nodeIP, string(val))
-	//etcd.WatchPrefix(conf.etcdPrefix, vx, conf.nodeIP, cli)
+	InitIptables()
+	vx := pod.NewVxlanDevice("vxlan0", vni, vxlanDstPort, "docker0")
+	val, _ := json.Marshal(GetLocalNodeNetwork())
+	cli := etcd.GetEtcdClient(conf.etcdEndpoint)
+	if cli == nil {
+		fmt.Printf("connect failed\n")
+	}
+	vx.Create()
+	SetupCloseHandler(vx)
+	// 为flannel网络当前存在的节点配置路由等
+	addCurrentNodes(vx)
+	// 将当前节点注册到etcd
+	etcd.Put(conf.etcdPrefix+"/"+conf.nodeIP, string(val))
+	etcd.WatchPrefix(conf.etcdPrefix, vx, conf.nodeIP, cli)
 }

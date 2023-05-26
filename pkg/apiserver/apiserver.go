@@ -20,6 +20,7 @@ type APIServer struct {
 	replicasetListener *listeners.ReplicasetListener
 	serviceListener    *listeners.ServiceListener
 	nodeListener       *listeners.NodeListener
+	endpointListener   *listeners.EndpointListener
 
 	//TODO 在此添加其他listener……
 }
@@ -40,6 +41,7 @@ func CreateAPIServer() (*APIServer, error) {
 	replicasetListener := listeners.NewReplicasetListener()
 	serviceListener := listeners.NewServiceListener()
 	nodeListener := listeners.NewNodeListener()
+	endpointListener := listeners.NewEndpointListener()
 
 	// HTTP server
 	wsContainer := restful.NewContainer()
@@ -54,6 +56,7 @@ func CreateAPIServer() (*APIServer, error) {
 		replicasetListener: replicasetListener,
 		serviceListener:    serviceListener,
 		nodeListener:       nodeListener,
+		endpointListener:   endpointListener,
 	}
 
 	return &server, nil
@@ -66,6 +69,7 @@ func (s *APIServer) StartServer() {
 	s.etcdWatcher.AddWatch("/registry/replicasets/", true, s.replicasetListener)
 	s.etcdWatcher.AddWatch("/registry/services/", true, s.serviceListener)
 	s.etcdWatcher.AddWatch("/registry/nodes/", true, s.nodeListener)
+	s.etcdWatcher.AddWatch("/registry/endpoints/", true, s.endpointListener)
 
 	// list
 	server := &http.Server{Addr: ":8080", Handler: s.wsContainer}

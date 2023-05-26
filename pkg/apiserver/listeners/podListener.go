@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	"k8s/object"
+	"k8s/pkg/etcd"
 	"k8s/pkg/global"
 	"k8s/pkg/util/msgQueue/publisher"
 	log "log"
@@ -60,6 +61,23 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
+
+	// 遍历endpoint，向符合label的endpoint插入新增pod的ip记录
+	// 将新endpoint写回etcd
+	epMap := etcd.GetDirectory("/registry/endpoints")
+	for k, v := range epMap {
+		ep := object.Endpoint{}
+		json.Unmarshal([]byte(v), &ep)
+		if (podStorage.Config.Metadata.Labels.App == ep.Selector.App) &&
+			(podStorage.Config.Metadata.Labels.Env == ep.Selector.Env) {
+			id := podStorage.Config.Metadata.Uid
+			ip := podStorage.Config.IP
+			ep.PodIps[id] = ip
+			epByte, _ := json.Marshal(ep)
+			etcd.Put(k, string(epByte))
+		}
+	}
+
 	//err = p.publisher.Publish("pods", jsonMsg, "CREATE")
 	//if err != nil {
 	//	fmt.Println(err.Error())
@@ -101,6 +119,7 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 		fmt.Println(err.Error())
 		return
 	}
+
 	//err = p.publisher.Publish("pods", jsonMsg, "PUT")
 	//if err != nil {
 	//	fmt.Println(err.Error())
