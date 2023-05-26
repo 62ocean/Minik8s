@@ -54,6 +54,7 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 
 func GetPod(request *restful.Request, response *restful.Response) {}
 func UpdatePod(request *restful.Request, response *restful.Response) {
+	log.Println("Get update pod request")
 	newPodInfo := object.PodStorage{}
 	err := request.ReadEntity(&newPodInfo)
 	log.Println(newPodInfo)
@@ -67,6 +68,7 @@ func UpdatePod(request *restful.Request, response *restful.Response) {
 	oldValue := etcd.GetOne(key)
 	if oldValue == "" {
 		ret = "non-existed pod"
+		log.Println("update non-existed pod")
 		err1 := response.WriteErrorString(500, ret)
 		if err1 != nil {
 			fmt.Println(err1.Error())

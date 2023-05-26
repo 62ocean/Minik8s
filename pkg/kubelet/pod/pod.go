@@ -89,5 +89,27 @@ func SyncPod(podConfig *cache.PodCache) (update bool, err error) {
 			return true, nil
 		}
 	}
+	podConfig.PodStorage.RunningMetrics = GetStatusOfPod(podConfig)
 	return false, nil
+}
+
+// GetStatusOfPod 获取pod状态
+func GetStatusOfPod(cache *cache.PodCache) object2.RunningMetrics {
+	var totalCpuUse, totalCpuLimit, totalMemUse, totalMemLimit uint64
+	for _, container := range cache.ContainerMeta {
+		a, b, c, d, _ := GetContainerStatus(container.ContainerID, container.Limit)
+		//fmt.Printf("cpu use: %d\n", a)
+		//fmt.Printf("cpu limit: %d\n", b)
+		//fmt.Printf("mem use: %d\n", c)
+		//fmt.Printf("mem limit: %d\n", d)
+
+		totalCpuUse += a
+		totalCpuLimit += b
+		totalMemUse += c
+		totalMemLimit += d
+	}
+	return object2.RunningMetrics{
+		CPUUtil: float64(totalCpuUse) / float64(totalCpuLimit),
+		MemUtil: float64(totalMemUse) / float64(totalMemLimit),
+	}
 }
