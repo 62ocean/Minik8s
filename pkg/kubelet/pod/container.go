@@ -3,6 +3,7 @@ package pod
 import "C"
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -15,6 +16,7 @@ import (
 	"k8s/object"
 	"k8s/pkg/kubelet/cache"
 	"log"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -229,7 +231,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
+	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -259,7 +261,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		// resource
 		resourceConfig := container.Resources{}
 		if config.Resources.Limits.Cpu != "" {
-			resourceConfig.NanoCPUs = parseCPU(config.Resources.Limits.Cpu)
+			resourceConfig.CPUQuota = parseCPU(config.Resources.Limits.Cpu)
 		}
 		if config.Resources.Limits.Memory != "" {
 			resourceConfig.Memory = parseMemory(config.Resources.Limits.Memory)
@@ -272,6 +274,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 			Image:      config.Image,
 			Entrypoint: config.Command,
 			Cmd:        config.Args,
+			//ExposedPorts: nat.PortSet{},
 		}, &container.HostConfig{
 			NetworkMode: container.NetworkMode("container:" + pauseID),
 			Mounts:      mounts,
@@ -288,6 +291,8 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		result = append(result, cache.ContainerMeta{
 			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
+			InitialName: config.Name,
+			Limit:       config.Resources.Limits,
 		})
 	}
 	return result, nil
@@ -334,6 +339,62 @@ func RemoveContainer(containerID string) {
 	}
 }
 
+func GetContainerStatus(containerID string, resources object.ContainerResources) (uint64, uint64, uint64, uint64, error) {
+	containerStats, err := Client.ContainerStats(Ctx, containerID, false)
+	// 这个container被意外删除了会抛出错误
+	if err != nil {
+		log.Println("get status of container: " + err.Error())
+		return 0, 0, 0, 0, err
+	}
+	// 解析容器的状态数据
+	var stats types.StatsJSON
+	if err := json.NewDecoder(containerStats.Body).Decode(&stats); err != nil {
+		fmt.Println(err.Error())
+		return 0, 0, 0, 0, err
+	}
+
+	// 获取资源利用率
+	// cpu
+	cpuUsage := stats.CPUStats.CPUUsage.TotalUsage
+	cpuSys := stats.CPUStats.SystemUsage
+	if cpuSys == 0 {
+		return 0, 0, 0, 0, nil
+	}
+	cpuUsage = cpuUsage * 1e5 / cpuSys
+	var cpuLimit uint64
+	if resources.Cpu != "" {
+		cpuLimit = uint64(parseCPU(resources.Cpu))
+	} else {
+		cpuLimit = 1e5
+	}
+
+	// memory
+	memoryUsage := stats.MemoryStats.Usage
+	memoryLimit := stats.MemoryStats.Limit
+	if resources.Memory != "" {
+		memoryLimit = uint64(parseMemory(resources.Memory))
+	}
+	return cpuUsage, cpuLimit, memoryUsage, memoryLimit, nil
+
+	//// 计算 CPU 使用率
+	//var cpuUsagePercentage float64
+	//var memoryUsagePercentage float64
+	//if resources.Cpu == "" {
+	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, 0)
+	//} else {
+	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, parseCPU(resources.Cpu))
+	//}
+	//if resources.Memory == "" {
+	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, memoryLimit)
+	//} else {
+	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, uint64(parseMemory(resources.Memory)))
+	//}
+	//ret.CPUUtil = cpuUsagePercentage
+	//ret.MemUtil = memoryUsagePercentage
+	//return ret
+
+}
+
 // 创建pause容器用于管理网络
 func createPause(ports *[]int, podName string) (string, error) {
 	var exports nat.PortSet
@@ -362,8 +423,9 @@ func parseCPU(cpu string) int64 {
 	length := len(cpu)
 	result := 0.0
 	if cpu[length-1] == 'm' {
+		// 这里的m指的k8s中的微核，转换为docker要求的纳秒返回
 		result, _ = strconv.ParseFloat(cpu[:length-1], 32)
-		result *= 1e3
+		result *= 1e2
 	} else {
 		result, _ = strconv.ParseFloat(cpu[:length], 32)
 	}
@@ -382,4 +444,27 @@ func parseMemory(mem string) int64 {
 		result *= 1024 * 1024 * 1024
 	}
 	return int64(result)
+}
+
+// 计算CPU利用率
+func calculateCPUPercentage(cpuUsage uint64, sysCPUUsage uint64, limit int64) float64 {
+	cpuUsageDelta := float64(cpuUsage)
+	sysCPUUsageDelta := float64(sysCPUUsage)
+	//cpuUsagePercentage := cpuUsageDelta / sysCPUUsageDelta
+	cpuNum := runtime.NumCPU()
+	if limit >= 1 {
+		return cpuUsageDelta / (sysCPUUsageDelta / float64(cpuNum) * float64(limit))
+	} else {
+		exactLimit := float64(limit) / 1e5
+		return cpuUsageDelta / sysCPUUsageDelta / float64(cpuNum) * exactLimit
+	}
+}
+
+// 计算内存利用率
+func calculateMemoryPercentage(memoryUsage uint64, memoryLimit uint64) float64 {
+	memoryUsageDelta := float64(memoryUsage)
+	memoryLimitDelta := float64(memoryLimit)
+	memoryUsagePercentage := (memoryUsageDelta / memoryLimitDelta) * 100
+
+	return memoryUsagePercentage
 }

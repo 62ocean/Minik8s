@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+//type ObjectType interface {
+//	object.Pod | object.Hpa | object.ReplicaSet
+//}
+
 func ParseYaml[T any](filepath string) T {
 
 	dataBytes, err := os.ReadFile(filepath)
@@ -14,12 +18,12 @@ func ParseYaml[T any](filepath string) T {
 		os.Exit(-1)
 	}
 
-	var object T
-	err2 := yaml.Unmarshal(dataBytes, &object)
+	var retObject T
+	err2 := yaml.Unmarshal(dataBytes, &retObject)
 	if err2 != nil {
 		fmt.Println("解析 yaml 文件失败：", err)
 		os.Exit(-1)
 	}
 
-	return object
+	return retObject
 }
