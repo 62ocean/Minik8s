@@ -1,6 +1,8 @@
 package cache
 
-import "k8s/object"
+import (
+	"k8s/object"
+)
 
 // ----------------POD CACHE---------------------
 
@@ -12,4 +14,6 @@ type PodCache struct {
 type ContainerMeta struct {
 	Name        string
 	ContainerID string
+	InitialName string
+	Limit       object.ContainerResources
 }

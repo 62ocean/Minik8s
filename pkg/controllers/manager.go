@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"encoding/json"
 	_ "encoding/json"
+	"fmt"
+	"github.com/google/uuid"
 	_ "github.com/google/uuid"
 	"k8s/pkg/controllers/hpa"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
+
 	//"k8s/object"
 	"k8s/pkg/controllers/replicaset"
 	_ "k8s/pkg/global"
@@ -39,16 +44,16 @@ func (m *Manager) Start() {
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	//replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yaml")
-	//id, _ := uuid.NewUUID()
-	//replicasetData.Metadata.Uid = id.String()
-	//var rsJson []byte
-	//rsJson, _ = json.Marshal(replicasetData)
-	////fmt.Println("rsJson: \n" + string(rsJson))
-	//
-	//client := HTTPClient.CreateHTTPClient(global.ServerHost)
-	//client.Post("/replicasets/create", rsJson)
-	//fmt.Println("add replicaset ok!")
+	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yaml")
+	id, _ := uuid.NewUUID()
+	replicasetData.Metadata.Uid = id.String()
+	var rsJson []byte
+	rsJson, _ = json.Marshal(replicasetData)
+	//fmt.Println("rsJson: \n" + string(rsJson))
+
+	client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	client.Post("/replicasets/create", rsJson)
+	fmt.Println("add replicaset ok!")
 	//--------------------------------------
 
 	//test: add a hpa to apiserver
