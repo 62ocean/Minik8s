@@ -3,6 +3,7 @@ package pod
 import "C"
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -13,8 +14,11 @@ import (
 	"github.com/docker/go-connections/nat"
 	"io"
 	"k8s/object"
+	"k8s/pkg/kubelet/cache"
 	"log"
+	"runtime"
 	"strconv"
+	"strings"
 )
 
 var Client = newClient()
@@ -162,9 +166,50 @@ func isVolumeExisted(name string) (bool, error) {
 
 /*----------------------Container------------------------*/
 
+// ListContainer 列出镜像
+func ListContainer() ([]types.Container, error) {
+	containers, err := Client.ContainerList(Ctx, types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	for _, c := range containers {
+		str := "Name: " + c.Names[0] + " Status: " + c.Status
+		fmt.Println(str)
+	}
+	return containers, nil
+}
+
+// SyncLocalContainer 查看本地是否正在运行该容器
+func SyncLocalContainer(container cache.ContainerMeta) bool {
+	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	for _, c := range curList {
+		for _, curName := range c.Names {
+			// ps. docker给出的容器名称前面都会加个"/"（虽然不知道是为啥）
+			if curName == "/"+container.Name {
+				if strings.Contains(c.Status, "Exited") {
+					fmt.Println("Container " + container.Name + " is exited, try to restart it now")
+					StartContainer(container.ContainerID)
+				}
+				return true
+			}
+		}
+	}
+	fmt.Println("Container " + container.Name + " is not existed, try to create it now")
+	return false
+}
+
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container, podName string) ([]object.ContainerMeta, error) {
-	var result []object.ContainerMeta
+func CreateContainers(containerConfigs []object.Container, podName string) ([]cache.ContainerMeta, error) {
+	var result []cache.ContainerMeta
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -186,7 +231,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, object.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID})
+	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"})
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -216,7 +261,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		// resource
 		resourceConfig := container.Resources{}
 		if config.Resources.Limits.Cpu != "" {
-			resourceConfig.NanoCPUs = parseCPU(config.Resources.Limits.Cpu)
+			resourceConfig.CPUQuota = parseCPU(config.Resources.Limits.Cpu)
 		}
 		if config.Resources.Limits.Memory != "" {
 			resourceConfig.Memory = parseMemory(config.Resources.Limits.Memory)
@@ -229,6 +274,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 			Image:      config.Image,
 			Entrypoint: config.Command,
 			Cmd:        config.Args,
+			//ExposedPorts: nat.PortSet{},
 		}, &container.HostConfig{
 			NetworkMode: container.NetworkMode("container:" + pauseID),
 			Mounts:      mounts,
@@ -242,9 +288,11 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ob
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, object.ContainerMeta{
-			Name:        config.Name,
+		result = append(result, cache.ContainerMeta{
+			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
+			InitialName: config.Name,
+			Limit:       config.Resources.Limits,
 		})
 	}
 	return result, nil
@@ -267,7 +315,11 @@ func StopContainer(containerID string) {
 		Timeout: &timeout,
 	})
 	if err != nil {
-		fmt.Println(err.Error())
+		if client.IsErrNotFound(err) {
+			log.Println("container " + containerID + " is not found, no need to stop it")
+		} else {
+			fmt.Println(err.Error())
+		}
 	} else {
 		log.Printf("Container %s is stopped\n", containerID)
 	}
@@ -277,10 +329,70 @@ func StopContainer(containerID string) {
 func RemoveContainer(containerID string) {
 	err := Client.ContainerRemove(Ctx, containerID, types.ContainerRemoveOptions{})
 	if err != nil {
-		fmt.Println(err.Error())
+		if client.IsErrNotFound(err) {
+			log.Println("container " + containerID + " is not found, no need to remove it")
+		} else {
+			fmt.Println(err.Error())
+		}
 	} else {
 		log.Printf("Container %s is removed\n", containerID)
 	}
+}
+
+func GetContainerStatus(containerID string, resources object.ContainerResources) (uint64, uint64, uint64, uint64, error) {
+	containerStats, err := Client.ContainerStats(Ctx, containerID, false)
+	// 这个container被意外删除了会抛出错误
+	if err != nil {
+		log.Println("get status of container: " + err.Error())
+		return 0, 0, 0, 0, err
+	}
+	// 解析容器的状态数据
+	var stats types.StatsJSON
+	if err := json.NewDecoder(containerStats.Body).Decode(&stats); err != nil {
+		fmt.Println(err.Error())
+		return 0, 0, 0, 0, err
+	}
+
+	// 获取资源利用率
+	// cpu
+	cpuUsage := stats.CPUStats.CPUUsage.TotalUsage
+	cpuSys := stats.CPUStats.SystemUsage
+	if cpuSys == 0 {
+		return 0, 0, 0, 0, nil
+	}
+	cpuUsage = cpuUsage * 1e5 / cpuSys
+	var cpuLimit uint64
+	if resources.Cpu != "" {
+		cpuLimit = uint64(parseCPU(resources.Cpu))
+	} else {
+		cpuLimit = 1e5
+	}
+
+	// memory
+	memoryUsage := stats.MemoryStats.Usage
+	memoryLimit := stats.MemoryStats.Limit
+	if resources.Memory != "" {
+		memoryLimit = uint64(parseMemory(resources.Memory))
+	}
+	return cpuUsage, cpuLimit, memoryUsage, memoryLimit, nil
+
+	//// 计算 CPU 使用率
+	//var cpuUsagePercentage float64
+	//var memoryUsagePercentage float64
+	//if resources.Cpu == "" {
+	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, 0)
+	//} else {
+	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, parseCPU(resources.Cpu))
+	//}
+	//if resources.Memory == "" {
+	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, memoryLimit)
+	//} else {
+	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, uint64(parseMemory(resources.Memory)))
+	//}
+	//ret.CPUUtil = cpuUsagePercentage
+	//ret.MemUtil = memoryUsagePercentage
+	//return ret
+
 }
 
 // 创建pause容器用于管理网络
@@ -311,8 +423,9 @@ func parseCPU(cpu string) int64 {
 	length := len(cpu)
 	result := 0.0
 	if cpu[length-1] == 'm' {
+		// 这里的m指的k8s中的微核，转换为docker要求的纳秒返回
 		result, _ = strconv.ParseFloat(cpu[:length-1], 32)
-		result *= 1e3
+		result *= 1e2
 	} else {
 		result, _ = strconv.ParseFloat(cpu[:length], 32)
 	}
@@ -331,4 +444,27 @@ func parseMemory(mem string) int64 {
 		result *= 1024 * 1024 * 1024
 	}
 	return int64(result)
+}
+
+// 计算CPU利用率
+func calculateCPUPercentage(cpuUsage uint64, sysCPUUsage uint64, limit int64) float64 {
+	cpuUsageDelta := float64(cpuUsage)
+	sysCPUUsageDelta := float64(sysCPUUsage)
+	//cpuUsagePercentage := cpuUsageDelta / sysCPUUsageDelta
+	cpuNum := runtime.NumCPU()
+	if limit >= 1 {
+		return cpuUsageDelta / (sysCPUUsageDelta / float64(cpuNum) * float64(limit))
+	} else {
+		exactLimit := float64(limit) / 1e5
+		return cpuUsageDelta / sysCPUUsageDelta / float64(cpuNum) * exactLimit
+	}
+}
+
+// 计算内存利用率
+func calculateMemoryPercentage(memoryUsage uint64, memoryLimit uint64) float64 {
+	memoryUsageDelta := float64(memoryUsage)
+	memoryLimitDelta := float64(memoryLimit)
+	memoryUsagePercentage := (memoryUsageDelta / memoryLimitDelta) * 100
+
+	return memoryUsagePercentage
 }

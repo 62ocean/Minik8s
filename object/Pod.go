@@ -43,14 +43,8 @@ type VolumeConfig struct {
 }
 
 type PodSpec struct {
-	Containers    []Container    `yaml:"containers"`
-	Volumes       []VolumeConfig `yaml:"volumes"`
-	ContainerMeta []ContainerMeta
-}
-
-type ContainerMeta struct {
-	Name        string
-	ContainerID string
+	Containers []Container    `yaml:"containers"`
+	Volumes    []VolumeConfig `yaml:"volumes"`
 }
 
 type Pod struct {
@@ -62,8 +56,14 @@ type Pod struct {
 }
 
 type PodStorage struct {
-	Config  Pod
-	Status  Status
-	Node    string //放node的uid
-	Replica int
+	Config         Pod
+	Status         Status
+	Node           string //放node的uid
+	Replica        int
+	RunningMetrics RunningMetrics
+}
+
+type RunningMetrics struct {
+	CPUUtil float64
+	MemUtil float64
 }

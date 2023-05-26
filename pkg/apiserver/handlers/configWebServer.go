@@ -35,7 +35,7 @@ func InitWebServer(container *restful.Container) {
 	replicasetWS.Route(replicasetWS.POST("/create").To(CreateReplicaset))
 	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
 	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
-	replicasetWS.Route(replicasetWS.DELETE("/remove").To(RemoveReplicaset))
+	replicasetWS.Route(replicasetWS.DELETE("/remove/{ip}").To(RemoveReplicaset))
 	replicasetWS.Route(replicasetWS.GET("/getAll").To(GetAllReplicaset))
 	container.Add(replicasetWS)
 
@@ -57,6 +57,18 @@ func InitWebServer(container *restful.Container) {
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	endpointWS.Route(endpointWS.POST("/get").To(GetEndpoint))
 	container.Add(endpointWS)
+
+	// hpa
+	hpaWS := new(restful.WebService)
+	hpaWS.Path("/hpas").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	hpaWS.Route(hpaWS.POST("/create").To(CreateHpa))
+	hpaWS.Route(hpaWS.GET("/get").To(GetHpa))
+	hpaWS.Route(hpaWS.POST("/update").To(UpdateHpa))
+	hpaWS.Route(hpaWS.DELETE("/remove").To(RemoveHpa))
+	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
+	container.Add(hpaWS)
 
 	// TODO 在此添加新的HTTP请求接口
 }

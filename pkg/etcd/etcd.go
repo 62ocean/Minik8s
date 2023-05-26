@@ -28,7 +28,7 @@ func GetEtcdClient(endpoint string) *clientv3.Client {
 		panic("connect to etcd failed: " + err.Error())
 		return nil
 	} else {
-		fmt.Printf("connect to etcd successfully with endpoint: %s", endpoint)
+		fmt.Printf("connect to etcd successfully with endpoint: %s\n", endpoint)
 		return cli
 	}
 }
@@ -50,7 +50,7 @@ func Del(key string) bool {
 	_, err := cli.Delete(ctx, key)
 	cancel()
 	if err != nil {
-		fmt.Printf("delete key %s failed\n", key)
+		fmt.Printf("delete key %s failed, err: %s\n", key, err.Error())
 		return false
 	}
 	return true

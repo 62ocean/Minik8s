@@ -34,5 +34,7 @@ func main() {
 	flannel.ConfigInit()
 	// 创建kubelet对象
 	kl, _ := kubelet.NewKubelet("node1")
+	defer kubelet.StopKubelet(kl)
+	// 创建kubelet对象
 	kl.Run()
 }

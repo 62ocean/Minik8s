@@ -90,12 +90,17 @@ func (p PodListener) OnCreate(kv mvccpb.KeyValue) {
 func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Printf("ETCD: modify kye:" + string(kv.Key) + " value:" + string(kv.Value) + "\n")
 	podStorage := object.PodStorage{}
+	prevPodStorage := object.PodStorage{}
+	_ = json.Unmarshal(kv.Value, &podStorage)
+	_ = json.Unmarshal(prevkv.Value, &prevPodStorage)
+	if podStorage.Node == prevPodStorage.Node {
+		return
+	}
+
 	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.UPDATE)
 	var err error
 	// forward to relicaset
 	log.Println("publish PUT to pods_XXX")
-
-	_ = json.Unmarshal(kv.Value, &podStorage)
 	exchangeName1 := "pods_" + podStorage.Config.Metadata.Labels.App
 	err = p.publisher.Publish(exchangeName1, jsonMsg, "PUT")
 	_ = json.Unmarshal(prevkv.Value, &podStorage)
@@ -103,16 +108,14 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	if exchangeName1 != exchangeName2 {
 		err = p.publisher.Publish(exchangeName2, jsonMsg, "PUT")
 	}
-
-	_ = json.Unmarshal(kv.Value, &podStorage)
 	// forward to kubelet
 	if podStorage.Node != "" {
-		log.Println("publish PUT to pods_node")
+		log.Println("publish UPDATE to pods_node")
 		err = p.publisher.Publish("pods_node", jsonMsg, "PUT")
 	}
 	// forward to scheduler
 	if podStorage.Node == "" {
-		log.Println("publish PUT to pods_sched")
+		log.Println("publish UPDATE to pods_sched")
 		err = p.publisher.Publish("pods_sched", jsonMsg, "PUT")
 	}
 	if err != nil {

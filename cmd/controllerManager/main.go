@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"k8s/pkg/controller"
+	"k8s/pkg/controllers"
 	"log"
 	"os"
 	"runtime"
@@ -26,11 +26,10 @@ func init() {
 	}
 	log.SetOutput(logFile)
 	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
-	log.SetPrefix("[controller manager]")
+	log.SetPrefix("[controllers manager]")
 }
 
 func main() {
-	fmt.Println("acs")
-	m := controller.NewManager()
+	m := controllers.NewManager()
 	m.Start()
 }
