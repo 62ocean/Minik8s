@@ -6,6 +6,7 @@ import (
 	"k8s/object"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -32,10 +33,10 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	}
 
 	// 生成对应的Dockerfile
-	dir := filepath.Dir(functionInfo.Path)
+	filedir := filepath.Dir(functionInfo.Path)
 	filename := filepath.Base(functionInfo.Path)
 
-	dockerfilePath := dir + "/Dockerfile"
+	dockerfilePath := filedir + "/Dockerfile"
 	fmt.Println(dockerfilePath)
 
 	dockerfileData := "FROM python:3.11\n"
@@ -54,11 +55,26 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	_, _ = file.WriteString(dockerfileData)
 
 	// 生成对应的requirements.txt
+	os.Chdir(filedir) //最后要换回来
+
+	cmd := exec.Command("ls")
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	_ = cmd.Run()
+
+	cmd = exec.Command("pipreqs", ".", "--encodin", "utf8", "--force")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	_ = cmd.Run()
 
 	// build
 
 	// push
 }
+
+// ---------- tool functions -----------------
 
 func (c *functionController) UpdateFunction(request *restful.Request, response *restful.Response) {
 
