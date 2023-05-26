@@ -62,5 +62,17 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
 
+	// function
+	funWS := new(restful.WebService)
+	funWS.Path("/functions").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	funWS.Route(funWS.POST("/create").To(CreateFunction))
+	funWS.Route(funWS.GET("/get").To(GetFunction))
+	funWS.Route(funWS.POST("/update").To(UpdateFunction))
+	funWS.Route(funWS.DELETE("/remove").To(RemoveFunction))
+	funWS.Route(funWS.GET("/getAll").To(GetAllFunction))
+	container.Add(funWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }
