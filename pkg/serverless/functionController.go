@@ -23,6 +23,7 @@ type functionController struct {
 }
 
 func (c *functionController) AddFunction(request *restful.Request, response *restful.Response) {
+
 	// 拿到函数名字和函数路径
 	functionInfo := object.Function{}
 	err := request.ReadEntity(&functionInfo)
@@ -31,6 +32,8 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 		log.Println(err)
 		return
 	}
+
+	log.Println("start adding function " + functionInfo.Name + " from " + functionInfo.Path)
 
 	// 生成对应的Dockerfile
 	filedir := filepath.Dir(functionInfo.Path)
@@ -54,18 +57,16 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	}
 	_, _ = file.WriteString(dockerfileData)
 
-	// 生成对应的requirements.txt
-	//os.Chdir(filedir) //最后要换回来
-
-	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh", filedir, functionInfo.Name)
+	// 创建容器镜像并将其推送至dockerhub
+	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
+		filedir, "ocean62/"+functionInfo.Name+":v0", functionInfo.Name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run()
 
-	// push
-}
+	log.Println("create function [" + functionInfo.Name + "] successfully")
 
-// ---------- tool functions -----------------
+}
 
 func (c *functionController) UpdateFunction(request *restful.Request, response *restful.Response) {
 
