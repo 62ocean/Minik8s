@@ -11,7 +11,7 @@ spec:
       image : nginx:1.14.2
       resources:
         limits:
-          cpu: "1"
+          cpu: 10m
           memory: 32M
 #      command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]
 #      args:
@@ -25,11 +25,11 @@ spec:
           mountPath: /data/media
       ports:
         - containerPort: 70
-    - name : hello-world
-      image: hello-world
+    - name : busybox
+      image: busybox:1.28
       resources:
         limits:
-          cpu: "1"
+          cpu: 10m
           memory: 32M
       volumeMounts:
         - name: html
