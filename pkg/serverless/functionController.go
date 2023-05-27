@@ -55,21 +55,12 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	_, _ = file.WriteString(dockerfileData)
 
 	// 生成对应的requirements.txt
-	os.Chdir(filedir) //最后要换回来
+	//os.Chdir(filedir) //最后要换回来
 
-	cmd := exec.Command("ls")
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	_ = cmd.Run()
-
-	cmd = exec.Command("pipreqs", ".", "--encodin", "utf8", "--force")
+	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh", filedir, functionInfo.Name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run()
-
-	// build
 
 	// push
 }
@@ -91,6 +82,10 @@ func (c *functionController) GetAllFunction(request *restful.Request, response *
 func (c *functionController) TriggerFunction(request *restful.Request, response *restful.Response) {
 	name := request.PathParameter("function-name")
 	fmt.Print(name)
+
+	// 向etcd中添加一个pod, 并当容器启动好后向pod发送http请求，拿到返回结果
+
+	// 拿到结果后删除pod（关闭容器）
 }
 
 //type Controller interface {
