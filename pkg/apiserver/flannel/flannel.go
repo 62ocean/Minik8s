@@ -77,7 +77,7 @@ func ConfigInit() {
 	//}
 
 	// config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
-	config := readConfiguration("./flannel.properties")
+	config := readConfiguration("test/flannel.properties")
 
 	conf.etcdEndpoint = config["etcd-endpoint"]
 	conf.etcdPrefix = etcdPrefix
@@ -120,6 +120,7 @@ func InitIptables() {
 }
 
 func GetLocalMacAddr(devName string) string {
+	fmt.Println(devName)
 	interfaces, _ := net.InterfaceByName(devName)
 	macAddr := fmt.Sprintf("%v", interfaces.HardwareAddr)
 	fmt.Printf("GetLocalMacAddr: %s\n", macAddr)
