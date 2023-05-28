@@ -23,8 +23,8 @@ func CreateAPIServer() (*APIServer, error) {
 	// construct APIServer
 	server := APIServer{
 		wsContainer: wsContainer,
-		c:           &functionController{},
 	}
+	server.c = NewFunctionController()
 
 	return &server, nil
 }
@@ -46,7 +46,7 @@ func (s *APIServer) StartServer() {
 
 func (s *APIServer) InitWebServer() {
 	invokeWS := new(restful.WebService)
-	invokeWS.Path("/invoke").
+	invokeWS.Path("/trigger").
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	invokeWS.Route(invokeWS.POST("/{function-name}").To(s.c.TriggerFunction))

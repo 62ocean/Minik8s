@@ -17,7 +17,7 @@ func init() {
 	}
 	log.SetOutput(logFile)
 	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
-	log.SetPrefix("[serverless]")
+	//log.SetPrefix("[serverless]")
 }
 
 func main() {

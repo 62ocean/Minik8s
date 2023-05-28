@@ -56,7 +56,7 @@ func UpdateFunction(request *restful.Request, response *restful.Response) {
 		return
 	}
 	newVal, _ := json.Marshal(&newFunInfo)
-	key := "/registry/functions/default/" + newFunInfo.Name
+	key := "/registry/functions/serverless/" + newFunInfo.Name
 	var ret string
 	if etcd.GetOne(key) == "" {
 		ret = "non-existed function"

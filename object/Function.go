@@ -1,6 +1,7 @@
 package object
 
 type Function struct {
-	Name string
-	Path string
+	Name  string
+	Path  string
+	Image string
 }
