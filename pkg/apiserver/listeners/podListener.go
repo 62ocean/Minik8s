@@ -85,8 +85,7 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	log.Println("publish PUT to pods_XXX")
 	exchangeName1 := "pods_" + podStorage.Config.Metadata.Labels.App
 	err = p.publisher.Publish(exchangeName1, jsonMsg, "PUT")
-	_ = json.Unmarshal(prevkv.Value, &podStorage)
-	exchangeName2 := "pods_" + podStorage.Config.Metadata.Labels.App
+	exchangeName2 := "pods_" + prevPodStorage.Config.Metadata.Labels.App
 	if exchangeName1 != exchangeName2 {
 		err = p.publisher.Publish(exchangeName2, jsonMsg, "PUT")
 	}
