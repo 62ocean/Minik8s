@@ -60,7 +60,7 @@ go get github.com/google/uuid
 /registry/statefulsets/kube-system/prometheus-k8s
 
 # daemonsets
-/registry/daemonsets/kube-system/kube-proxy
+/registry/daemonsets/kube-system/kubeProxy
 
 # secrets
 /registry/secrets/default/default-token-tbfmb
