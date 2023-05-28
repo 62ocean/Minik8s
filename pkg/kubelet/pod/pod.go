@@ -10,7 +10,7 @@ import (
 
 var ipCnt = 2
 
-func CreatePod(podConfig object2.Pod) ([]cache.ContainerMeta, error) {
+func CreatePod(podConfig *object2.Pod) (map[string]*cache.ContainerMeta, error) {
 	// 分配podip
 	localNodeNetWork := flannel.GetLocalNodeNetwork()
 	fmt.Println(localNodeNetWork.SubnetPrefix)
@@ -39,7 +39,7 @@ func CreatePod(podConfig object2.Pod) ([]cache.ContainerMeta, error) {
 	}
 
 	// 创建pod中的容器并运行
-	var containerMeta []cache.ContainerMeta
+	var containerMeta map[string]*cache.ContainerMeta
 	containerMeta, err = CreateContainers(podConfig.Spec.Containers, podConfig.Metadata.Name)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -54,8 +54,10 @@ func CreatePod(podConfig object2.Pod) ([]cache.ContainerMeta, error) {
 	return containerMeta, nil
 }
 
-func StartPod(containers []cache.ContainerMeta) {
+func StartPod(containers map[string]*cache.ContainerMeta, podName string) {
 	// 开启容器
+	// pause容器需要先启动（因为用的map，启动是无序的）
+	StartContainer(containers["pause_"+podName].ContainerID)
 	for _, it := range containers {
 		StartContainer(it.ContainerID)
 	}
@@ -69,7 +71,7 @@ func ClosePod(containers []cache.ContainerMeta) {
 }
 
 func RemovePod(podConfig *cache.PodCache) {
-	log.Println("remove pod now")
+	log.Printf("remove pod %s now\n", podConfig.PodStorage.Config.Metadata.Name)
 	containerMeta := podConfig.ContainerMeta
 	// 关闭容器
 	for _, it := range containerMeta {
@@ -84,15 +86,14 @@ func RemovePod(podConfig *cache.PodCache) {
 }
 
 // SyncPod 返回的bool值若为true表示pod需要更新重启了
-func SyncPod(podConfig *cache.PodCache) (update bool, err error) {
-	for _, container := range podConfig.ContainerMeta {
-		if SyncLocalContainer(container) == false {
-			// container目前不存在了，我们选择把pod都关了重新起个pod
-			return true, nil
-		}
+func SyncPod(podConfig *cache.PodCache) (update bool) {
+	if SyncLocalContainer(podConfig.ContainerMeta) == false {
+		// container目前不存在了，我们选择把pod都关了重新起个pod
+		log.Println("Some container in pod " + podConfig.PodStorage.Config.Metadata.Name + " is non-existed, try to recreate pod now")
+		return true
 	}
 	podConfig.PodStorage.RunningMetrics = GetStatusOfPod(podConfig)
-	return false, nil
+	return false
 }
 
 // GetStatusOfPod 获取pod状态
