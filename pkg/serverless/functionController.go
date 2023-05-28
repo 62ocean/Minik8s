@@ -86,7 +86,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	dockerfileData := "FROM python:3.11\n"
 	dockerfileData += "WORKDIR ./" + functionInfo.Name + "\n"
 	dockerfileData += "ADD . .\n"
-	dockerfileData += "RUN pip install -r requirements.txt\n"
+	dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
 	dockerfileData += "EXPOSE 8888\n"
 	dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
 
@@ -138,9 +138,9 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 	c.client.Post("/pods/create", podJson)
 
 	//向etcd中添加一个service
-	//newService := CreateFunctionService(functionName)
-	//serviceJson, _ := json.Marshal(newService)
-	//c.client.Post("/services/create", serviceJson)
+	newService := CreateFunctionService(functionName)
+	serviceJson, _ := json.Marshal(newService)
+	c.client.Post("/services/create", serviceJson)
 
 	// 拿到结果后删除pod（关闭容器）
 }

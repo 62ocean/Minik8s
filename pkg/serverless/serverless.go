@@ -46,7 +46,7 @@ func (s *APIServer) StartServer() {
 
 func (s *APIServer) InitWebServer() {
 	invokeWS := new(restful.WebService)
-	invokeWS.Path("/trigger").
+	invokeWS.Path("/invoke").
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	invokeWS.Route(invokeWS.POST("/{function-name}").To(s.c.TriggerFunction))
