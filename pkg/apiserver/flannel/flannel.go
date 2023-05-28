@@ -77,7 +77,7 @@ func ConfigInit() {
 	//}
 
 	// config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
-	config := readConfiguration("test/flannel.properties")
+	config := readConfiguration("cmd/kubelet/flannel.properties")
 
 	conf.etcdEndpoint = config["etcd-endpoint"]
 	conf.etcdPrefix = etcdPrefix

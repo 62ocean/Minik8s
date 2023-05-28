@@ -134,9 +134,13 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 
 	// 向etcd中添加一个pod
 	newPod := CreateFunctionPod(functionName, c.functionList[functionName])
-	var podJson []byte
-	podJson, _ = json.Marshal(newPod)
+	podJson, _ := json.Marshal(newPod)
 	c.client.Post("/pods/create", podJson)
+
+	//向etcd中添加一个service
+	//newService := CreateFunctionService(functionName)
+	//serviceJson, _ := json.Marshal(newService)
+	//c.client.Post("/services/create", serviceJson)
 
 	// 拿到结果后删除pod（关闭容器）
 }
@@ -160,6 +164,22 @@ func CreateFunctionPod(functionName string, functionImage string) object.Pod {
 	pod.Spec.Containers = append(pod.Spec.Containers, container)
 
 	return pod
+}
+
+func CreateFunctionService(functionName string) object.Service {
+	var newService object.Service
+	newService.Kind = "Service"
+	newService.Metadata.Name = "service-" + functionName
+	newService.Spec.ClusterIP = "10.10.10.10"
+	newService.Spec.Selector.App = functionName
+	newService.Spec.Selector.Env = "prod"
+	var port object.ServicePort
+	port.Protocol = "TCP"
+	port.Port = 80
+	port.TargetPort = 8888
+	newService.Spec.Ports = append(newService.Spec.Ports, port)
+
+	return newService
 }
 
 func NewFunctionController() FunctionController {
