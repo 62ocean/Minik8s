@@ -126,6 +126,7 @@ func (c *workflowController) TriggerWorkflow(request *restful.Request, response 
 			retJson, _ = c.s.GetFunController().ExecFunction(currentStep.Name, paramsJson)
 			current = currentStep.Next
 		} else if currentStep.Type == "branch" {
+			// 解析参数并判断分支
 			params := paramsJson2Map(paramsJson)
 			retJson = paramsJson
 			for _, choice := range currentStep.Choices {

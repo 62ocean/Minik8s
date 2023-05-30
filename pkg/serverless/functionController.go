@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type FunctionController interface {
@@ -70,7 +71,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	// 检查该function是否已存在
 	_, exist := c.functionList[functionInfo.Name]
 	if exist {
-		log.Println("function " + functionInfo.Name + " already exist")
+		fmt.Println("function " + functionInfo.Name + " already exist")
 		return
 	}
 
@@ -99,7 +100,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	_, _ = file.WriteString(dockerfileData)
 
 	// 创建容器镜像并将其推送至dockerhub
-	functionInfo.Image = "ocean62/" + functionInfo.Name + ":v0"
+	functionInfo.Image = strings.ToLower("ocean62/" + functionInfo.Name + ":v0")
 	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
 		filedir, functionInfo.Image, functionInfo.Name)
 	cmd.Stdout = os.Stdout
@@ -112,7 +113,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 
 	c.client.Post("/functions/create", funJson)
 
-	log.Println("create function [" + functionInfo.Name + "] successfully")
+	fmt.Println("create function [" + functionInfo.Name + "] successfully")
 
 }
 
