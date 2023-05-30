@@ -82,5 +82,17 @@ func InitWebServer(container *restful.Container) {
 	funWS.Route(funWS.GET("/getAll").To(GetAllFunction))
 	container.Add(funWS)
 
+	// workflow
+	wfWS := new(restful.WebService)
+	wfWS.Path("/workflows").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	wfWS.Route(wfWS.POST("/create").To(CreateWorkflow))
+	wfWS.Route(wfWS.GET("/get").To(GetWorkflow))
+	wfWS.Route(wfWS.POST("/update").To(UpdateWorkflow))
+	wfWS.Route(wfWS.DELETE("/remove").To(RemoveWorkflow))
+	wfWS.Route(wfWS.GET("/getAll").To(GetAllWorkflow))
+	container.Add(wfWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }

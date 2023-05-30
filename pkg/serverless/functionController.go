@@ -6,7 +6,6 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"github.com/google/uuid"
 	"k8s/object"
-	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"log"
 	"os"
@@ -182,9 +181,9 @@ func CreateFunctionService(functionName string) object.Service {
 	return newService
 }
 
-func NewFunctionController() FunctionController {
+func NewFunctionController(client *HTTPClient.Client) FunctionController {
 	c := &functionController{}
-	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
+	c.client = client
 	c.functionList = make(map[string]string)
 	err := c.InitFunction()
 	if err != nil {

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Workflow
+metadata:
+  name: testworkflow1
+start: addFive
+params:
+  - name: x
+    value: 5
+steps:
+  - name: addFive
+    type: function
+    next: judge
+  - name: judge
+    type: branch
+    choices:
+      - variable: x
+        type: equal
+        value: 10
+        next: printEqual
+      - variable: x
+        type: notEqual
+        value : 10
+        next: printNotEqual
+  - name: printEqual
+    type: function
+  - name: printNotEqual
+    type: function
