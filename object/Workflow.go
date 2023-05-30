@@ -31,3 +31,8 @@ type Choice struct {
 	Value    int    `yaml:"value"`
 	Next     string `yaml:"next"`
 }
+
+type WorkflowPath struct {
+	Name string
+	Path string
+}

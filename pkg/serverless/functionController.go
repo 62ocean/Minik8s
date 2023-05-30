@@ -111,6 +111,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 
 	log.Println("start adding function " + functionInfo.Name + " from " + functionInfo.Path)
 
+	// build and push
 	functionInfo.Version = 0
 	functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name + "-" + uuid.New().String())
 	functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
@@ -119,37 +120,6 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 		log.Println("build and push image failed")
 		return
 	}
-	//// 生成对应的Dockerfile
-	//filedir := filepath.Dir(functionInfo.Path)
-	//filename := filepath.Base(functionInfo.Path)
-	//
-	//dockerfilePath := filedir + "/Dockerfile"
-	//fmt.Println(dockerfilePath)
-	//
-	//dockerfileData := "FROM python:3.11\n"
-	//dockerfileData += "WORKDIR ./" + functionInfo.Name + "\n"
-	//dockerfileData += "ADD . .\n"
-	//dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
-	//dockerfileData += "EXPOSE 8888\n"
-	//dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
-	//
-	//file, err := os.Create(dockerfilePath)
-	//defer file.Close()
-	//if err != nil {
-	//	log.Println("create dockerfile failed")
-	//	return
-	//}
-	//_, _ = file.WriteString(dockerfileData)
-	//
-	//// 创建容器镜像并将其推送至dockerhub
-	//functionInfo.Version = 0
-	//functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name)
-	//functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
-	//cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
-	//	filedir, functionInfo.Image, functionInfo.Name)
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
-	//_ = cmd.Run()
 
 	// 向functionList中添加该function, 并将其持久化到etcd中
 	c.functionList[functionInfo.Name] = functionInfo
@@ -181,42 +151,12 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 	function.Version++
 	function.Image = function.ImageName + ":v" + strconv.Itoa(function.Version)
 
+	// build and push
 	err = buildAndPushImage(function)
 	if err != nil {
 		log.Println("build and push image failed")
 		return
 	}
-
-	//// 生成对应的Dockerfile
-	//filedir := filepath.Dir(function.Path)
-	//filename := filepath.Base(function.Path)
-	//
-	//dockerfilePath := filedir + "/Dockerfile"
-	//fmt.Println(dockerfilePath)
-	//
-	//dockerfileData := "FROM python:3.11\n"
-	//dockerfileData += "WORKDIR ./" + function.Name + "\n"
-	//dockerfileData += "ADD . .\n"
-	//dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
-	//dockerfileData += "EXPOSE 8888\n"
-	//dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
-	//
-	//file, err := os.Create(dockerfilePath)
-	//defer file.Close()
-	//if err != nil {
-	//	log.Println("create dockerfile failed")
-	//	return
-	//}
-	//_, _ = file.WriteString(dockerfileData)
-	//
-	//// 创建容器镜像并将其推送至dockerhub
-	//function.ImageName = strings.ToLower("ocean62/" + function.Name)
-	//function.Image = function.ImageName + ":v" + strconv.Itoa(function.Version)
-	//cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
-	//	filedir, function.Image, function.Name)
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
-	//_ = cmd.Run()
 
 	// 向functionList中更改该function, 并将其持久化到etcd中
 	c.functionList[function.Name] = function

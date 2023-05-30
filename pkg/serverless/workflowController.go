@@ -6,6 +6,8 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
+	"k8s/utils"
 	"log"
 )
 
@@ -59,15 +61,18 @@ func (c *workflowController) InitWorkflow() error {
 
 func (c *workflowController) AddWorkflow(request *restful.Request, response *restful.Response) {
 
-	workflowInfo := object.Workflow{}
-	err := request.ReadEntity(&workflowInfo)
+	workflowPath := object.WorkflowPath{}
+	err := request.ReadEntity(&workflowPath)
 	//fmt.Println(newRSInfo)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	// 检查该workflow是否已存在
+	workflowInfo := parseYaml.ParseYaml[object.Workflow](workflowPath.Path)
+	utils.OutputJson("wf", workflowInfo)
+
+	//检查该workflow是否已存在
 	_, exist := c.workflowList[workflowInfo.Metadata.Name]
 	if exist {
 		log.Println("workflow " + workflowInfo.Metadata.Name + " already exist")
@@ -88,6 +93,8 @@ func (c *workflowController) AddWorkflow(request *restful.Request, response *res
 }
 
 func initWorkflowMap(workflow *object.Workflow) {
+	workflow.ParamsMap = make(map[string]object.Param)
+	workflow.StepsMap = make(map[string]object.Step)
 	for _, value := range workflow.Params {
 		workflow.ParamsMap[value.Name] = value
 	}
@@ -111,6 +118,7 @@ func (c *workflowController) GetAllWorkflow(request *restful.Request, response *
 func (c *workflowController) TriggerWorkflow(request *restful.Request, response *restful.Response) {
 	workflowName := request.PathParameter("workflow-name")
 	fmt.Println(workflowName)
+	log.Println("trigger workflow: " + workflowName)
 
 	targetWorkflow := c.workflowList[workflowName]
 
@@ -127,6 +135,7 @@ func (c *workflowController) TriggerWorkflow(request *restful.Request, response 
 			current = currentStep.Next
 		} else if currentStep.Type == "branch" {
 			// 解析参数并判断分支
+			log.Println("step: " + current)
 			params := paramsJson2Map(paramsJson)
 			retJson = paramsJson
 			for _, choice := range currentStep.Choices {
@@ -148,6 +157,16 @@ func (c *workflowController) TriggerWorkflow(request *restful.Request, response 
 					}
 				case "lessThan":
 					if params[choice.Variable].Value < choice.Value {
+						current = choice.Next
+						break
+					}
+				case "moreEqualThan":
+					if params[choice.Variable].Value >= choice.Value {
+						current = choice.Next
+						break
+					}
+				case "lessEqualThan":
+					if params[choice.Variable].Value <= choice.Value {
 						current = choice.Next
 						break
 					}
