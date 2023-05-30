@@ -42,7 +42,8 @@ func main() {
 	/*--------------------------KUBECTL FOR GPU-----------------------------*/
 	// job存入apiserver
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
-	job := parseYaml.ParseYaml[object.GPUJob]("../../test/gpuJobAdd.yaml")
+	//job := parseYaml.ParseYaml[object.GPUJob]("../test/gpuJobAdd.yaml")
+	job := parseYaml.ParseYaml[object.GPUJob]("test/gpuJobAdd.yaml")
 	job.Status = object.PENDING
 	jobInfo, _ := json.Marshal(job)
 	client.Post("/gpuJobs/create", jobInfo)
@@ -51,17 +52,19 @@ func main() {
 	port := object.ContainerPort{Port: 8080}
 	container := object.Container{
 		Name:  "commit_" + "CPUJob_" + job.Metadata.Name,
-		Image: "saltfishy/gpu_server:latest",
+		Image: "saltfishy/gpu_server:v3",
 		Ports: []object.ContainerPort{
 			port,
 		},
 		Command: []string{
-			"/bin/sh",
+			"./main " + job.Metadata.Name,
 		},
 		Args: []string{
-			"-c",
-			"./gpu_server " + job.Metadata.Name,
+			job.Metadata.Name,
 		},
+		// TODO 此处写入kubectl时需要修改为参数指定的文件路径
+		CopyFile: "./gpu_server/matrixAdd.cu",
+		CopyDst:  "/app/",
 	}
 	newPod := object.Pod{
 		ApiVersion: "v1",

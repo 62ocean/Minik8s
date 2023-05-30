@@ -1,4 +1,4 @@
-package gpu_server
+package main
 
 import (
 	"encoding/json"
@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// 获取job信息
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
 	name := os.Args[1]
 	response := client.Get("/gpuJobs/get/" + name)

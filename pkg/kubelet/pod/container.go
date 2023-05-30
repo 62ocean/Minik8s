@@ -2,6 +2,7 @@ package pod
 
 import "C"
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"k8s/object"
 	"k8s/pkg/kubelet/cache"
 	"log"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -296,6 +298,25 @@ func CreateContainers(containerConfigs []object.Container, podName string) (map[
 			ContainerID: resp.ID,
 			InitialName: config.Name,
 			Limit:       config.Resources.Limits,
+		}
+
+		// copy to container if needed
+		if config.CopyFile != "" {
+			// read the file
+			fileContent, err := os.ReadFile(config.CopyFile)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			fileReader := bytes.NewReader(fileContent)
+			copyOptions := types.CopyToContainerOptions{
+				AllowOverwriteDirWithFile: true,
+			}
+			err = Client.CopyToContainer(Ctx, resp.ID, config.CopyDst, fileReader, copyOptions)
+			if err != nil {
+				log.Println(err.Error())
+				return result, err
+			}
+			log.Println("Copy file successfully")
 		}
 	}
 	return result, nil

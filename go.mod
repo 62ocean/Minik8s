@@ -7,6 +7,7 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/emicklei/go-restful/v3 v3.10.2
 	github.com/google/uuid v1.3.0
+	github.com/melbahja/goph v1.3.1
 	github.com/streadway/amqp v1.0.0
 	github.com/urfave/cli/v2 v2.25.1
 	go.etcd.io/etcd/api/v3 v3.5.9
@@ -25,7 +26,6 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/melbahja/goph v1.3.1 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
