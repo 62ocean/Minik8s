@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -29,7 +30,7 @@ type FunctionController interface {
 type functionController struct {
 	client *HTTPClient.Client
 
-	functionList map[string]string
+	functionList map[string]object.Function
 }
 
 func (c *functionController) InitFunction() error {
@@ -51,8 +52,42 @@ func (c *functionController) InitFunction() error {
 			fmt.Println("unmarshall function failed")
 			return err
 		}
-		c.functionList[function.Name] = function.Image
+		c.functionList[function.Name] = function
 	}
+
+	return nil
+}
+
+func buildAndPushImage(functionInfo *object.Function) error {
+	// 生成对应的Dockerfile
+	filedir := filepath.Dir(functionInfo.Path)
+	filename := filepath.Base(functionInfo.Path)
+
+	dockerfilePath := filedir + "/Dockerfile"
+	fmt.Println(dockerfilePath)
+
+	dockerfileData := "FROM python:3.11\n"
+	dockerfileData += "WORKDIR ./" + functionInfo.Name + "\n"
+	dockerfileData += "ADD . .\n"
+	dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
+	dockerfileData += "EXPOSE 8888\n"
+	dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
+
+	file, err := os.Create(dockerfilePath)
+	defer file.Close()
+	if err != nil {
+		log.Println("create dockerfile failed")
+		return err
+	}
+	_, _ = file.WriteString(dockerfileData)
+
+	// 创建容器镜像并将其推送至dockerhub
+	functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
+	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
+		filedir, functionInfo.Image, functionInfo.Name)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	_ = cmd.Run()
 
 	return nil
 }
@@ -77,38 +112,47 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 
 	log.Println("start adding function " + functionInfo.Name + " from " + functionInfo.Path)
 
-	// 生成对应的Dockerfile
-	filedir := filepath.Dir(functionInfo.Path)
-	filename := filepath.Base(functionInfo.Path)
-
-	dockerfilePath := filedir + "/Dockerfile"
-	fmt.Println(dockerfilePath)
-
-	dockerfileData := "FROM python:3.11\n"
-	dockerfileData += "WORKDIR ./" + functionInfo.Name + "\n"
-	dockerfileData += "ADD . .\n"
-	dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
-	dockerfileData += "EXPOSE 8888\n"
-	dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
-
-	file, err := os.Create(dockerfilePath)
-	defer file.Close()
+	functionInfo.Version = 0
+	functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name + uuid.New().String())
+	err = buildAndPushImage(&functionInfo)
 	if err != nil {
-		log.Println("create dockerfile failed")
+		log.Println("build and push image failed")
 		return
 	}
-	_, _ = file.WriteString(dockerfileData)
-
-	// 创建容器镜像并将其推送至dockerhub
-	functionInfo.Image = strings.ToLower("ocean62/" + functionInfo.Name + ":v0")
-	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
-		filedir, functionInfo.Image, functionInfo.Name)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	_ = cmd.Run()
+	//// 生成对应的Dockerfile
+	//filedir := filepath.Dir(functionInfo.Path)
+	//filename := filepath.Base(functionInfo.Path)
+	//
+	//dockerfilePath := filedir + "/Dockerfile"
+	//fmt.Println(dockerfilePath)
+	//
+	//dockerfileData := "FROM python:3.11\n"
+	//dockerfileData += "WORKDIR ./" + functionInfo.Name + "\n"
+	//dockerfileData += "ADD . .\n"
+	//dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
+	//dockerfileData += "EXPOSE 8888\n"
+	//dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
+	//
+	//file, err := os.Create(dockerfilePath)
+	//defer file.Close()
+	//if err != nil {
+	//	log.Println("create dockerfile failed")
+	//	return
+	//}
+	//_, _ = file.WriteString(dockerfileData)
+	//
+	//// 创建容器镜像并将其推送至dockerhub
+	//functionInfo.Version = 0
+	//functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name)
+	//functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
+	//cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
+	//	filedir, functionInfo.Image, functionInfo.Name)
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	//_ = cmd.Run()
 
 	// 向functionList中添加该function, 并将其持久化到etcd中
-	c.functionList[functionInfo.Name] = functionInfo.Image
+	c.functionList[functionInfo.Name] = functionInfo
 	funJson, _ := json.Marshal(functionInfo)
 
 	c.client.Post("/functions/create", funJson)
@@ -118,10 +162,88 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 }
 
 func (c *functionController) UpdateFunction(request *restful.Request, response *restful.Response) {
+	functionInfo := object.Function{}
+	err := request.ReadEntity(&functionInfo)
+	//fmt.Println(newRSInfo)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// 检查该function是否已存在
+	function, exist := c.functionList[functionInfo.Name]
+	if !exist {
+		fmt.Println("function " + functionInfo.Name + " doesn't exist")
+		return
+	}
+
+	function.Path = functionInfo.Path
+	function.Version++
+
+	err = buildAndPushImage(&function)
+	if err != nil {
+		log.Println("build and push image failed")
+		return
+	}
+
+	//// 生成对应的Dockerfile
+	//filedir := filepath.Dir(function.Path)
+	//filename := filepath.Base(function.Path)
+	//
+	//dockerfilePath := filedir + "/Dockerfile"
+	//fmt.Println(dockerfilePath)
+	//
+	//dockerfileData := "FROM python:3.11\n"
+	//dockerfileData += "WORKDIR ./" + function.Name + "\n"
+	//dockerfileData += "ADD . .\n"
+	//dockerfileData += "RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple\n"
+	//dockerfileData += "EXPOSE 8888\n"
+	//dockerfileData += "CMD [\"python\", \"./" + filename + "\"]\n"
+	//
+	//file, err := os.Create(dockerfilePath)
+	//defer file.Close()
+	//if err != nil {
+	//	log.Println("create dockerfile failed")
+	//	return
+	//}
+	//_, _ = file.WriteString(dockerfileData)
+	//
+	//// 创建容器镜像并将其推送至dockerhub
+	//function.ImageName = strings.ToLower("ocean62/" + function.Name)
+	//function.Image = function.ImageName + ":v" + strconv.Itoa(function.Version)
+	//cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
+	//	filedir, function.Image, function.Name)
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	//_ = cmd.Run()
+
+	// 向functionList中更改该function, 并将其持久化到etcd中
+	c.functionList[function.Name] = function
+	funJson, _ := json.Marshal(function)
+
+	c.client.Post("/functions/update", funJson)
 
 }
 
 func (c *functionController) DeleteFunction(request *restful.Request, response *restful.Response) {
+	functionInfo := object.Function{}
+	err := request.ReadEntity(&functionInfo)
+	//fmt.Println(newRSInfo)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// 检查该function是否已存在
+	_, exist := c.functionList[functionInfo.Name]
+	if !exist {
+		fmt.Println("function " + functionInfo.Name + " doesn't exist")
+		return
+	}
+
+	// 需要在docker仓库中删除吗？（会涉及很多细节处理，先不管这个了，运行起来没影响就好）
+
+	delete(c.functionList, functionInfo.Name)
 
 }
 
@@ -138,7 +260,7 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 	// 检查该pod是否存在，如不存在，创建pod
 
 	// 向etcd中添加一个pod
-	newPod := CreateFunctionPod(functionName, c.functionList[functionName])
+	newPod := CreateFunctionPod(functionName, c.functionList[functionName].Image)
 	podJson, _ := json.Marshal(newPod)
 	c.client.Post("/pods/create", podJson)
 
@@ -218,7 +340,7 @@ func CreateFunctionService(functionName string) object.Service {
 func NewFunctionController(client *HTTPClient.Client) FunctionController {
 	c := &functionController{}
 	c.client = client
-	c.functionList = make(map[string]string)
+	c.functionList = make(map[string]object.Function)
 	err := c.InitFunction()
 	if err != nil {
 		log.Println("init functions fail")
