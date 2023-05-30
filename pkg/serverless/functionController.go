@@ -58,7 +58,7 @@ func (c *functionController) InitFunction() error {
 	return nil
 }
 
-func buildAndPushImage(functionInfo *object.Function) error {
+func buildAndPushImage(functionInfo object.Function) error {
 	// 生成对应的Dockerfile
 	filedir := filepath.Dir(functionInfo.Path)
 	filename := filepath.Base(functionInfo.Path)
@@ -82,7 +82,6 @@ func buildAndPushImage(functionInfo *object.Function) error {
 	_, _ = file.WriteString(dockerfileData)
 
 	// 创建容器镜像并将其推送至dockerhub
-	functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
 	cmd := exec.Command("bash", "pkg/serverless/buildImage.sh",
 		filedir, functionInfo.Image, functionInfo.Name)
 	cmd.Stdout = os.Stdout
@@ -106,15 +105,16 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 	// 检查该function是否已存在
 	_, exist := c.functionList[functionInfo.Name]
 	if exist {
-		fmt.Println("function " + functionInfo.Name + " already exist")
+		fmt.Println("[CREATE FAILED] function " + functionInfo.Name + " already exist")
 		return
 	}
 
 	log.Println("start adding function " + functionInfo.Name + " from " + functionInfo.Path)
 
 	functionInfo.Version = 0
-	functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name + uuid.New().String())
-	err = buildAndPushImage(&functionInfo)
+	functionInfo.ImageName = strings.ToLower("ocean62/" + functionInfo.Name + "-" + uuid.New().String())
+	functionInfo.Image = functionInfo.ImageName + ":v" + strconv.Itoa(functionInfo.Version)
+	err = buildAndPushImage(functionInfo)
 	if err != nil {
 		log.Println("build and push image failed")
 		return
@@ -157,7 +157,7 @@ func (c *functionController) AddFunction(request *restful.Request, response *res
 
 	c.client.Post("/functions/create", funJson)
 
-	fmt.Println("create function [" + functionInfo.Name + "] successfully")
+	fmt.Println("[CREATE SUCCESSFULLY] function [" + functionInfo.Name + "] is available now")
 
 }
 
@@ -173,14 +173,15 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 	// 检查该function是否已存在
 	function, exist := c.functionList[functionInfo.Name]
 	if !exist {
-		fmt.Println("function " + functionInfo.Name + " doesn't exist")
+		fmt.Println("[UPDATE FAILED] function " + functionInfo.Name + " doesn't exist")
 		return
 	}
 
 	function.Path = functionInfo.Path
 	function.Version++
+	function.Image = function.ImageName + ":v" + strconv.Itoa(function.Version)
 
-	err = buildAndPushImage(&function)
+	err = buildAndPushImage(function)
 	if err != nil {
 		log.Println("build and push image failed")
 		return
@@ -223,6 +224,8 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 
 	c.client.Post("/functions/update", funJson)
 
+	fmt.Println("[UPDATE SUCCESSFULLY] function [" + functionInfo.Name + "] is updated")
+
 }
 
 func (c *functionController) DeleteFunction(request *restful.Request, response *restful.Response) {
@@ -237,13 +240,15 @@ func (c *functionController) DeleteFunction(request *restful.Request, response *
 	// 检查该function是否已存在
 	_, exist := c.functionList[functionInfo.Name]
 	if !exist {
-		fmt.Println("function " + functionInfo.Name + " doesn't exist")
+		fmt.Println("[DELETE FAILED] function " + functionInfo.Name + " doesn't exist")
 		return
 	}
 
 	// 需要在docker仓库中删除吗？（会涉及很多细节处理，先不管这个了，运行起来没影响就好）
 
 	delete(c.functionList, functionInfo.Name)
+
+	fmt.Println("[DELETE SUCCESSFULLY] function [" + functionInfo.Name + "] is removed")
 
 }
 
@@ -349,104 +354,3 @@ func NewFunctionController(client *HTTPClient.Client) FunctionController {
 
 	return c
 }
-
-//type Controller interface {
-//	Start()
-//	FunctionInit() error
-//	//FunctionChangeHandler(eventType object.EventType, rs object.Function)
-//	AddFunction(fun object.Function)
-//	DeleteFunction(fun object.Function)
-//	UpdateFunction(fun object.Function)
-//}
-//
-//type controller struct {
-//	client  *HTTPClient.Client
-//	s       *subscriber.Subscriber
-//	handler *functionHandler
-//}
-//
-//func (c *controller) Start() {
-//	err := c.s.Subscribe("functions", subscriber.Handler(c.handler))
-//	if err != nil {
-//		fmt.Println("[function controller] subscribe function failed")
-//		return
-//	}
-//}
-//
-//func (c *controller) FunctionInit() error {
-//	return nil
-//}
-//
-//func (c *controller) AddFunction(fun object.Function) {
-//	log.Print("[function controllers] create function: " + fun.Name)
-//}
-//
-//func (c *controller) DeleteFunction(fun object.Function) {
-//	log.Print("[function controllers] delete function: " + fun.Name)
-//}
-//
-//func (c *controller) UpdateFunction(fun object.Function) {
-//
-//	log.Print("[function controllers] update function: " + fun.Name)
-//
-//	//fmt.Println(fun.Code)
-//	// 假设只会更改function内容，不会更改名字
-//}
-//
-//func NewController() Controller {
-//	c := &controller{}
-//	c.client = HTTPClient.CreateHTTPClient(global.ServerHost)
-//
-//	//初始化当前etcd中的function
-//	err := c.FunctionInit()
-//	if err != nil {
-//		fmt.Println("[function controller] function init failed")
-//		return nil
-//	}
-//
-//	//创建subscribe监听function的变化
-//	c.s, _ = subscriber.NewSubscriber(global.MQHost)
-//	c.handler = &functionHandler{
-//		c: c,
-//	}
-//
-//	return c
-//}
-//
-//// --------------------function change handler----------------
-//
-//type functionHandler struct {
-//	c *controller
-//}
-//
-//func (h *functionHandler) Handle(msg []byte) {
-//	log.Println("[function controller] receive function change msg")
-//
-//	var msgObject object.MQMessage
-//	err := json.Unmarshal(msg, &msgObject)
-//	if err != nil {
-//		fmt.Println("[function controller] unmarshall msg failed")
-//		return
-//	}
-//
-//	var function object.Function
-//	if msgObject.EventType == object.DELETE {
-//		err = json.Unmarshal([]byte(msgObject.PrevValue), &function)
-//	} else {
-//		err = json.Unmarshal([]byte(msgObject.Value), &function)
-//	}
-//
-//	if err != nil {
-//		fmt.Println("[function controller] unmarshall changed function failed")
-//		return
-//	}
-//
-//	switch msgObject.EventType {
-//	case object.CREATE:
-//		h.c.AddFunction(function)
-//	case object.DELETE:
-//		h.c.DeleteFunction(function)
-//	case object.UPDATE:
-//		h.c.UpdateFunction(function)
-//	}
-//}

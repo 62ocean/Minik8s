@@ -12,4 +12,4 @@ docker build -t $2 $1
 # push image to docker hub
 docker push $2
 
-echo "---------CREATE FUNCTION [$3] SUCCESSFULLY------------"
+echo "--------- [$3] ------------"
