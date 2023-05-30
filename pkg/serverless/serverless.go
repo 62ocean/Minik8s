@@ -31,7 +31,7 @@ func CreateAPIServer() (*APIServer, error) {
 	}
 	server.client = HTTPClient.CreateHTTPClient(global.ServerHost)
 	server.funController = NewFunctionController(server.client)
-	server.wfController = NewWorkflowController(server.client)
+	server.wfController = NewWorkflowController(server.client, &server)
 
 	return &server, nil
 }
@@ -79,4 +79,8 @@ func (s *APIServer) InitWebServer() {
 	workflowWS.Route(workflowWS.POST("/remove").To(s.wfController.DeleteWorkflow))
 	workflowWS.Route(workflowWS.POST("/getAll").To(s.wfController.GetAllWorkflow))
 	s.wsContainer.Add(workflowWS)
+}
+
+func (s *APIServer) GetFunController() FunctionController {
+	return s.funController
 }

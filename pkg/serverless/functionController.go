@@ -22,6 +22,7 @@ type FunctionController interface {
 	GetAllFunction(request *restful.Request, response *restful.Response)
 
 	TriggerFunction(request *restful.Request, response *restful.Response)
+	ExecFunction(funName string, paramsJson string) (string, error)
 }
 
 type functionController struct {
@@ -130,6 +131,10 @@ func (c *functionController) GetAllFunction(request *restful.Request, response *
 func (c *functionController) TriggerFunction(request *restful.Request, response *restful.Response) {
 	functionName := request.PathParameter("function-name")
 	fmt.Print(functionName)
+	var paramsJson string
+	_ = request.ReadEntity(&paramsJson)
+
+	// 检查该pod是否存在，如不存在，创建pod
 
 	// 向etcd中添加一个pod
 	newPod := CreateFunctionPod(functionName, c.functionList[functionName])
@@ -141,7 +146,35 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 	serviceJson, _ := json.Marshal(newService)
 	c.client.Post("/services/create", serviceJson)
 
+	//执行函数
+	ret, _ := c.ExecFunction(functionName, paramsJson)
+	_, err := response.Write([]byte(ret))
+	if err != nil {
+		log.Println("write to response failed")
+		return
+	}
+
 	// 拿到结果后删除pod（关闭容器）
+}
+
+func (c *functionController) ExecFunction(funName string, paramsJson string) (string, error) {
+
+	//var params []object.Param
+	//err := json.Unmarshal([]byte(paramsJson), &params)
+	//if err != nil {
+	//	log.Println("unmarshall params failed")
+	//	return "", err
+	//}
+	//workflowInfo := object.Workflow{}
+	//err :=
+	////fmt.Println(newRSInfo)
+	//if err != nil {
+	//	log.Println(err)
+	//	return
+	//}
+
+	// 把params作为post内容发给对应的容器端口，得到返回结果string
+	return "111", nil
 }
 
 func CreateFunctionPod(functionName string, functionImage string) object.Pod {

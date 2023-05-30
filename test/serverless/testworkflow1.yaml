@@ -23,5 +23,7 @@ steps:
         next: printNotEqual
   - name: printEqual
     type: function
+    next: END
   - name: printNotEqual
     type: function
+    next: END

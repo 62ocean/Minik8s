@@ -7,6 +7,9 @@ type Workflow struct {
 	Start      string   `yaml:"start"`
 	Params     []Param  `yaml:"params"`
 	Steps      []Step   `yaml:"steps"`
+
+	ParamsMap map[string]Param
+	StepsMap  map[string]Step
 }
 
 type Param struct {
