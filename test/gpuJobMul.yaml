@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: GPUJob
 metadata:
-  name: matrix_multiply
+  name: matrix_mul
 spec:
   nodes: 1
   numTasksPerNode: 1
@@ -9,7 +9,7 @@ spec:
   numGpus: 1
   compileScripts: [
     "module load cuda/10.0.130-gcc-4.8.5",
-    "nvcc matrixMultiply.cu -o matrixMultiply"
+    "nvcc matrix_mul/matrixMultiply.cu -o matrixMultiply"
   ]
   program: matrixMultiply.cu
   exe: matrixMultiply

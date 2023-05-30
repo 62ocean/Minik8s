@@ -2,7 +2,6 @@ package pod
 
 import "C"
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,12 +11,15 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	volume2 "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/system"
 	"github.com/docker/go-connections/nat"
 	"io"
 	"k8s/object"
 	"k8s/pkg/kubelet/cache"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -302,16 +304,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) (map[
 
 		// copy to container if needed
 		if config.CopyFile != "" {
-			// read the file
-			fileContent, err := os.ReadFile(config.CopyFile)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			fileReader := bytes.NewReader(fileContent)
-			copyOptions := types.CopyToContainerOptions{
-				AllowOverwriteDirWithFile: true,
-			}
-			err = Client.CopyToContainer(Ctx, resp.ID, config.CopyDst, fileReader, copyOptions)
+			err := copy(Ctx, config.CopyFile, config.CopyDst, resp.ID)
 			if err != nil {
 				log.Println(err.Error())
 				return result, err
@@ -399,24 +392,6 @@ func GetContainerStatus(containerID string, resources object.ContainerResources)
 		memoryLimit = uint64(parseMemory(resources.Memory))
 	}
 	return cpuUsage, cpuLimit, memoryUsage, memoryLimit, nil
-
-	//// 计算 CPU 使用率
-	//var cpuUsagePercentage float64
-	//var memoryUsagePercentage float64
-	//if resources.Cpu == "" {
-	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, 0)
-	//} else {
-	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, parseCPU(resources.Cpu))
-	//}
-	//if resources.Memory == "" {
-	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, memoryLimit)
-	//} else {
-	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, uint64(parseMemory(resources.Memory)))
-	//}
-	//ret.CPUUtil = cpuUsagePercentage
-	//ret.MemUtil = memoryUsagePercentage
-	//return ret
-
 }
 
 // 创建pause容器用于管理网络
@@ -440,6 +415,63 @@ func createPause(ports *[]int, podName string) (string, error) {
 		//UTSMode: container.UTSMode("shareable"),
 	}, nil, nil, "pause_"+podName)
 	return resp.ID, err
+}
+
+// 将文件复制到docker容器
+func copy(ctx context.Context, file string, dest string, container string) error {
+	srcPath := file
+	dstPath := dest
+	// Prepare destination copy info by stat-ing the container path.
+	dstInfo := archive.CopyInfo{Path: dstPath}
+	dstStat, err := Client.ContainerStatPath(ctx, container, dstPath)
+
+	// If the destination is a symbolic link, we should evaluate it.
+	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
+		linkTarget := dstStat.LinkTarget
+		if !system.IsAbs(linkTarget) {
+			// Join with the parent directory.
+			dstParent, _ := archive.SplitPathDirEntry(dstPath)
+			linkTarget = filepath.Join(dstParent, linkTarget)
+		}
+
+		dstInfo.Path = linkTarget
+		dstStat, err = Client.ContainerStatPath(ctx, container, linkTarget)
+	}
+
+	if err == nil {
+		dstInfo.Exists, dstInfo.IsDir = true, dstStat.Mode.IsDir()
+	}
+
+	var (
+		content         io.Reader
+		resolvedDstPath string
+	)
+
+	// Prepare source copy info.
+	srcInfo, err := archive.CopyInfoSourcePath(srcPath, true)
+	if err != nil {
+		return err
+	}
+
+	srcArchive, err := archive.TarResource(srcInfo)
+	if err != nil {
+		return err
+	}
+	defer srcArchive.Close()
+
+	dstDir, preparedArchive, err := archive.PrepareArchiveCopy(srcArchive, srcInfo, dstInfo)
+	if err != nil {
+		return err
+	}
+	defer preparedArchive.Close()
+
+	resolvedDstPath = dstDir
+	content = preparedArchive
+
+	options := types.CopyToContainerOptions{
+		AllowOverwriteDirWithFile: true,
+	}
+	return Client.CopyToContainer(ctx, container, resolvedDstPath, content, options)
 }
 
 /*-----------------------Tools------------------------*/

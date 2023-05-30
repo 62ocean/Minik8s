@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <stdio.h>
 #include <cuda_runtime_api.h>
 
 #define M 20
@@ -7,14 +8,14 @@
 #define THREADS_PER_BLOCK 5
 
 // add function of matrix
-__global__void matmul(int *A, int *B, int *C){
+__global__ void matmul(int *A, int *B, int *C){
     int row = blockIdx.x*blockDim.x+threadIdx.x;
-    int col = blockIdx.t*blockDim.y+threadIdx.y;
+    int col = blockIdx.y*blockDim.y+threadIdx.y;
     int value = 0;
     for(int k=0;k<N;k++){
-        value += A[row,k]*B[k,col];
+        value = value+A[row*N+k]*B[k*N+col];
     }
-    C[row][col] = value;
+    C[row*N+col] = value;
 }
 
 int main(){
@@ -28,7 +29,7 @@ int main(){
     int *A = (int *)malloc(size);
     int *B = (int *)malloc(size);
     int *C = (int *)malloc(size);
-    for(int i=0;i<size;i++){
+    for(int i=0;i<M*N;i++){
         A[i]=i;
         B[i]=i;
     }
@@ -40,10 +41,10 @@ int main(){
     cudaMemcpy(d_A,A,size,cudaMemcpyHostToDevice);
     cudaMemcpy(d_B,B,size,cudaMemcpyHostToDevice);
 
-    matrix_add<<<blocks,threadPerBlock>>>(d_A,d_B,d_C);
+    matmul<<<blocks,threadPerBlock>>>(d_A,d_B,d_C);
 
     // copy back
-    cudaMemcpy(d_C,C,size,cudaMemcpyDeviceToHost);
+    cudaMemcpy(C,d_C,size,cudaMemcpyDeviceToHost);
 
     // print result:
     printf("The matrix add result is:\n");

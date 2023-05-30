@@ -16,4 +16,4 @@ ENV LANG C.UTF-8
 EXPOSE 8089
 
 # 进入bash进行循环等待
-CMD ["sh", "-c", "while true; do sleep 1; done"]
+# CMD ["sh", "-c", "while true; do sleep 1; done"]

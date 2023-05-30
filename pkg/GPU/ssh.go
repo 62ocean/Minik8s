@@ -55,7 +55,7 @@ func (client *SSHClient) isJobRunning(jobID string) bool {
 }
 
 func (client *SSHClient) getOutPut(jobID string) string {
-	if resp, err := client.Cli.Run("cat " + client.WorkDir + jobID + ".out"); err == nil {
+	if resp, err := client.Cli.Run("cat " + jobID + ".out"); err == nil {
 		return string(resp)
 	} else {
 		return ""
@@ -63,7 +63,7 @@ func (client *SSHClient) getOutPut(jobID string) string {
 }
 
 func (client *SSHClient) getError(jobID string) string {
-	if resp, err := client.Cli.Run("cat " + client.WorkDir + jobID + ".err"); err == nil {
+	if resp, err := client.Cli.Run("cat " + ".err"); err == nil {
 		return string(resp)
 	} else {
 		return ""

@@ -46,6 +46,7 @@ func (s *GPUServer) Run() {
 }
 
 func (s *GPUServer) uploadFile() {
+	fmt.Println("Begin To Upload File")
 	dstDir := "/lustre/home/acct-stu/stu1639/" + s.Job.Metadata.Name + "/"
 	if resp, err := s.Client.Mkdir(dstDir); err != nil {
 		fmt.Println(resp)
@@ -58,6 +59,7 @@ func (s *GPUServer) uploadFile() {
 }
 
 func (s *GPUServer) generateScript() {
+	fmt.Println("Begin To Generate Script")
 	var runCMD string
 	// 编译命令也加进去
 	for _, cmd := range s.Job.Spec.CompileScripts {
@@ -99,10 +101,17 @@ func (s *GPUServer) getResult() {
 	s.Job.Error = s.Client.getError(s.Job.Metadata.Uid)
 	fmt.Println("Job Output: " + s.Job.Output)
 	s.updateStatus(object.FINISHED)
+	s.deletePod()
 }
 
 func (s *GPUServer) updateStatus(status object.Status) {
 	s.Job.Status = status
 	jobInfo, _ := json.Marshal(s.Job)
 	s.HTTPCli.Post("/gpuJobs/update", jobInfo)
+}
+
+func (s *GPUServer) deletePod() {
+	podName := "GPUJob_" + s.Job.Metadata.Name
+	name, _ := json.Marshal(podName)
+	s.HTTPCli.Post("/pods/remove", name)
 }
