@@ -62,5 +62,17 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
 
+	//GPUJob
+	GPUJobWS := new(restful.WebService)
+	GPUJobWS.Path("/gpuJobs").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	GPUJobWS.Route(GPUJobWS.POST("/create").To(CreateGPUJob))
+	GPUJobWS.Route(GPUJobWS.GET("/get/{name}").To(GetGPUJob))
+	GPUJobWS.Route(GPUJobWS.POST("/update").To(UpdateGPUJob))
+	GPUJobWS.Route(GPUJobWS.POST("/remove").To(RemoveGPUJob))
+	GPUJobWS.Route(GPUJobWS.GET("/getAll").To(GetAllGPUJob))
+	container.Add(GPUJobWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }

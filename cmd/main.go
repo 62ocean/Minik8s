@@ -1,7 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"k8s/object"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
 	"log"
 	"os"
 	"runtime"
@@ -33,4 +38,48 @@ func main() {
 	//kubectl.CmdExec()
 	//fmt.Println("hello world")
 	//log.Println("test Log!")
+
+	/*--------------------------KUBECTL FOR GPU-----------------------------*/
+	// job存入apiserver
+	client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	job := parseYaml.ParseYaml[object.GPUJob]("../../test/gpuJobAdd.yaml")
+	job.Status = object.PENDING
+	jobInfo, _ := json.Marshal(job)
+	client.Post("/gpuJobs/create", jobInfo)
+
+	// 构造pod 存入apiserver
+	port := object.ContainerPort{Port: 8080}
+	container := object.Container{
+		Name:  "commit_" + "CPUJob_" + job.Metadata.Name,
+		Image: "saltfishy/gpu_server:latest",
+		Ports: []object.ContainerPort{
+			port,
+		},
+		Command: []string{
+			"/bin/sh",
+		},
+		Args: []string{
+			"-c",
+			"./gpu_server " + job.Metadata.Name,
+		},
+	}
+	newPod := object.Pod{
+		ApiVersion: "v1",
+		Kind:       "Pod",
+		Metadata: object.Metadata{
+			Name: "CPUJob_" + job.Metadata.Name,
+			Labels: object.Labels{
+				App: "GPU",
+				Env: "prod",
+			},
+		},
+		Spec: object.PodSpec{
+			Containers: []object.Container{
+				container,
+			},
+		},
+	}
+	podInfo, _ := json.Marshal(newPod)
+	client.Post("/pods/create", podInfo)
+	/*--------------------------KUBECTL FOR GPU-----------------------------*/
 }

@@ -6,8 +6,10 @@ type Status int
 type EventType int
 
 const (
-	RUNNING Status = 0
-	STOPPED Status = 1
+	RUNNING  Status = 0
+	STOPPED  Status = 1
+	PENDING  Status = 2
+	FINISHED Status = 3
 )
 
 const (

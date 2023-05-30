@@ -1,69 +1,108 @@
 package GPU
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
-	"path"
+	"k8s/object"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
+	"time"
 )
 
 type GPUServer struct {
-	Client *SSHClient
+	Client  *SSHClient
+	Job     object.GPUJob
+	HTTPCli *HTTPClient.Client
 }
 
 // NewServer GPUServer对象的构造函数
-func NewServer(name string) *GPUServer {
+func NewServer(job object.GPUJob) *GPUServer {
+	// 建立ssh连接
 	server := GPUServer{
-		Client: NewClient(),
+		Client:  NewClient(),
+		Job:     job,
+		HTTPCli: HTTPClient.CreateHTTPClient(global.ServerHost),
 	}
 	return &server
 }
 
-// Run kubelet运行的入口函数
+// Run GPUServer
 func (s *GPUServer) Run() {
-
-}
-
-func (s *GPUServer) submitJob() (err error) {
-	if s.jobID, err = s.cli.SubmitJob(s.scriptPath()); err == nil {
-		fmt.Printf("submit succeed, got jod ID: %s\n", s.jobID)
-	}
-	return err
-}
-
-func (s *GPUServer) prepare() (err error) {
-	cudaFiles := s.getCudaFiles()
-	if len(cudaFiles) == 0 {
-		return fmt.Errorf("no available cuda files")
-	}
-	if err = s.uploadSmallFiles(cudaFiles); err != nil {
-		return err
-	}
-	fmt.Println("upload cuda files successfully")
-	if err = s.compile(); err != nil {
-		return err
-	}
-	fmt.Println("compile successfully")
-	if err = s.createJobScript(); err != nil {
-		return err
-	}
-	fmt.Println("create job script successfully")
-	return nil
-}
-
-func (s *GPUServer) downloadResult() {
-	outputFile := s.args.Output
-	if content, err := s.cli.ReadFile(outputFile); err == nil {
-		if file, err := os.Create(path.Join(s.jobsURL, outputFile)); err == nil {
-			defer file.Close()
-			_, _ = file.Write([]byte(content))
+	// 上传文件
+	s.uploadFile()
+	//生成slurm脚本
+	s.generateScript()
+	// 提交作业
+	s.submitJob()
+	// 获取结果
+	for {
+		time.Sleep(time.Second * 5)
+		if !s.isJobRunning() {
+			break
 		}
 	}
+	s.getResult()
+	s.Client.Close()
+}
 
-	errorFile := s.args.Error
-	if content, err := s.cli.ReadFile(errorFile); err == nil {
-		if file, err := os.Create(path.Join(s.jobsURL, errorFile)); err == nil {
-			defer file.Close()
-			_, _ = file.Write([]byte(content))
-		}
+func (s *GPUServer) uploadFile() {
+	dstDir := "/lustre/home/acct-stu/stu1639/" + s.Job.Metadata.Name + "/"
+	if resp, err := s.Client.Mkdir(dstDir); err != nil {
+		fmt.Println(resp)
 	}
+	s.Client.WorkDir = dstDir
+	err := s.Client.Cli.Upload(s.Job.Spec.Program, dstDir+s.Job.Spec.Program)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func (s *GPUServer) generateScript() {
+	var runCMD string
+	// 编译命令也加进去
+	for _, cmd := range s.Job.Spec.CompileScripts {
+		runCMD += cmd + "\n"
+	}
+	runCMD += "./" + s.Job.Spec.Executable
+	script := fmt.Sprintf(
+		object.ScriptTemplate,
+		s.Job.Metadata.Name,
+		s.Job.Spec.Nodes,
+		s.Job.Spec.NumTasksPerNode,
+		s.Job.Spec.CpusPerTask,
+		s.Job.Spec.NumGpus,
+		runCMD,
+	)
+	scriptName := s.Job.Metadata.Name + ".slurm"
+	resp, err := s.Client.WriteFile(scriptName, script)
+	if err != nil {
+		fmt.Println(resp)
+	}
+}
+
+func (s *GPUServer) submitJob() {
+	scriptName := s.Job.Metadata.Name + ".slurm"
+	if resp, err := s.Client.SubmitJob(scriptName); err == nil {
+		fmt.Printf("get rsponse after submit: %s\n", resp)
+		s.Job.Metadata.Uid = resp[len(resp)-9 : len(resp)-1]
+		fmt.Printf("submit succeed, got jod ID: %s\n", s.Job.Metadata.Uid)
+		s.updateStatus(object.RUNNING)
+	}
+}
+
+func (s *GPUServer) isJobRunning() bool {
+	return s.Client.isJobRunning(s.Job.Metadata.Uid)
+}
+
+func (s *GPUServer) getResult() {
+	s.Job.Output = s.Client.getOutPut(s.Job.Metadata.Uid)
+	s.Job.Error = s.Client.getError(s.Job.Metadata.Uid)
+	fmt.Println("Job Output: " + s.Job.Output)
+	s.updateStatus(object.FINISHED)
+}
+
+func (s *GPUServer) updateStatus(status object.Status) {
+	s.Job.Status = status
+	jobInfo, _ := json.Marshal(s.Job)
+	s.HTTPCli.Post("/gpuJobs/update", jobInfo)
 }
