@@ -66,6 +66,8 @@ func (w *worker) Start() {
 		log.Printf("[hpa worker] hpa: %s, cpu average util: %f, memory average util: %f\n", w.target.Metadata.Name, cpuUtil, memUtil)
 
 		var cpuMetric, memMetric float64
+		cpuMetric = -1
+		memMetric = -1
 		// 只考虑了cpu和memory两种指标
 		for _, value := range w.target.Spec.Metrics {
 			if value.Resource.Name == "cpu" {
