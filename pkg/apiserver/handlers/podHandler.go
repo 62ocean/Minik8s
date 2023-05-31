@@ -29,8 +29,8 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 	}
 
 	//-----------虚构pod的cpu/memory状态------------
-	podStorage.RunningMetrics.CPUUtil = 30
-	podStorage.RunningMetrics.MemUtil = 30
+	podStorage.RunningMetrics.CPUUtil = 0
+	podStorage.RunningMetrics.MemUtil = 0
 	//--------------------------------------------
 
 	key := "/registry/pods/default/" + name
