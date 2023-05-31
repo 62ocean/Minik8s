@@ -27,6 +27,8 @@ type Container struct {
 	Args         []string                     `yaml:"args"`
 	Resources    ContainerResourcesConfig     `yaml:"resources"`
 	VolumeMounts []ContainerVolumeMountConfig `yaml:"volumeMounts"`
+	CopyFile     string
+	CopyDst      string
 }
 
 type VolumeEmptyDirConfig struct {
