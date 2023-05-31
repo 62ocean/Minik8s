@@ -45,9 +45,10 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	serviceWS.Route(serviceWS.POST("/create").To(CreateService))
-	serviceWS.Route(serviceWS.GET("/get").To(GetService))
+	serviceWS.Route(serviceWS.POST("/get").To(GetService))
 	serviceWS.Route(serviceWS.POST("/update").To(UpdateService))
 	serviceWS.Route(serviceWS.DELETE("/remove").To(RemoveService))
+	serviceWS.Route(serviceWS.POST("/check/{serviceName}").To(CheckService))
 	container.Add(serviceWS)
 
 	// endpoint
@@ -93,6 +94,18 @@ func InitWebServer(container *restful.Container) {
 	wfWS.Route(wfWS.DELETE("/remove").To(RemoveWorkflow))
 	wfWS.Route(wfWS.GET("/getAll").To(GetAllWorkflow))
 	container.Add(wfWS)
+
+	//GPUJob
+	GPUJobWS := new(restful.WebService)
+	GPUJobWS.Path("/gpuJobs").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	GPUJobWS.Route(GPUJobWS.POST("/create").To(CreateGPUJob))
+	GPUJobWS.Route(GPUJobWS.GET("/get/{name}").To(GetGPUJob))
+	GPUJobWS.Route(GPUJobWS.POST("/update").To(UpdateGPUJob))
+	GPUJobWS.Route(GPUJobWS.POST("/remove").To(RemoveGPUJob))
+	GPUJobWS.Route(GPUJobWS.GET("/getAll").To(GetAllGPUJob))
+	container.Add(GPUJobWS)
 
 	// TODO 在此添加新的HTTP请求接口
 }

@@ -68,7 +68,7 @@ func (c *controller) HpaInit() error {
 		return err
 	}
 
-	// 为当前的所有replicaset都启动一个worker
+	// 为当前的所有hpa都启动一个worker
 	for _, value := range *hpaList {
 		//fmt.Println(value)
 		var hpa object.Hpa
@@ -142,7 +142,7 @@ type hpaHandler struct {
 }
 
 func (h *hpaHandler) Handle(msg []byte) {
-	log.Println("[hpa controllers] hpa receive msg: " + string(msg))
+	log.Println("[hpa controllers] receive hpa change msg")
 
 	var msgObject object.MQMessage
 	err := json.Unmarshal(msg, &msgObject)

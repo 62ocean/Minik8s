@@ -174,6 +174,9 @@ func (h podHandler) Handle(jsonMsg []byte) {
 		log.Println("Node get msg of DELETE")
 		if prevPodStorage.Node == h.nodeID {
 			podCache := h.kub.DelFromList(prevPodStorage)
+			if podCache == nil {
+				podCache = h.kub.toBeDel[prevPodStorage.Config.Metadata.Uid]
+			}
 			go h.kub.deletePod(*podCache)
 		}
 	}
@@ -305,7 +308,7 @@ func (kub *Kubelet) DelFromList(storage object.PodStorage) *cache.PodCache {
 }
 
 func (kub *Kubelet) moveToDelList(storage object.PodStorage) *cache.PodCache {
-	log.Println("move pod from podList to delList")
+	log.Println("move pod ", storage.Config.Metadata.Name, " from podList to delList")
 	key := storage.Config.Metadata.Uid
 	oldVal := kub.pods[key]
 	delete(kub.pods, key)

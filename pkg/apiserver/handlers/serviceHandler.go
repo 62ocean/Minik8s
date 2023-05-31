@@ -76,7 +76,6 @@ func UpdateService(request *restful.Request, response *restful.Response) {}
 // 请求参数为service name
 func RemoveService(request *restful.Request, response *restful.Response) {
 	log.Printf("apiserver handler: delete service")
-
 	var serviceName string
 	request.ReadEntity(&serviceName)
 	key := "/registry/services/" + serviceName
@@ -93,6 +92,27 @@ func RemoveService(request *restful.Request, response *restful.Response) {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
+	}
+
+}
+
+func CheckService(request *restful.Request, response *restful.Response) {
+	serviceName := request.PathParameter("serviceName")
+
+	endpointStr := etcd.GetOne("/registry/endpoints/" + serviceName)
+	endpoint := object.Endpoint{}
+	json.Unmarshal([]byte(endpointStr), &endpoint)
+	flag := 0
+	for _, v := range endpoint.PodIps {
+		if v != "" {
+			flag = 1
+		}
+	}
+
+	msg, _ := json.Marshal(flag)
+	_, err := response.Write(msg)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
 }

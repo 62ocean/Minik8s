@@ -3,13 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/emicklei/go-restful/v3"
+	"github.com/google/uuid"
 )
 
 func CreatePod(request *restful.Request, response *restful.Response) {
@@ -20,6 +22,8 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 		log.Println(err)
 		return
 	}
+	id, _ := uuid.NewUUID()
+	pod.Metadata.Uid = id.String()
 	name := pod.Metadata.Name
 	replica := getReplicaIndex(name)
 	podStorage := object.PodStorage{

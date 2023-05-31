@@ -2,10 +2,11 @@ package listeners
 
 import (
 	"fmt"
-	"go.etcd.io/etcd/api/v3/mvccpb"
 	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/util/msgQueue/publisher"
+
+	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
 type EndpointListener struct {
@@ -21,8 +22,9 @@ func NewEndpointListener() *EndpointListener {
 }
 
 func (e EndpointListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
-	fmt.Printf("ETCD: modify key:" + string(prevkv.Key) + " value:" + string(prevkv.Value) + "\n")
-	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.UPDATE)
+	fmt.Printf("ETCD: modify key:" + string(prevkv.Key) + "\nprev value:" + string(prevkv.Value) + "\n current value:" + string(kv.Value))
+
+	jsonMsg := publisher.ConstructPublishMsg(kv, prevkv, object.UPDATE)
 	var err error
 	err = e.publisher.Publish("endpoints", jsonMsg, "UPDATE")
 	if err != nil {
