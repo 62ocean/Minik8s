@@ -18,7 +18,7 @@ type Worker interface {
 	UpdateReplicaset(rs object.ReplicaSet)
 	//PodSyncHandler()
 
-	GetSelectedPodNum() (int, int, []int)
+	GetSelectedPodNum() (int, []int)
 	SyncPods()
 
 	GetRS() object.ReplicaSet
@@ -33,6 +33,9 @@ type worker struct {
 
 	//client通过http进行replicaset的增改删
 	client *HTTPClient.Client
+
+	// maxIndex记录目前最大的replica名字后缀，保证其单调递增且不重复
+	maxIndex int
 }
 
 func (w *worker) Start() {
@@ -68,14 +71,14 @@ func (w *worker) UpdateReplicaset(rs object.ReplicaSet) {
 	w.SyncPods()
 }
 
-func (w *worker) GetSelectedPodNum() (int, int, []int) {
+func (w *worker) GetSelectedPodNum() (int, []int) {
 	//得到所有的pod列表
 	response := w.client.Get("/pods/getAll")
 	podList := new(map[string]string)
 	err := json.Unmarshal([]byte(response), podList)
 	if err != nil {
 		fmt.Println("[rs worker] unmarshall podlist failed")
-		return -1, -1, nil
+		return -1, nil
 	}
 
 	//log.Println(podList)
@@ -90,7 +93,7 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 		err := json.Unmarshal([]byte(value), &pod)
 		if err != nil {
 			fmt.Println("[rs worker] unmarshall pod failed")
-			return -1, -1, nil
+			return -1, nil
 		}
 		if pod.Config.Metadata.Labels.App == w.target.Spec.Selector.MatchLabels.App &&
 			pod.Config.Metadata.Labels.Env == w.target.Spec.Selector.MatchLabels.Env {
@@ -101,26 +104,29 @@ func (w *worker) GetSelectedPodNum() (int, int, []int) {
 			}
 		}
 	}
+	if maxRepIndex > w.maxIndex {
+		w.maxIndex = maxRepIndex
+	}
 
 	log.Println("[rs worker] " + w.target.Metadata.Uid + " : " + strconv.Itoa(num))
 	//log.Println(num)
 
-	return num, maxRepIndex, seqNum
+	return num, seqNum
 }
 
 func (w *worker) SyncPods() {
 	podTemplate := w.target.Spec.PodTemplate
 
-	rsPodNum, maxRepIndex, seqNum := w.GetSelectedPodNum()
+	rsPodNum, seqNum := w.GetSelectedPodNum()
 	for rsPodNum != w.target.Spec.Replicas {
 		if rsPodNum < w.target.Spec.Replicas {
 			// 修改pod uid，名字以及容器名称 (ps要用深拷贝，防止修改podTemplate)
 			temp := &podTemplate
 			newPod := *temp
-			maxRepIndex = maxRepIndex + 1
 			id, _ := uuid.NewUUID()
 			newPod.Metadata.Uid = id.String()
-			newPod.Metadata.Name = podTemplate.Metadata.Name + "-" + strconv.Itoa(maxRepIndex)
+			w.maxIndex++
+			newPod.Metadata.Name = podTemplate.Metadata.Name + "-" + strconv.Itoa(w.maxIndex)
 			var podJson []byte
 			podJson, _ = json.Marshal(newPod)
 
@@ -150,7 +156,8 @@ func (w *worker) GetRS() object.ReplicaSet {
 
 func NewWorker(rs object.ReplicaSet, client *HTTPClient.Client) Worker {
 	return &worker{
-		target: rs,
-		client: client,
+		target:   rs,
+		client:   client,
+		maxIndex: 0,
 	}
 }

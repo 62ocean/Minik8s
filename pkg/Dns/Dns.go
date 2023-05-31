@@ -3,12 +3,13 @@ package Dns
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
 	"k8s/pkg/global"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 func ReadDnsConfig(path string) (object.Dns, error) {
@@ -84,7 +85,7 @@ func CreateDns(filePath string) {
 			service := object.Service{}
 			str := etcd.GetOne("/registry/services/" + path.ServiceName)
 			json.Unmarshal([]byte(str), &service)
-			nginxBlock = fmt.Sprintf("  location %s {\n    proxy_pass http://%s:%d;\n  }\n",
+			nginxBlock = fmt.Sprintf("  location %s {\n    proxy_pass http://%s:%d/;\n  }\n",
 				path.Path, service.Spec.ClusterIP, path.ServicePort)
 			nginxConfig.WriteString(nginxBlock)
 

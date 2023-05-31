@@ -183,33 +183,36 @@ func ListContainer() ([]types.Container, error) {
 }
 
 // SyncLocalContainer 查看本地是否正在运行该容器
-func SyncLocalContainer(container cache.ContainerMeta) bool {
-	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{
-		All: true,
-	})
+func SyncLocalContainer(containers map[string]*cache.ContainerMeta) bool {
+	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{All: true})
+	log.Print("SYNC container: ")
+	log.Println(curList)
+	totalNum := 0
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return false
 	}
 	for _, c := range curList {
-		for _, curName := range c.Names {
-			// ps. docker给出的容器名称前面都会加个"/"（虽然不知道是为啥）
-			if curName == "/"+container.Name {
-				if strings.Contains(c.Status, "Exited") {
-					fmt.Println("Container " + container.Name + " is exited, try to restart it now")
-					StartContainer(container.ContainerID)
-				}
-				return true
+		meta := containers[c.Names[0][1:]]
+		if meta != nil {
+			totalNum++
+			if strings.Contains(c.Status, "Exited") {
+				log.Println("Container " + c.Names[0] + " is exited, try to restart it now")
+				StartContainer(meta.ContainerID)
 			}
 		}
 	}
-	fmt.Println("Container " + container.Name + " is not existed, try to create it now")
-	return false
+	if totalNum < len(containers) {
+		log.Println("totalNum: " + strconv.Itoa(totalNum))
+		log.Println("len of containers in pod: " + strconv.Itoa(len(containers)))
+		return false
+	}
+	return true
 }
 
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container, podName string) ([]cache.ContainerMeta, error) {
-	var result []cache.ContainerMeta
+func CreateContainers(containerConfigs []object.Container, podName string) (map[string]*cache.ContainerMeta, error) {
+	result := make(map[string]*cache.ContainerMeta)
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -231,7 +234,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"})
+	result["pause_"+podName] = &cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"}
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -288,12 +291,12 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, cache.ContainerMeta{
+		result[config.Name+"_"+podName] = &cache.ContainerMeta{
 			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
 			InitialName: config.Name,
 			Limit:       config.Resources.Limits,
-		})
+		}
 	}
 	return result, nil
 }

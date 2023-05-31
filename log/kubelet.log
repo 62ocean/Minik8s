@@ -1,0 +1,5 @@
+[Kubelet]19:52:38.667107 kubelet.go:208: Len of PodList: 2
+[Kubelet]19:52:39.173142 kubelet.go:175: watchPods: create pod
+[Kubelet]19:52:39.173142 kubelet.go:175: watchPods: create pod
+[Kubelet]19:52:39.173142 kubelet.go:231: Begin to crate pod nginx-test-kubectl
+[Kubelet]19:52:39.173142 kubelet.go:231: Begin to crate pod nginx-2

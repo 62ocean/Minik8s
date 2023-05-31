@@ -1,0 +1,3 @@
+[APIServer]19:50:31.821126 nodeListener.go:30: ETCD: set watcher of key /registry/nodes/default/127.0.0.1
+[APIServer]19:50:31.821126 podListener.go:32: ETCD: set watcher of key /registry/pods/default/nginx-1
+[APIServer]19:50:31.854727 podListener.go:32: ETCD: set watcher of key /registry/pods/default/nginx-2

@@ -50,6 +50,14 @@ func InitWebServer(container *restful.Container) {
 	serviceWS.Route(serviceWS.DELETE("/remove").To(RemoveService))
 	container.Add(serviceWS)
 
+	// endpoint
+	endpointWS := new(restful.WebService)
+	endpointWS.Path("/endpoints").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	endpointWS.Route(endpointWS.POST("/get").To(GetEndpoint))
+	container.Add(endpointWS)
+
 	// hpa
 	hpaWS := new(restful.WebService)
 	hpaWS.Path("/hpas").

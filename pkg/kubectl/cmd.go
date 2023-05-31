@@ -1,9 +1,13 @@
 package kubectl
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/urfave/cli/v2"
+	"k8s/pkg/global"
+	"k8s/pkg/util/HTTPClient"
+	"k8s/pkg/util/parseYaml"
 	"log"
 	"os"
 )
@@ -23,6 +27,13 @@ func CmdExec() {
 				},
 				Action: func(c *cli.Context) error {
 					fmt.Println("create: ", c.String("f"))
+					filePath := c.String("f")
+					newPod := parseYaml.ParsePodYaml(filePath)
+					client := HTTPClient.CreateHTTPClient(global.ServerHost)
+					podJson, _ := json.Marshal(newPod)
+					fmt.Println(podJson)
+					client.Post("/pods/create", podJson)
+
 					//apiserver.CreatePod()
 					return nil
 				},
