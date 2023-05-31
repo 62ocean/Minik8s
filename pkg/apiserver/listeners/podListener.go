@@ -122,12 +122,9 @@ func (p PodListener) OnModify(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	}
 
 	// pod 完成调度
-	fmt.Printf("Pod Listener: prev %s\n", prevPodStorage.Config.IP)
-	fmt.Printf("Pod Listener: cur %s\n", podStorage.Config.IP)
-	fmt.Printf("pod Listener: name %s\n", podStorage.Config.Metadata.Name)
-	fmt.Printf("pod Listener: %s\n", podStorage.Config.Kind)
-	fmt.Printf("pod Listener: %s\n", podStorage.Config.ApiVersion)
-	if (prevPodStorage.Config.IP == "") && (podStorage.Config.IP != "") {
+	fmt.Printf("Pod Listener: prevIP %s\n", prevPodStorage.Config.IP)
+	fmt.Printf("Pod Listener: curIP %s\n", podStorage.Config.IP)
+	if podStorage.Config.IP != "" && podStorage.Config.IP != prevPodStorage.Config.IP {
 		fmt.Println("add endpoint")
 		// 遍历endpoint，向符合label的endpoint插入新增pod的ip记录
 		// 将新endpoint写回etcd
