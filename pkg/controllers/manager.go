@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	_ "encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
+	"k8s/object"
 	"k8s/pkg/controllers/hpa"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
-
-	"github.com/google/uuid"
-	_ "github.com/google/uuid"
 
 	//"k8s/object"
 	"k8s/pkg/controllers/replicaset"
@@ -40,12 +40,12 @@ func (m *Manager) Start() {
 
 	go m.replicasetController.Start(&wg)
 	//注释hpa, 便于调试其他功能
-	//go m.hpaController.Start(&wg)
+	go m.hpaController.Start(&wg)
 
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	replicasetData := parseYaml.ParseReplicasetYaml("../../test/ReplicasetConfigTest.yaml")
+	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yaml")
 	id, _ := uuid.NewUUID()
 	replicasetData.Metadata.Uid = id.String()
 	var rsJson []byte
@@ -61,16 +61,16 @@ func (m *Manager) Start() {
 	//添加hpa前必须有相应的rs，否则会添加失败
 	//--------------------------------------
 
-	//hpaData := parseYaml.ParseYaml[object.Hpa]("test/hpaConfigTest.yaml")
-	//id, _ := uuid.NewUUID()
-	//hpaData.Metadata.Uid = id.String()
-	//var rsJson []byte
-	//rsJson, _ = json.Marshal(hpaData)
-	////fmt.Println("rsJson: \n" + string(rsJson))
-	//
-	//client := HTTPClient.CreateHTTPClient(global.ServerHost)
-	//client.Post("/hpas/create", rsJson)
-	//fmt.Println("add hpa ok!")
+	hpaData := parseYaml.ParseYaml[object.Hpa]("test/hpaConfigTest.yaml")
+	id2, _ := uuid.NewUUID()
+	hpaData.Metadata.Uid = id2.String()
+	var rsJson2 []byte
+	rsJson2, _ = json.Marshal(hpaData)
+	//fmt.Println("rsJson: \n" + string(rsJson))
+
+	client2 := HTTPClient.CreateHTTPClient(global.ServerHost)
+	client2.Post("/hpas/create", rsJson2)
+	fmt.Println("add hpa ok!")
 	//--------------------------------------
 
 	// 等待所有协程执行完毕

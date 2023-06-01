@@ -1,0 +1,24 @@
+# 构建一个用于运行go程序的docker镜像
+FROM ubuntu:20.04
+MAINTAINER lrc<1260949667@qq.com>
+
+# environment
+ENV VERSION 1.0
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+# privileged
+USER root
+
+WORKDIR /home
+
+# 安装依赖搭建运行环境
+COPY env.sh /home
+RUN chmod +x /home/env.sh && /home/env.sh
+
+# 暴露端口
+EXPOSE 8089
+
+## 进入bash进行循环等待
+ CMD ["sh", "-c", "export PATH=$PATH:/usr/local/go/bin"]

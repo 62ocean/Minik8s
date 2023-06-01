@@ -11,11 +11,15 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	volume2 "github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/system"
 	"github.com/docker/go-connections/nat"
 	"io"
 	"k8s/object"
 	"k8s/pkg/kubelet/cache"
 	"log"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -183,33 +187,36 @@ func ListContainer() ([]types.Container, error) {
 }
 
 // SyncLocalContainer 查看本地是否正在运行该容器
-func SyncLocalContainer(container cache.ContainerMeta) bool {
-	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{
-		All: true,
-	})
+func SyncLocalContainer(containers map[string]*cache.ContainerMeta) bool {
+	curList, err := Client.ContainerList(Ctx, types.ContainerListOptions{All: true})
+	log.Print("SYNC container: ")
+	log.Println(curList)
+	totalNum := 0
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return false
 	}
 	for _, c := range curList {
-		for _, curName := range c.Names {
-			// ps. docker给出的容器名称前面都会加个"/"（虽然不知道是为啥）
-			if curName == "/"+container.Name {
-				if strings.Contains(c.Status, "Exited") {
-					fmt.Println("Container " + container.Name + " is exited, try to restart it now")
-					StartContainer(container.ContainerID)
-				}
-				return true
+		meta := containers[c.Names[0][1:]]
+		if meta != nil {
+			totalNum++
+			if strings.Contains(c.Status, "Exited") {
+				log.Println("Container " + c.Names[0] + " is exited, try to restart it now")
+				StartContainer(meta.ContainerID)
 			}
 		}
 	}
-	fmt.Println("Container " + container.Name + " is not existed, try to create it now")
-	return false
+	if totalNum < len(containers) {
+		log.Println("totalNum: " + strconv.Itoa(totalNum))
+		log.Println("len of containers in pod: " + strconv.Itoa(len(containers)))
+		return false
+	}
+	return true
 }
 
 // CreateContainers 创建容器们
-func CreateContainers(containerConfigs []object.Container, podName string) ([]cache.ContainerMeta, error) {
-	var result []cache.ContainerMeta
+func CreateContainers(containerConfigs []object.Container, podName string) (map[string]*cache.ContainerMeta, error) {
+	result := make(map[string]*cache.ContainerMeta)
 	var totalPort []int
 	dupMap := make(map[int32]bool)
 
@@ -231,7 +238,7 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		return nil, err3
 	}
 	log.Println("OnCreate pause container")
-	result = append(result, cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"})
+	result["pause_"+podName] = &cache.ContainerMeta{Name: "pause_" + podName, ContainerID: pauseID, InitialName: "pause"}
 
 	for _, config := range containerConfigs {
 		// volume mount
@@ -288,12 +295,22 @@ func CreateContainers(containerConfigs []object.Container, podName string) ([]ca
 		log.Printf("OnCreate container %s\n", resp.ID)
 
 		// record container ID
-		result = append(result, cache.ContainerMeta{
+		result[config.Name+"_"+podName] = &cache.ContainerMeta{
 			Name:        config.Name + "_" + podName,
 			ContainerID: resp.ID,
 			InitialName: config.Name,
 			Limit:       config.Resources.Limits,
-		})
+		}
+
+		// copy to container if needed
+		if config.CopyFile != "" {
+			err := copy(Ctx, config.CopyFile, config.CopyDst, resp.ID)
+			if err != nil {
+				log.Println(err.Error())
+				return result, err
+			}
+			log.Println("Copy file successfully")
+		}
 	}
 	return result, nil
 }
@@ -375,24 +392,6 @@ func GetContainerStatus(containerID string, resources object.ContainerResources)
 		memoryLimit = uint64(parseMemory(resources.Memory))
 	}
 	return cpuUsage, cpuLimit, memoryUsage, memoryLimit, nil
-
-	//// 计算 CPU 使用率
-	//var cpuUsagePercentage float64
-	//var memoryUsagePercentage float64
-	//if resources.Cpu == "" {
-	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, 0)
-	//} else {
-	//	cpuUsagePercentage = calculateCPUPercentage(cpuUsage, cpuSys, parseCPU(resources.Cpu))
-	//}
-	//if resources.Memory == "" {
-	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, memoryLimit)
-	//} else {
-	//	memoryUsagePercentage = calculateMemoryPercentage(memoryUsage, uint64(parseMemory(resources.Memory)))
-	//}
-	//ret.CPUUtil = cpuUsagePercentage
-	//ret.MemUtil = memoryUsagePercentage
-	//return ret
-
 }
 
 // 创建pause容器用于管理网络
@@ -416,6 +415,63 @@ func createPause(ports *[]int, podName string) (string, error) {
 		//UTSMode: container.UTSMode("shareable"),
 	}, nil, nil, "pause_"+podName)
 	return resp.ID, err
+}
+
+// 将文件复制到docker容器
+func copy(ctx context.Context, file string, dest string, container string) error {
+	srcPath := file
+	dstPath := dest
+	// Prepare destination copy info by stat-ing the container path.
+	dstInfo := archive.CopyInfo{Path: dstPath}
+	dstStat, err := Client.ContainerStatPath(ctx, container, dstPath)
+
+	// If the destination is a symbolic link, we should evaluate it.
+	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
+		linkTarget := dstStat.LinkTarget
+		if !system.IsAbs(linkTarget) {
+			// Join with the parent directory.
+			dstParent, _ := archive.SplitPathDirEntry(dstPath)
+			linkTarget = filepath.Join(dstParent, linkTarget)
+		}
+
+		dstInfo.Path = linkTarget
+		dstStat, err = Client.ContainerStatPath(ctx, container, linkTarget)
+	}
+
+	if err == nil {
+		dstInfo.Exists, dstInfo.IsDir = true, dstStat.Mode.IsDir()
+	}
+
+	var (
+		content         io.Reader
+		resolvedDstPath string
+	)
+
+	// Prepare source copy info.
+	srcInfo, err := archive.CopyInfoSourcePath(srcPath, true)
+	if err != nil {
+		return err
+	}
+
+	srcArchive, err := archive.TarResource(srcInfo)
+	if err != nil {
+		return err
+	}
+	defer srcArchive.Close()
+
+	dstDir, preparedArchive, err := archive.PrepareArchiveCopy(srcArchive, srcInfo, dstInfo)
+	if err != nil {
+		return err
+	}
+	defer preparedArchive.Close()
+
+	resolvedDstPath = dstDir
+	content = preparedArchive
+
+	options := types.CopyToContainerOptions{
+		AllowOverwriteDirWithFile: true,
+	}
+	return Client.CopyToContainer(ctx, container, resolvedDstPath, content, options)
 }
 
 /*-----------------------Tools------------------------*/

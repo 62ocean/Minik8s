@@ -1,6 +1,12 @@
 #!/bin/bash
+#更换apt源
+sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+apt-get update
+apt-get install -y wget
+echo "—————————————————成功更换apt源—————————————————"
+
 #安装go
-wget -c https://dl.google.com/go/go1.20.4.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
+wget -c https://dl.google.com/go/go1.20.4.linux-amd64.tar.gz -O - | tar -xz -C /usr/local
 echo "export PATH=$PATH:/usr/local/go/bin" >> /etc/profile
 source ~/.profile
 #验证
@@ -28,10 +34,10 @@ echo "—————————————————完成etcd安装——�
 #安装erlang语言
 apt-get install -y erlang-nox
 #添加公钥
-wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add -
 apt-get update
 #安装rabbitmq
-apt-get install -y rabbitmq-server
+apt-get install -y rabbitmq-server systemd
 #设置开机自启动
 systemctl enable rabbitmq-server
 #查看rabbitmq状态（此时应该正在运行了）
@@ -43,8 +49,6 @@ apt-get install -y nginx
 echo "———————————————完成nginx安装—————————————————"
 
 
-# 关闭原本的dns，此时使用域名访问网络将失效，之后就可以开始跑minik8s啦！
-systemctl stop systemd-resolved
-systemctl disable systemd-resolved
-
-exit_script
+# 关闭原本的dns，此时使用域名访问网络将失效，之后就可以开始跑minik8s啦！(在构建脚本里就不跑这个了，测试的时候再关)
+#systemctl stop systemd-resolved
+#systemctl disable systemd-resolved

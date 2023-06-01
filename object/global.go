@@ -6,8 +6,10 @@ type Status int
 type EventType int
 
 const (
-	RUNNING Status = 0
-	STOPPED Status = 1
+	RUNNING  Status = 0
+	STOPPED  Status = 1
+	PENDING  Status = 2
+	FINISHED Status = 3
 )
 
 const (
@@ -33,4 +35,19 @@ type Metadata struct {
 type Labels struct {
 	App string `yaml:"app"`
 	Env string `yaml:"env"`
+}
+
+func (s Status)ToString() string{
+	switch s{
+	case 0:
+		return "RUNNING"
+	case 1:
+		return "STOPPED"
+	case 2:
+		return "PENDING"
+	case 3:
+		return "FINISHED"
+	default:
+		return ""
+	}
 }
