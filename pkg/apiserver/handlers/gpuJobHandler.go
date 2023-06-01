@@ -3,11 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/etcd"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/emicklei/go-restful/v3"
 )
 
 func CreateGPUJob(request *restful.Request, response *restful.Response) {
@@ -18,6 +20,8 @@ func CreateGPUJob(request *restful.Request, response *restful.Response) {
 		log.Println(err)
 		return
 	}
+	t := time.Now()
+	GPUJob.Metadata.CreationTimestamp = t
 
 	key := "/registry/GPUJobs/default/" + GPUJob.Metadata.Name
 	GPUJobString, _ := json.Marshal(GPUJob)

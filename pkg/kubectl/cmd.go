@@ -173,52 +173,27 @@ func CmdExec() {
 					{
 						Name:  "pod",
 						Usage: "delete a pod",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "f",
-								Usage: "the path of the configuration file of a pod",
-							},
-						},
 						Action: func(c *cli.Context) error {
-							filePath := c.String("f")
-							log.Println("delete pod: ", c.String("f"))
-							newPod := parseYaml.ParseYaml[object.Pod](filePath)
-							podJson, _ := json.Marshal(newPod)
-							log.Println(newPod)
-							APIClient.Post("/pods/", podJson)
+							if c.NArg() != 1 {
+								return errors.New("the pod name must be specified")
+							}
+							name := c.Args().First()
+							nameReq, _ := json.Marshal(name)
+							APIClient.Post("/pods/remove", nameReq)
 							return nil
 						},
 					},
 					{
 						Name:  "service",
 						Usage: "delete a service",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "f",
-								Usage:    "the path of the configuration file of a service",
-								Required: true,
-							},
-						},
 						Action: func(c *cli.Context) error {
-							filePath := c.String("f")
-							log.Println("delete service: ", c.String("f"))
-							newService := parseYaml.ParseYaml[object.Service](filePath)
-							serviceJson, _ := json.Marshal(newService)
-							log.Println(newService)
-							APIClient.Post("/services/create", serviceJson)
+							// TODO
 							return nil
 						},
 					},
 					{
 						Name:  "RS",
 						Usage: "get the running information of a replicaset",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "f",
-								Usage:    "the path of the configuration file of a replicaset",
-								Required: true,
-							},
-						},
 						Action: func(c *cli.Context) error {
 							filePath := c.String("f")
 							log.Println("delete RS: ", c.String("f"))
@@ -290,6 +265,29 @@ func CmdExec() {
 								d := newtime.Sub(createTime)
 								fmt.Printf("%s\t\t\t%s\t\t\t%s\n", podStorage.Config.Metadata.Name, podStorage.Status.ToString(), d.Truncate(time.Second).String())
 
+							}
+							return nil
+						},
+					},
+					{
+						Name:  "GPUJob",
+						Usage: "get the running information of a GPUJob",
+						Action: func(c *cli.Context) error {
+							if c.NArg() != 1 {
+								return errors.New("the job name must be specified")
+							}
+							name := c.Args().First()
+							jobInfo := APIClient.Get("/gpuJobs/get/" + name)
+							job := object.GPUJob{}
+							_ = json.Unmarshal([]byte(jobInfo), &job)
+							fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
+							createTime := job.Metadata.CreationTimestamp
+							newtime := time.Now()
+							d := newtime.Sub(createTime)
+							fmt.Printf("%s\t\t\t%s\t\t\t%s\n", name, job.Status.ToString(), d.Truncate(time.Second).String())
+							if job.Status == 3 {
+								fmt.Printf("OUTPUT: \n")
+								fmt.Println(job.Output)
 							}
 							return nil
 						},
