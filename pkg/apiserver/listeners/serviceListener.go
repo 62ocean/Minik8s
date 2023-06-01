@@ -102,11 +102,11 @@ func (s ServiceListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
 	}
 
 	// 在etcd中删除service对应的endpoint
-	key := "/registry/endpoints/" + service.Metadata.Name
-	res := etcd.Del(key)
-	if !res {
-		fmt.Println("serviceOnDelete: delete endpoint failed!")
-	}
+	// key := "/registry/endpoints/" + service.Metadata.Name
+	// res := etcd.Del(key)
+	// if !res {
+	// 	fmt.Println("serviceOnDelete: delete endpoint failed!")
+	// }
 
 	return
 }

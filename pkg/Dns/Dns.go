@@ -41,9 +41,12 @@ func CreateDns() {
 	// 	fmt.Println("CreateDns: read error")
 	// 	return
 	// }
-	coreFile, err := os.OpenFile("./Corefile", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	coreFile, err := os.OpenFile("build/Corefile", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	coreFile2, err2 := os.OpenFile("Corefile", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	check(err)
+	check(err2)
 	defer coreFile.Close()
+	defer coreFile2.Close()
 	// nginxConfig, err := os.OpenFile("/etc/nginx/conf.d/default.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	// check(err)
 	// defer nginxConfig.Close()
@@ -91,6 +94,7 @@ func CreateDns() {
 	// 其余流量转发到DNS服务器
 	block := fmt.Sprintf(". {\n  forward . 114.114.114.114\n  cache 30\n}\n")
 	coreFile.WriteString(block)
+	coreFile2.WriteString(block)
 
 }
 
