@@ -59,15 +59,14 @@ func GetCmd() *cli.Command {
 					response := APIClient.Get("/pods/getAll")
 					var podList map[string]string
 					_ = json.Unmarshal([]byte(response), &podList)
-					fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
+					fmt.Println("NAME\t\t\tSATUS\t\t\tAGE\t\t\tNODE")
 					for _, val := range podList {
 						podStorage := object.PodStorage{}
 						_ = json.Unmarshal([]byte(val), &podStorage)
 						createTime := podStorage.Config.Metadata.CreationTimestamp
 						newtime := time.Now()
 						d := newtime.Sub(createTime)
-						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", podStorage.Config.Metadata.Name, podStorage.Status.ToString(), d.Truncate(time.Second).String())
-
+						fmt.Printf("%s\t\t\t%s\t\t\t%s\t\t\t%s\n", podStorage.Config.Metadata.Name, podStorage.Status.ToString(), d.Truncate(time.Second).String(), podStorage.Node)
 					}
 					return nil
 				},
