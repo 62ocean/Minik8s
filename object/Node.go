@@ -6,6 +6,8 @@ type NodeStorage struct {
 }
 
 type Node struct {
-	Metadata Metadata
-	IP       string
+	ApiVersion string `yaml:"apiVersion"`
+	Kind       string `yaml:"kind"`
+	Metadata   Metadata
+	IP         string
 }

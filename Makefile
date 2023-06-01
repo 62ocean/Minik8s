@@ -11,6 +11,9 @@ TARGET_CONTROLLERMANAGER = controllerManager
 TARGET_DNS = dns
 TARGET_KUBEPROXY = kubeProxy
 TARGET_FLANNEL = flannel
+
+VAR ?= default_name
+
 .DEFAULT_GOAL := default
 
 GO_TEST_PATH='./test/yaml_test'
@@ -82,7 +85,7 @@ master_start:
 
 node_start:
 	sudo /bin/bash -c './build/kubeProxy &'
-	sudo /bin/bash -c './build/kubelet &'
+	sudo /bin/bash -c './build/kubelet $(VAR) &'
 	sudo /bin/bash -c './build/flannel &'
 
 start_all:
@@ -90,7 +93,7 @@ start_all:
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
-	sudo /bin/bash -c './build/kubelet &'
+	sudo /bin/bash -c './build/kubelet $(VAR) &'
 #    sudo /bin/bash -c './build/autoScaler &'
 #	sudo /bin/bash -c './build/replicaSet &'
 	sudo /bin/bash -c './build/kubeProxy &'
