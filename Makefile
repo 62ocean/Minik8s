@@ -47,34 +47,31 @@ module:
 apiserver:
 	$(GO_BUILD) -o ./build/$(TARGET_APISERVER) ./cmd/apiserver/main.go
 
-kubectl: apiserver
+kubectl:
 	$(GO_BUILD) -o ./build/$(TARGET_KUBECTL) ./cmd/kubectl/main.go
 
-scheduler: apiserver
+scheduler:
 	$(GO_BUILD) -o ./build/$(TARGET_SCHEDULER) ./cmd/scheduler/main.go
 
-kubelet: apiserver
+kubelet:
 	$(GO_BUILD) -o ./build/$(TARGET_KUBELET) ./cmd/kubelet/main.go
 
-controllerManager: apiserver
+controllerManager:
 	$(GO_BUILD) -o ./build/$(TARGET_CONTROLLERMANAGER) ./cmd/controllerManager/main.go
 
-dns: apiserver
+dns:
 	$(GO_BUILD) -o ./build/$(TARGET_DNS) ./cmd/Dns/main.go
 
-kubeProxy: apiserver
+kubeProxy:
 	$(GO_BUILD) -o ./build/$(TARGET_KUBEPROXY) ./cmd/kubeProxy/main.go
 
-flannel: apiserver
+flannel:
 	$(GO_BUILD) -o ./build/$(TARGET_FLANNEL) ./cmd/flannel/main.go
 
 clean:
 	rm -rf ./build
 
 master_start:
-#	sudo ./build/apiserver &
-#	sudo ./build/scheduler &
-#	sudo ./build/kubectl
 	sudo /bin/bash -c 'etcd &'
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c './build/scheduler &'
@@ -82,13 +79,9 @@ master_start:
 	sudo /bin/bash -c './build/dns'
 	sudo /bin/bash -c './build/coredns &'
 	sudo /bin/bash -c './build/flannel &'
-#	sudo sh -c './build/kubectl &'
 
 node_start:
-#	sudo ./build/kubeproxy &
-#	sudo ./build/kubelet
 	sudo /bin/bash -c './build/kubeProxy &'
-#	sudo ./build/kubelet -f ./utils/templates/node_template.yaml
 	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
 	sudo /bin/bash -c './build/flannel &'
 

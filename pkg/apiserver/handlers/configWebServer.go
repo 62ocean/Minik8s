@@ -33,9 +33,9 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	replicasetWS.Route(replicasetWS.POST("/create").To(CreateReplicaset))
-	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
+	replicasetWS.Route(replicasetWS.GET("/get/{rsName}").To(GetReplicaset))
 	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
-	replicasetWS.Route(replicasetWS.DELETE("/remove/{ip}").To(RemoveReplicaset))
+	replicasetWS.Route(replicasetWS.DELETE("/remove/{rsName}").To(RemoveReplicaset))
 	replicasetWS.Route(replicasetWS.GET("/getAll").To(GetAllReplicaset))
 	container.Add(replicasetWS)
 
@@ -68,7 +68,7 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.POST("/create").To(CreateHpa))
 	hpaWS.Route(hpaWS.GET("/get").To(GetHpa))
 	hpaWS.Route(hpaWS.POST("/update").To(UpdateHpa))
-	hpaWS.Route(hpaWS.DELETE("/remove").To(RemoveHpa))
+	hpaWS.Route(hpaWS.DELETE("/remove/{hpaName}").To(RemoveHpa))
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
 
@@ -81,6 +81,30 @@ func InitWebServer(container *restful.Container) {
 	dnsWS.Route(dnsWS.GET("/get").To(GetDns))
 
 	container.Add(dnsWS)
+
+	// function
+	funWS := new(restful.WebService)
+	funWS.Path("/functions").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	funWS.Route(funWS.POST("/create").To(CreateFunction))
+	funWS.Route(funWS.GET("/get").To(GetFunction))
+	funWS.Route(funWS.POST("/update").To(UpdateFunction))
+	funWS.Route(funWS.DELETE("/remove/{functionName}").To(RemoveFunction))
+	funWS.Route(funWS.GET("/getAll").To(GetAllFunction))
+	container.Add(funWS)
+
+	// workflow
+	wfWS := new(restful.WebService)
+	wfWS.Path("/workflows").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	wfWS.Route(wfWS.POST("/create").To(CreateWorkflow))
+	wfWS.Route(wfWS.GET("/get").To(GetWorkflow))
+	wfWS.Route(wfWS.POST("/update").To(UpdateWorkflow))
+	wfWS.Route(wfWS.DELETE("/remove").To(RemoveWorkflow))
+	wfWS.Route(wfWS.GET("/getAll").To(GetAllWorkflow))
+	container.Add(wfWS)
 
 	//GPUJob
 	GPUJobWS := new(restful.WebService)

@@ -15,7 +15,7 @@ func init() {
 	var err error
 	if sysType == "linux" || sysType == "darwin" {
 		// LINUX系统或者MAC
-		logFile, err = os.OpenFile("../log/kubelet.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
+		logFile, err = os.OpenFile("log/kubelet.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0744)
 	}
 	if sysType == "windows" {
 		// windows系统
