@@ -6,7 +6,6 @@ import (
 	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
-	"k8s/pkg/util/parseYaml"
 	"log"
 )
 
@@ -60,16 +59,12 @@ func (c *workflowController) InitWorkflow() error {
 
 func (c *workflowController) AddWorkflow(request *restful.Request, response *restful.Response) {
 
-	workflowPath := object.WorkflowPath{}
-	err := request.ReadEntity(&workflowPath)
-	//fmt.Println(newRSInfo)
+	workflowInfo := object.Workflow{}
+	err := request.ReadEntity(&workflowInfo)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	workflowInfo := parseYaml.ParseYaml[object.Workflow](workflowPath.Path)
-	//utils.OutputJson("wf", workflowInfo)
 
 	//检查该workflow是否已存在
 	_, exist := c.workflowList[workflowInfo.Metadata.Name]

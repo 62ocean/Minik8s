@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/urfave/cli/v2"
-	"k8s/object"
-	"k8s/pkg/util/parseYaml"
-	"log"
 )
 
 func DeleteCmd() *cli.Command {
@@ -42,34 +39,37 @@ func DeleteCmd() *cli.Command {
 			},
 			{
 				Name:  "RS",
-				Usage: "get the running information of a replicaset",
+				Usage: "delete a replicaset",
 				Action: func(c *cli.Context) error {
-					filePath := c.String("f")
-					log.Println("delete RS: ", c.String("f"))
-					newRS := parseYaml.ParseYaml[object.ReplicaSet](filePath)
-					rsJson, _ := json.Marshal(newRS)
-					log.Println(newRS)
-					APIClient.Post("/replicasets/delete", rsJson)
+					if c.NArg() != 1 {
+						return errors.New("the replicaset name must be specified")
+					}
+					name := c.Args().First()
+					APIClient.Del("/replicasets/remove/" + name)
 					return nil
 				},
 			},
 			{
 				Name:  "HPA",
-				Usage: "get the running information of a HPA",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "f",
-						Usage:    "the path of the configuration file of a HPA",
-						Required: true,
-					},
-				},
+				Usage: "delete a hpa",
 				Action: func(c *cli.Context) error {
-					filePath := c.String("f")
-					log.Println("delete HPA: ", c.String("f"))
-					newHPA := parseYaml.ParseYaml[object.Hpa](filePath)
-					HPAJson, _ := json.Marshal(newHPA)
-					log.Println(newHPA)
-					APIClient.Post("/hpas/delete", HPAJson)
+					if c.NArg() != 1 {
+						return errors.New("the hpa name must be specified")
+					}
+					name := c.Args().First()
+					APIClient.Del("/hpas/remove/" + name)
+					return nil
+				},
+			},
+			{
+				Name:  "function",
+				Usage: "delete a function",
+				Action: func(c *cli.Context) error {
+					if c.NArg() != 1 {
+						return errors.New("the function name must be specified")
+					}
+					name := c.Args().First()
+					serverlessClient.Del("/functions/remove/" + name)
 					return nil
 				},
 			},
