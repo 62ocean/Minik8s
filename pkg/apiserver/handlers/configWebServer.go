@@ -71,5 +71,14 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
 
+	// Dns
+	dnsWS := new(restful.WebService)
+	dnsWS.Path("/dns").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	dnsWS.Route(dnsWS.POST("/create").To(CreateDns))
+
+	container.Add(dnsWS)
+
 	// TODO 在此添加新的HTTP请求接口
 }

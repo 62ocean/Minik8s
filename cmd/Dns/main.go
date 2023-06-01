@@ -10,7 +10,7 @@ import (
 	"k8s/pkg/util/HTTPClient"
 	"os"
 
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
@@ -37,6 +37,6 @@ func main() {
 	getMsg, _ = json.Marshal(service2)
 	client.Post("/services/create", getMsg)
 
-	Dns.CreateDns("./dnsConfigTest.yaml")
+	Dns.CreateDns()
 
 }

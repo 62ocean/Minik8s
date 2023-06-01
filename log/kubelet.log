@@ -1,5 +1,199 @@
-[Kubelet]19:52:38.667107 kubelet.go:208: Len of PodList: 2
-[Kubelet]19:52:39.173142 kubelet.go:175: watchPods: create pod
-[Kubelet]19:52:39.173142 kubelet.go:175: watchPods: create pod
-[Kubelet]19:52:39.173142 kubelet.go:231: Begin to crate pod nginx-test-kubectl
-[Kubelet]19:52:39.173142 kubelet.go:231: Begin to crate pod nginx-2
+[Kubelet]22:39:11.506656 kubelet.go:209: Len of PodList: 0
+[Kubelet]22:39:13.038692 kubelet.go:130: Node get msg of UPDATE
+[Kubelet]22:39:13.038716 kubelet.go:149: Pod is moved to this node
+[Kubelet]22:39:13.038722 kubelet.go:270: add pod into podList
+[Kubelet]22:39:13.038757 kubelet.go:232: Begin to crate pod nginx-1
+[Kubelet]22:39:13.042455 container.go:53: Image nginx:1.14.2 is already existed
+[Kubelet]22:39:13.046080 container.go:53: Image busybox:1.28 is already existed
+[Kubelet]22:39:13.048639 container.go:53: Image registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.6 is already existed
+[Kubelet]22:39:13.050074 container.go:119: Volume html already existed, no need to create
+[Kubelet]22:39:13.061448 kubelet.go:130: Node get msg of UPDATE
+[Kubelet]22:39:13.296666 kubelet.go:149: Pod is moved to this node
+[Kubelet]22:39:13.296731 kubelet.go:270: add pod into podList
+[Kubelet]22:39:13.296812 kubelet.go:232: Begin to crate pod nginx-2
+[Kubelet]22:39:13.300137 container.go:53: Image nginx:1.14.2 is already existed
+[Kubelet]22:39:13.302390 container.go:53: Image busybox:1.28 is already existed
+[Kubelet]22:39:13.304678 container.go:53: Image registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.6 is already existed
+[Kubelet]22:39:13.305119 container.go:119: Volume html already existed, no need to create
+[Kubelet]22:39:13.590807 container.go:233: OnCreate pause container
+[Kubelet]22:39:13.590838 container.go:233: OnCreate pause container
+[Kubelet]22:39:13.591362 container.go:259: Add volume mounting config
+[Kubelet]22:39:13.591388 container.go:269: Add resource config
+[Kubelet]22:39:13.591726 container.go:259: Add volume mounting config
+[Kubelet]22:39:13.591743 container.go:269: Add resource config
+[Kubelet]22:39:13.824356 container.go:288: OnCreate container 280df76b378ed1bfa8910bf043deb0340b0e4102cd546270a1b374ed7f9f9d51
+[Kubelet]22:39:13.824404 container.go:288: OnCreate container 28d6e28b048e7be6b074db64d11cc9eca8a812f8b95294d5ba563ec5b9d6bc6b
+[Kubelet]22:39:13.824891 container.go:259: Add volume mounting config
+[Kubelet]22:39:13.824928 container.go:269: Add resource config
+[Kubelet]22:39:13.825103 container.go:259: Add volume mounting config
+[Kubelet]22:39:13.825119 container.go:269: Add resource config
+[Kubelet]22:39:14.947020 container.go:288: OnCreate container aae917b5c233913a09705e128493f00c3253a7507051098f59ceb21426df5f7a
+[Kubelet]22:39:14.947069 pod.go:51: pause_nginx-1  id: d46dada066ecd5989b62ba109d821f7f86e96b99d3c95cb846130a1dbffcd64b
+[Kubelet]22:39:14.947079 pod.go:51: nginx_nginx-1  id: 280df76b378ed1bfa8910bf043deb0340b0e4102cd546270a1b374ed7f9f9d51
+[Kubelet]22:39:14.947085 pod.go:51: busybox_nginx-1  id: aae917b5c233913a09705e128493f00c3253a7507051098f59ceb21426df5f7a
+[Kubelet]22:39:14.961131 container.go:288: OnCreate container 1d67275845b54c2192d0f55b76711f260917f54d8af0a80630b9ee6db94bbf83
+[Kubelet]22:39:14.961165 pod.go:51: pause_nginx-2  id: 16d99f74fea6d79794029ef8e4f3f84f5b9b75df7c0718a890ee67f911e310de
+[Kubelet]22:39:14.961174 pod.go:51: nginx_nginx-2  id: 28d6e28b048e7be6b074db64d11cc9eca8a812f8b95294d5ba563ec5b9d6bc6b
+[Kubelet]22:39:14.961180 pod.go:51: busybox_nginx-2  id: 1d67275845b54c2192d0f55b76711f260917f54d8af0a80630b9ee6db94bbf83
+[Kubelet]22:39:16.190514 container.go:307: Container  d46dada066ecd5989b62ba109d821f7f86e96b99d3c95cb846130a1dbffcd64b starts successfully
+[Kubelet]22:39:16.286084 container.go:307: Container  16d99f74fea6d79794029ef8e4f3f84f5b9b75df7c0718a890ee67f911e310de starts successfully
+[Kubelet]22:39:17.007735 kubelet.go:176: watchPods: create pod
+[Kubelet]22:39:17.007817 kubelet.go:176: watchPods: create pod
+[Kubelet]22:39:17.007841 kubelet.go:232: Begin to crate pod nginx-2
+[Kubelet]22:39:17.007900 kubelet.go:232: Begin to crate pod nginx-1
+[Kubelet]22:39:17.012451 container.go:53: Image nginx:1.14.2 is already existed
+[Kubelet]22:39:17.012456 container.go:53: Image nginx:1.14.2 is already existed
+[Kubelet]22:39:17.016381 container.go:53: Image busybox:1.28 is already existed
+[Kubelet]22:39:17.016423 container.go:53: Image busybox:1.28 is already existed
+[Kubelet]22:39:17.018617 container.go:53: Image registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.6 is already existed
+[Kubelet]22:39:17.020363 container.go:53: Image registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.6 is already existed
+[Kubelet]22:39:17.020450 container.go:119: Volume html already existed, no need to create
+[Kubelet]22:39:17.020637 container.go:119: Volume html already existed, no need to create
+[Kubelet]22:39:17.022904 kubelet.go:235: Create pod error:
+[Kubelet]22:39:17.022940 kubelet.go:236: Error response from daemon: Conflict. The container name "/pause_nginx-2" is already in use by container "16d99f74fea6d79794029ef8e4f3f84f5b9b75df7c0718a890ee67f911e310de". You have to remove (or rename) that container to be able to reuse that name.
+[Kubelet]22:39:17.022963 kubelet.go:235: Create pod error:
+[Kubelet]22:39:17.022971 kubelet.go:236: Error response from daemon: Conflict. The container name "/pause_nginx-1" is already in use by container "d46dada066ecd5989b62ba109d821f7f86e96b99d3c95cb846130a1dbffcd64b". You have to remove (or rename) that container to be able to reuse that name.
+[Kubelet]22:39:18.597838 container.go:307: Container  28d6e28b048e7be6b074db64d11cc9eca8a812f8b95294d5ba563ec5b9d6bc6b starts successfully
+[Kubelet]22:39:18.766772 container.go:307: Container  280df76b378ed1bfa8910bf043deb0340b0e4102cd546270a1b374ed7f9f9d51 starts successfully
+[Kubelet]22:39:21.110795 container.go:307: Container  aae917b5c233913a09705e128493f00c3253a7507051098f59ceb21426df5f7a starts successfully
+[Kubelet]22:39:21.111241 container.go:307: Container  1d67275845b54c2192d0f55b76711f260917f54d8af0a80630b9ee6db94bbf83 starts successfully
+[Kubelet]22:39:21.111491 kubelet.go:321: cannot upload pod's status, response: 
+[Kubelet]22:39:21.111756 kubelet.go:321: cannot upload pod's status, response: 
+[Kubelet]22:39:22.008814 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:27.037855 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:27.048596 kubelet.go:319: upload pod's status
+[Kubelet]22:39:33.059740 kubelet.go:130: Node get msg of UPDATE
+[Kubelet]22:39:33.059793 kubelet.go:140: Pod status changed
+[Kubelet]22:39:33.079345 kubelet.go:319: upload pod's status
+[Kubelet]22:39:33.083483 kubelet.go:130: Node get msg of UPDATE
+[Kubelet]22:39:33.083502 kubelet.go:140: Pod status changed
+[Kubelet]22:39:38.063415 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:43.092165 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:43.093884 kubelet.go:319: upload pod's status
+[Kubelet]22:39:49.117035 kubelet.go:319: upload pod's status
+[Kubelet]22:39:54.116843 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:59.144617 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:39:59.146111 kubelet.go:319: upload pod's status
+[Kubelet]22:40:05.168218 kubelet.go:319: upload pod's status
+[Kubelet]22:40:10.168846 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:15.195869 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:15.197531 kubelet.go:319: upload pod's status
+[Kubelet]22:40:21.219886 kubelet.go:319: upload pod's status
+[Kubelet]22:40:21.220045 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:40:26.218414 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:31.245832 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:31.247190 kubelet.go:319: upload pod's status
+[Kubelet]22:40:37.275279 kubelet.go:319: upload pod's status
+[Kubelet]22:40:42.274975 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:47.303172 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:40:47.304836 kubelet.go:319: upload pod's status
+[Kubelet]22:40:53.328093 kubelet.go:319: upload pod's status
+[Kubelet]22:40:58.327919 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:03.356139 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:03.357848 kubelet.go:319: upload pod's status
+[Kubelet]22:41:09.381688 kubelet.go:319: upload pod's status
+[Kubelet]22:41:14.380225 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:19.409191 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:19.411000 kubelet.go:319: upload pod's status
+[Kubelet]22:41:25.443648 kubelet.go:319: upload pod's status
+[Kubelet]22:41:25.443702 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:41:30.443929 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:35.471592 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:35.473426 kubelet.go:319: upload pod's status
+[Kubelet]22:41:41.496940 kubelet.go:319: upload pod's status
+[Kubelet]22:41:46.496834 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:51.524110 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:41:51.529635 kubelet.go:319: upload pod's status
+[Kubelet]22:41:57.554296 kubelet.go:319: upload pod's status
+[Kubelet]22:42:02.553052 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:07.584626 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:07.586270 kubelet.go:319: upload pod's status
+[Kubelet]22:42:13.608095 kubelet.go:319: upload pod's status
+[Kubelet]22:42:18.608318 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:23.635788 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:23.637425 kubelet.go:319: upload pod's status
+[Kubelet]22:42:29.662092 kubelet.go:319: upload pod's status
+[Kubelet]22:42:29.662685 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:42:34.661434 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:39.689397 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:39.691017 kubelet.go:319: upload pod's status
+[Kubelet]22:42:45.716055 kubelet.go:319: upload pod's status
+[Kubelet]22:42:50.714891 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:55.741313 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:42:55.742711 kubelet.go:319: upload pod's status
+[Kubelet]22:43:01.767662 kubelet.go:319: upload pod's status
+[Kubelet]22:43:06.766330 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:11.792826 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:11.794485 kubelet.go:319: upload pod's status
+[Kubelet]22:43:17.815850 kubelet.go:319: upload pod's status
+[Kubelet]22:43:22.814585 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:27.841855 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:27.843578 kubelet.go:319: upload pod's status
+[Kubelet]22:43:33.866529 kubelet.go:319: upload pod's status
+[Kubelet]22:43:33.866590 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:43:38.865118 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:43.891809 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:43.893489 kubelet.go:319: upload pod's status
+[Kubelet]22:43:49.916326 kubelet.go:319: upload pod's status
+[Kubelet]22:43:54.916909 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:59.945662 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:43:59.947024 kubelet.go:319: upload pod's status
+[Kubelet]22:44:05.970780 kubelet.go:319: upload pod's status
+[Kubelet]22:44:10.972921 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:16.012469 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:16.021669 kubelet.go:319: upload pod's status
+[Kubelet]22:44:22.035862 kubelet.go:319: upload pod's status
+[Kubelet]22:44:27.034651 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:32.062789 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:32.064144 kubelet.go:319: upload pod's status
+[Kubelet]22:44:38.087277 kubelet.go:319: upload pod's status
+[Kubelet]22:44:38.087348 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:44:43.086594 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:48.113386 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:44:48.114838 kubelet.go:319: upload pod's status
+[Kubelet]22:44:54.140004 kubelet.go:319: upload pod's status
+[Kubelet]22:44:59.138501 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:04.166447 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:04.167896 kubelet.go:319: upload pod's status
+[Kubelet]22:45:10.191825 kubelet.go:319: upload pod's status
+[Kubelet]22:45:15.192915 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:20.221059 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:20.222769 kubelet.go:319: upload pod's status
+[Kubelet]22:45:26.244284 kubelet.go:319: upload pod's status
+[Kubelet]22:45:31.244830 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:36.270763 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:36.272699 kubelet.go:319: upload pod's status
+[Kubelet]22:45:42.294159 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:45:42.294498 kubelet.go:319: upload pod's status
+[Kubelet]22:45:47.293899 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:52.319954 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:45:52.321693 kubelet.go:319: upload pod's status
+[Kubelet]22:45:58.344852 kubelet.go:319: upload pod's status
+[Kubelet]22:46:03.342885 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:08.369223 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:08.370790 kubelet.go:319: upload pod's status
+[Kubelet]22:46:14.392468 kubelet.go:319: upload pod's status
+[Kubelet]22:46:19.393874 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:24.424751 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:24.426288 kubelet.go:319: upload pod's status
+[Kubelet]22:46:30.447680 kubelet.go:319: upload pod's status
+[Kubelet]22:46:35.450011 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:40.478462 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:40.480424 kubelet.go:319: upload pod's status
+[Kubelet]22:46:46.502135 kubelet.go:319: upload pod's status
+[Kubelet]22:46:46.502349 kubelet.go:209: Len of PodList: 2
+[Kubelet]22:46:51.504913 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:56.530648 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:46:56.532138 kubelet.go:319: upload pod's status
+[Kubelet]22:47:02.561496 kubelet.go:319: upload pod's status
+[Kubelet]22:47:07.560128 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:12.590262 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:12.592013 kubelet.go:319: upload pod's status
+[Kubelet]22:47:18.612703 kubelet.go:319: upload pod's status
+[Kubelet]22:47:23.611520 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:28.638346 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:28.639629 kubelet.go:319: upload pod's status
+[Kubelet]22:47:34.661837 kubelet.go:319: upload pod's status
+[Kubelet]22:47:39.660829 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:44.687287 kubelet.go:180: watchPods: sync pod status
+[Kubelet]22:47:44.688824 kubelet.go:319: upload pod's status

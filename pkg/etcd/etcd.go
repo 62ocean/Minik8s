@@ -58,7 +58,7 @@ func Del(key string) bool {
 
 // 获取key对应的value
 func GetOne(key string) string {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	resp, err := cli.Get(ctx, key)
 	cancel()
 	if err != nil {

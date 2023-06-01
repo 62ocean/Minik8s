@@ -4,17 +4,42 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v2"
+	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
 	"log"
 	"os"
+
+	"github.com/urfave/cli/v2"
 )
 
 func CmdExec() {
 	app := &cli.App{
 		Commands: []*cli.Command{
+			{
+				Name:  "dns",
+				Usage: "create a dns based on a dns.yaml",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "f",
+						Usage:    "the path of the configuration file of a dns",
+						Required: true,
+					},
+				},
+				Action: func(c *cli.Context) error {
+					fmt.Println("create: ", c.String("f"))
+					filePath := c.String("f")
+					newPod := parseYaml.ParseYaml[object.Dns](filePath)
+					// id, _ := uuid.NewUUID()
+					// newPod.Metadata.Uid = id.String()
+					client := HTTPClient.CreateHTTPClient(global.ServerHost)
+					dnsJson, _ := json.Marshal(newPod)
+					fmt.Println(newPod.Metadata.Name)
+					client.Post("/dns/create", dnsJson)
+					return nil
+				},
+			},
 			{
 				Name:  "create",
 				Usage: "create a pod based on a pod.yaml",
@@ -29,12 +54,12 @@ func CmdExec() {
 					fmt.Println("create: ", c.String("f"))
 					filePath := c.String("f")
 					newPod := parseYaml.ParsePodYaml(filePath)
+					// id, _ := uuid.NewUUID()
+					// newPod.Metadata.Uid = id.String()
 					client := HTTPClient.CreateHTTPClient(global.ServerHost)
 					podJson, _ := json.Marshal(newPod)
-					fmt.Println(podJson)
+					fmt.Println(newPod.Metadata.Name)
 					client.Post("/pods/create", podJson)
-
-					//apiserver.CreatePod()
 					return nil
 				},
 			},

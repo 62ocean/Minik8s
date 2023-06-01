@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	_ "encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	_ "github.com/google/uuid"
 	"k8s/pkg/controllers/hpa"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
+
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
 
 	//"k8s/object"
 	"k8s/pkg/controllers/replicaset"
@@ -44,7 +45,7 @@ func (m *Manager) Start() {
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yaml")
+	replicasetData := parseYaml.ParseReplicasetYaml("../../test/ReplicasetConfigTest.yaml")
 	id, _ := uuid.NewUUID()
 	replicasetData.Metadata.Uid = id.String()
 	var rsJson []byte
