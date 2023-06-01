@@ -195,7 +195,7 @@ func (c *functionController) DeleteFunction(request *restful.Request, response *
 
 	delete(c.functionList, functionInfo.Name)
 
-	// TODO 还要在etcd中删除
+	c.client.Del("/functions/remove/" + functionInfo.Name)
 
 	fmt.Println("[DELETE SUCCESSFULLY] function [" + functionInfo.Name + "] is removed")
 
