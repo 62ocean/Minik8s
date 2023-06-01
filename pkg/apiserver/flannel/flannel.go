@@ -77,8 +77,6 @@ func ConfigInit() {
 	//}
 
 	// config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
-	str, _ := os.Getwd()
-	fmt.Println(str)
 	config := readConfiguration("build/flannel.properties")
 
 	conf.etcdEndpoint = config["etcd-endpoint"]

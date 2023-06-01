@@ -72,7 +72,7 @@ clean:
 	rm -rf ./build
 
 master_start:
-	sudo /bin/bash -c 'etcd &'
+	sudo /bin/bash -c 'etcd -listen-client-urls="http://192.168.1.6:2379,http://localhost:2379" -advertise-client-urls="http://192.168.1.6:2379"   &'
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
@@ -82,16 +82,15 @@ master_start:
 
 node_start:
 	sudo /bin/bash -c './build/kubeProxy &'
-	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
+	sudo /bin/bash -c './build/kubelet &'
 	sudo /bin/bash -c './build/flannel &'
 
 start_all:
-	sudo /bin/bash -c 'etcd &'
+	sudo /bin/bash -c 'etcd -listen-client-urls="http://192.168.1.6:2379,http://localhost:2379" -advertise-client-urls="http://192.168.1.6:2379"   &'
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
 	sudo /bin/bash -c './build/kubelet &'
-#	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
 #    sudo /bin/bash -c './build/autoScaler &'
 #	sudo /bin/bash -c './build/replicaSet &'
 	sudo /bin/bash -c './build/kubeProxy &'
@@ -104,23 +103,27 @@ clean-env:
 	sudo /bin/bash -c 'iptables -t nat -F'
 	sudo /bin/bash -c 'iptables -t nat -X'
 	sudo /bin/bash -c 'systemctl restart docker'
-	sudo /bin/bash -c 'etcdctl del "/registry/pods/" --prefix'
-	sudo /bin/bash -c 'etcdctl del "/registry/replicasets/" --prefix'
-	sudo /bin/bash -c 'etcdctl del "/registry/services/" --prefix'
-	sudo /bin/bash -c 'etcdctl del "/registry/endpoints/" --prefix'
-	sudo /bin/bash -c 'etcdctl del "/registry/hpas/" --prefix'
-	sudo /bin/bash -c 'etcdctl del "/registry/nodes/" --prefix'
+	sudo /bin/bash -c 'etcdctl --endpoints="http://192.168.1.6:2379" del "" --prefix'
 	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
 
 kill-all:
+	-sudo /bin/bash -c 'ps -ef | grep etcd | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall etcd'
+	-sudo /bin/bash -c 'ps -ef | grep apiserver | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall apiserver'
+	-sudo /bin/bash -c 'ps -ef | grep scheduler | awk '{print $2}' | xargs kill -9 '
 	-sudo /bin/bash -c 'killall scheduler'
+	-sudo /bin/bash -c 'ps -ef | grep controllerManager | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall controllerManager'
+	-sudo /bin/bash -c 'ps -ef | grep kubelet | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall kubelet'
+	-sudo /bin/bash -c 'ps -ef | grep kubeProxy | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall kubeProxy'
+	-sudo /bin/bash -c 'ps -ef | grep dns | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall dns'
+	-sudo /bin/bash -c 'ps -ef | grep coredns | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall coredns'
+	-sudo /bin/bash -c 'ps -ef | grep flannel | awk '{print $2}' | xargs kill -9'
 	-sudo /bin/bash -c 'killall flannel'
 
 

@@ -4,19 +4,52 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
 	"log"
+	"os/exec"
+
+	"github.com/urfave/cli/v2"
 )
 
+func RunCommand(cmd string) {
+	fmt.Printf("RunCmd: %s\n", cmd)
+	command := exec.Command("/bin/bash", "-c", cmd)
+	// out, err := command.Output()
+	// if err != nil {
+	// 	fmt.Println("output : ")
+	// 	fmt.Println(out)
+	// }
+	out, err := command.CombinedOutput()
+	log.Printf("out: %s", string(out))
+	if err != nil {
+		fmt.Printf("ERROR: run cmd error: %s\n", err.Error())
+		// panic("ERROR: " + err.Error())
+	}
+	// return string(out)
+}
 func CreateCmd() *cli.Command {
 	cmd := &cli.Command{
 		Name:  "create",
 		Usage: "create an object based on .yaml file",
 		Subcommands: []*cli.Command{
+			{
+				Name:  "node",
+				Usage: "create a node",
+				Action: func(c *cli.Context) error {
+					fmt.Printf("prepare for environment...\n")
+					RunCommand("make clean-env")
+					RunCommand("make kill-all")
+					fmt.Printf("build code...\n")
+					RunCommand("make node")
+					fmt.Printf("start node...\n")
+					RunCommand("make node_start")
+					return nil
+				},
+			},
+
 			{
 				Name:  "dns",
 				Usage: "create a dns based on a dns.yaml",
