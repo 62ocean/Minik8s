@@ -7,8 +7,8 @@ metadata :
     env: prod
 spec:
   containers :
-    - name : podtest-nginx-1
-      image : nginx:1.14.2
+    - name : podtest-1
+      image : saltfishy/httpserver:v4
       resources:
         limits:
           cpu: 10m
@@ -17,8 +17,9 @@ spec:
         - name: html
           mountPath: /data/media
       ports:
-        - containerPort: 70
-    - name : podtest-nginx-2
+        - containerPort: 8888
+      command: [ "/bin/sh","-c","./main" ]
+    - name : podtest-2
       image : nginx:1.14.2
       resources:
         limits:
