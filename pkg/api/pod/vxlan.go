@@ -32,7 +32,7 @@ func RunCommand(cmd string) {
 	fmt.Printf("RunCmd: %s\n", cmd)
 	command := exec.Command("/bin/bash", "-c", cmd)
 	if _, err := command.CombinedOutput(); err != nil {
-		panic("ERROR: " + err.Error())
+		// panic("ERROR: " + err.Error())
 	}
 }
 

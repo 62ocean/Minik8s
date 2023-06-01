@@ -97,8 +97,8 @@ start_all:
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
-#	sudo /bin/bash -c './build/kubelet'
-	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
+	sudo /bin/bash -c './build/kubelet &'
+#	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
 #    sudo /bin/bash -c './build/autoScaler &'
 #	sudo /bin/bash -c './build/replicaSet &'
 	sudo /bin/bash -c './build/kubeProxy &'
@@ -113,6 +113,18 @@ clean-env:
 	sudo /bin/bash -c 'systemctl restart docker'
 	sudo /bin/bash -c 'etcdctl del "" --prefix'
 	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
+
+kill-all:
+	-sudo /bin/bash -c 'killall etcd'
+	-sudo /bin/bash -c 'killall apiserver'
+	-sudo /bin/bash -c 'killall scheduler'
+	-sudo /bin/bash -c 'killall controllerManager'
+	-sudo /bin/bash -c 'killall kubelet'
+	-sudo /bin/bash -c 'killall kubeProxy'
+	-sudo /bin/bash -c 'killall dns'
+	-sudo /bin/bash -c 'killall coredns'
+	-sudo /bin/bash -c 'killall flannel'
+
 
 
 
