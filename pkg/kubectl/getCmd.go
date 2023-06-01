@@ -89,7 +89,75 @@ func GetCmd() *cli.Command {
 						_ = json.Unmarshal([]byte(val), &service)
 						label := fmt.Sprint("app:%s env:%s", service.Metadata.Labels.App, service.Metadata.Labels.Env)
 						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", service.Metadata.Name, service.Spec.ClusterIP, label)
-
+					}
+					return nil
+				},
+			},
+			{
+				Name:  "replicasets",
+				Usage: "list all replicasets",
+				Action: func(c *cli.Context) error {
+					response := APIClient.Get("/replicasets/getAll")
+					var replicasetList map[string]string
+					_ = json.Unmarshal([]byte(response), &replicasetList)
+					fmt.Println("NAME\t\t\tREPLICA\t\t\tLABEL")
+					for _, val := range replicasetList {
+						rs := object.ReplicaSet{}
+						_ = json.Unmarshal([]byte(val), &rs)
+						label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
+						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", rs.Metadata.Name, rs.Spec.Replicas, label)
+					}
+					return nil
+				},
+			},
+			{
+				Name:  "hpas",
+				Usage: "list all hpas",
+				Action: func(c *cli.Context) error {
+					response := APIClient.Get("/hpas/getAll")
+					var hpaList map[string]string
+					_ = json.Unmarshal([]byte(response), &hpaList)
+					fmt.Println("NAME\t\t\tMIN REPLICA\t\t\tMAX REPLICA\t\t\tCPU METRIC\t\t\tMEMORY METRIC")
+					for _, val := range hpaList {
+						hpa := object.Hpa{}
+						_ = json.Unmarshal([]byte(val), &hpa)
+						//label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
+						fmt.Printf("%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%s\n", hpa.Metadata.Name, hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas,
+							hpa.Spec.Metrics[0].Resource.Target.AverageUtilization, hpa.Spec.Metrics[1].Resource.Target.AverageUtilization)
+					}
+					return nil
+				},
+			},
+			{
+				Name:  "functions",
+				Usage: "list all functions",
+				Action: func(c *cli.Context) error {
+					response := APIClient.Get("/functions/getAll")
+					var functionList map[string]string
+					_ = json.Unmarshal([]byte(response), &functionList)
+					fmt.Println("NAME\t\t\tPATH\t\t\tIMAGE")
+					for _, val := range functionList {
+						fun := object.Function{}
+						_ = json.Unmarshal([]byte(val), &fun)
+						//label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
+						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", fun.Name, fun.Path, fun.Image)
+					}
+					return nil
+				},
+			},
+			{
+				Name:  "workflows",
+				Usage: "list all workflows",
+				Action: func(c *cli.Context) error {
+					response := APIClient.Get("/workflows/getAll")
+					var wfList map[string]string
+					_ = json.Unmarshal([]byte(response), &wfList)
+					fmt.Println("NAME")
+					for _, val := range wfList {
+						wf := object.Workflow{}
+						_ = json.Unmarshal([]byte(val), &wf)
+						//label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
+						fmt.Printf("%s\n", wf.Metadata.Name)
 					}
 					return nil
 				},

@@ -66,7 +66,7 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	hpaWS.Route(hpaWS.POST("/create").To(CreateHpa))
-	hpaWS.Route(hpaWS.GET("/get").To(GetHpa))
+	hpaWS.Route(hpaWS.GET("/get/{name}").To(GetHpa))
 	hpaWS.Route(hpaWS.POST("/update").To(UpdateHpa))
 	hpaWS.Route(hpaWS.DELETE("/remove/{hpaName}").To(RemoveHpa))
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))

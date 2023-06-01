@@ -176,28 +176,30 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 }
 
 func (c *functionController) DeleteFunction(request *restful.Request, response *restful.Response) {
-	functionInfo := object.Function{}
-	err := request.ReadEntity(&functionInfo)
-	//fmt.Println(newRSInfo)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+
+	functionName := request.PathParameter("name")
+	//functionInfo := object.Function{}
+	//err := request.ReadEntity(&functionInfo)
+	////fmt.Println(newRSInfo)
+	//if err != nil {
+	//	log.Println(err)
+	//	return
+	//}
 
 	// 检查该function是否已存在
-	_, exist := c.functionList[functionInfo.Name]
+	_, exist := c.functionList[functionName]
 	if !exist {
-		fmt.Println("[DELETE FAILED] function " + functionInfo.Name + " doesn't exist")
+		fmt.Println("[DELETE FAILED] function " + functionName + " doesn't exist")
 		return
 	}
 
 	// 需要在docker仓库中删除吗？（会涉及很多细节处理，先不管这个了，运行起来没影响就好）
 
-	delete(c.functionList, functionInfo.Name)
+	delete(c.functionList, functionName)
 
-	c.client.Del("/functions/remove/" + functionInfo.Name)
+	c.client.Del("/functions/remove/" + functionName)
 
-	fmt.Println("[DELETE SUCCESSFULLY] function [" + functionInfo.Name + "] is removed")
+	fmt.Println("[DELETE SUCCESSFULLY] function [" + functionName + "] is removed")
 
 }
 
@@ -210,28 +212,6 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 	fmt.Print(functionName)
 	var paramsJson string
 	_ = request.ReadEntity(&paramsJson)
-
-	//// 检查该pod是否存在，如不存在，创建pod
-	//
-	//// 向etcd中添加一个pod
-	//newPod := CreateFunctionPod(functionName, c.functionList[functionName].Image)
-	//podJson, _ := json.Marshal(newPod)
-	//c.client.Post("/pods/create", podJson)
-	//
-	////向etcd中添加一个service
-	//newService := CreateFunctionService(functionName)
-	//serviceJson, _ := json.Marshal(newService)
-	//c.client.Post("/services/create", serviceJson)
-	//
-	////执行函数
-	//ret, _ := c.ExecFunction(functionName, paramsJson)
-	//_, err := response.Write([]byte(ret))
-	//if err != nil {
-	//	log.Println("write to response failed")
-	//	return
-	//}
-	//
-	//// 拿到结果后删除pod（关闭容器）
 
 	ret := c.ExecFunction(functionName, paramsJson)
 
