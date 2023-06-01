@@ -257,7 +257,7 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		targetFunction.Timer.Stop()
 		targetFunction.Timer.Reset(time.Second * 30)
 		// 发请求
-		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
+		//resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
 
 		c.mutex.Unlock()
 
@@ -278,17 +278,17 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		servicejson, _ := json.Marshal(service)
 		c.client.Post("/services/create", servicejson)
 		log.Println("create service ok")
-		for {
-			response := c.client.Post("/services/check/function-"+funName, nil)
-			var flag string
-			_ = json.Unmarshal([]byte(response), &flag)
-			if flag == "1" {
-				log.Println("service is ready!")
-				break
-			}
-			log.Println("wait for service ready...")
-			time.Sleep(time.Second * 1)
-		}
+		//for {
+		//	response := c.client.Post("/services/check/function-"+funName, nil)
+		//	var flag string
+		//	_ = json.Unmarshal([]byte(response), &flag)
+		//	if flag == "1" {
+		//		log.Println("service is ready!")
+		//		break
+		//	}
+		//	log.Println("wait for service ready...")
+		//	time.Sleep(time.Second * 1)
+		//}
 
 		// 起对应的hpa
 		hpa := CreateFunctionHPA(funName)
@@ -303,7 +303,7 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		c.runningFunctionList[runningFunction.Function.Name] = runningFunction
 
 		// 发请求
-		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
+		//resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
 		c.mutex.Unlock()
 
 		go c.HoldFunction(runningFunction)
