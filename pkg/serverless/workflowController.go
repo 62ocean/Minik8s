@@ -7,7 +7,6 @@ import (
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
-	"k8s/utils"
 	"log"
 )
 
@@ -70,7 +69,7 @@ func (c *workflowController) AddWorkflow(request *restful.Request, response *res
 	}
 
 	workflowInfo := parseYaml.ParseYaml[object.Workflow](workflowPath.Path)
-	utils.OutputJson("wf", workflowInfo)
+	//utils.OutputJson("wf", workflowInfo)
 
 	//检查该workflow是否已存在
 	_, exist := c.workflowList[workflowInfo.Metadata.Name]
@@ -131,7 +130,7 @@ func (c *workflowController) TriggerWorkflow(request *restful.Request, response 
 		currentStep := targetWorkflow.StepsMap[current]
 		if currentStep.Type == "function" {
 			// 执行function
-			retJson, _ = c.s.GetFunController().ExecFunction(currentStep.Name, paramsJson)
+			retJson = c.s.GetFunController().ExecFunction(currentStep.Name, paramsJson)
 			current = currentStep.Next
 		} else if currentStep.Type == "branch" {
 			// 解析参数并判断分支

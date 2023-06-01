@@ -33,9 +33,9 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	replicasetWS.Route(replicasetWS.POST("/create").To(CreateReplicaset))
-	replicasetWS.Route(replicasetWS.GET("/get").To(GetReplicaset))
+	replicasetWS.Route(replicasetWS.GET("/get/{rsName}").To(GetReplicaset))
 	replicasetWS.Route(replicasetWS.POST("/update").To(UpdateReplicaset))
-	replicasetWS.Route(replicasetWS.DELETE("/remove/{ip}").To(RemoveReplicaset))
+	replicasetWS.Route(replicasetWS.DELETE("/remove/{rsName}").To(RemoveReplicaset))
 	replicasetWS.Route(replicasetWS.GET("/getAll").To(GetAllReplicaset))
 	container.Add(replicasetWS)
 
@@ -47,7 +47,7 @@ func InitWebServer(container *restful.Container) {
 	serviceWS.Route(serviceWS.POST("/create").To(CreateService))
 	serviceWS.Route(serviceWS.POST("/get").To(GetService))
 	serviceWS.Route(serviceWS.POST("/update").To(UpdateService))
-	serviceWS.Route(serviceWS.DELETE("/remove").To(RemoveService))
+	serviceWS.Route(serviceWS.POST("/remove").To(RemoveService))
 	serviceWS.Route(serviceWS.POST("/check/{serviceName}").To(CheckService))
 	container.Add(serviceWS)
 
@@ -67,7 +67,7 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.POST("/create").To(CreateHpa))
 	hpaWS.Route(hpaWS.GET("/get").To(GetHpa))
 	hpaWS.Route(hpaWS.POST("/update").To(UpdateHpa))
-	hpaWS.Route(hpaWS.DELETE("/remove").To(RemoveHpa))
+	hpaWS.Route(hpaWS.DELETE("/remove/{hpaName}").To(RemoveHpa))
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
 
@@ -79,7 +79,7 @@ func InitWebServer(container *restful.Container) {
 	funWS.Route(funWS.POST("/create").To(CreateFunction))
 	funWS.Route(funWS.GET("/get").To(GetFunction))
 	funWS.Route(funWS.POST("/update").To(UpdateFunction))
-	funWS.Route(funWS.DELETE("/remove").To(RemoveFunction))
+	funWS.Route(funWS.DELETE("/remove/{functionName}").To(RemoveFunction))
 	funWS.Route(funWS.GET("/getAll").To(GetAllFunction))
 	container.Add(funWS)
 

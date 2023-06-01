@@ -73,4 +73,8 @@ func UpdateFunction(request *restful.Request, response *restful.Response) {
 		}
 	}
 }
-func RemoveFunction(request *restful.Request, response *restful.Response) {}
+func RemoveFunction(request *restful.Request, response *restful.Response) {
+	functionName := request.PathParameter("functionName")
+	key := "/registry/functions/serverless/" + functionName
+	etcd.Del(key)
+}

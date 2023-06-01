@@ -1,5 +1,7 @@
 package object
 
+import "time"
+
 type Function struct {
 	Name      string
 	Path      string
@@ -7,4 +9,10 @@ type Function struct {
 	Version   int
 
 	Image string
+}
+
+type RunningFunction struct {
+	Function  Function
+	ServiceIP string
+	Timer     *time.Timer
 }
