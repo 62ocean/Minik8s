@@ -20,11 +20,11 @@ GO_TEST_PATH='./test/yaml_test'
 
 all: test master node
 
-build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy
+build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel
 
-master: kubectl apiserver scheduler replicaSet
+master: kubectl apiserver scheduler replicaSet dns dns flannel
 
-node: kubelet
+node: kubelet kubeProxy flannel
 
 default: build
 
@@ -77,10 +77,8 @@ master_start:
 #	sudo ./build/kubectl
 	sudo /bin/bash -c 'etcd &'
 	sudo /bin/bash -c './build/apiserver &'
-	sudo /bin/bash -c 'sleep 5'
 	sudo /bin/bash -c './build/scheduler &'
-	sudo /bin/bash -c './build/autoScaler &'
-	sudo /bin/bash -c './build/replicaSet &'
+	sudo /bin/bash -c './build/controllerManager &'
 	sudo /bin/bash -c './build/dns'
 	sudo /bin/bash -c './build/coredns &'
 	sudo /bin/bash -c './build/flannel &'
@@ -89,10 +87,25 @@ master_start:
 node_start:
 #	sudo ./build/kubeproxy &
 #	sudo ./build/kubelet
-	sudo /bin/bash -c './build/kubeproxy &'
+	sudo /bin/bash -c './build/kubeProxy &'
 #	sudo ./build/kubelet -f ./utils/templates/node_template.yaml
 	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
 	sudo /bin/bash -c './build/flannel &'
+
+start_all:
+	sudo /bin/bash -c 'etcd &'
+	sudo /bin/bash -c './build/apiserver &'
+	sudo /bin/bash -c './build/scheduler &'
+	sudo /bin/bash -c './build/controllerManager &'
+#	sudo /bin/bash -c './build/kubelet'
+	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
+#    sudo /bin/bash -c './build/autoScaler &'
+#	sudo /bin/bash -c './build/replicaSet &'
+	sudo /bin/bash -c './build/kubeProxy &'
+	sudo /bin/bash -c './build/dns'
+	sudo /bin/bash -c './build/coredns &'
+	sudo /bin/bash -c './build/flannel &'
+
 
 clean-env:
 	sudo /bin/bash -c 'iptables -t nat -F'
@@ -100,6 +113,7 @@ clean-env:
 	sudo /bin/bash -c 'systemctl restart docker'
 	sudo /bin/bash -c 'etcdctl del "" --prefix'
 	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
+
 
 
 

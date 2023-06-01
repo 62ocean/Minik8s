@@ -48,7 +48,7 @@ func InitWebServer(container *restful.Container) {
 	serviceWS.Route(serviceWS.POST("/get").To(GetService))
 	serviceWS.Route(serviceWS.GET("/getAll").To(GetAllService))
 	serviceWS.Route(serviceWS.POST("/update").To(UpdateService))
-	serviceWS.Route(serviceWS.DELETE("/remove").To(RemoveService))
+	serviceWS.Route(serviceWS.POST("/remove").To(RemoveService))
 	serviceWS.Route(serviceWS.POST("/check/{serviceName}").To(CheckService))
 	container.Add(serviceWS)
 

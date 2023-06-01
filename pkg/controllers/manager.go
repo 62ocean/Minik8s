@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	_ "encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	_ "github.com/google/uuid"
 	"k8s/object"
 	"k8s/pkg/controllers/hpa"
 	"k8s/pkg/global"
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/parseYaml"
+
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
 
 	//"k8s/object"
 	"k8s/pkg/controllers/replicaset"
@@ -45,7 +46,7 @@ func (m *Manager) Start() {
 	//test: add a replicaset to apiserver
 	//--------------------------------------
 
-	replicasetData := parseYaml.ParseReplicasetYaml("test/ReplicasetConfigTest.yaml")
+	replicasetData := parseYaml.ParseReplicasetYaml("./ReplicasetConfigTest.yaml")
 	id, _ := uuid.NewUUID()
 	replicasetData.Metadata.Uid = id.String()
 	var rsJson []byte
@@ -61,7 +62,7 @@ func (m *Manager) Start() {
 	//添加hpa前必须有相应的rs，否则会添加失败
 	//--------------------------------------
 
-	hpaData := parseYaml.ParseYaml[object.Hpa]("test/hpaConfigTest.yaml")
+	hpaData := parseYaml.ParseYaml[object.Hpa]("./hpaConfigTest.yaml")
 	id2, _ := uuid.NewUUID()
 	hpaData.Metadata.Uid = id2.String()
 	var rsJson2 []byte

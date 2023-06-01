@@ -170,7 +170,7 @@ type KubeProxy struct {
 	serviceQueue          string
 	serviceHandler        serviceHandler
 	dnsHandler            dnsHandler
-	EndpointSubscriberMap map[string]subscriber.Subscriber
+	EndpointSubscriberMap map[string]*subscriber.Subscriber
 }
 
 // kubeproxy用于维护endpoint对象
@@ -191,7 +191,7 @@ func CreateKubeProxy() *KubeProxy {
 		proxy: &kubeProxy,
 	}
 	kubeProxy.dnsHandler = dnsHandler
-	kubeProxy.EndpointSubscriberMap = make(map[string]subscriber.Subscriber)
+	kubeProxy.EndpointSubscriberMap = make(map[string]*subscriber.Subscriber)
 	return &kubeProxy
 }
 
@@ -255,11 +255,12 @@ func (h serviceHandler) Handle(jsonMsg []byte) {
 		handler := endpointHandler{
 			serviceName: service.Metadata.Name,
 		}
+
 		go func() {
 			fmt.Printf("service: %s\n", service.Metadata.Uid)
 			fmt.Printf("prev: %s\n", prevService.Metadata.Uid)
 			sub, _ := subscriber.NewSubscriber(global.MQHost)
-			h.proxy.EndpointSubscriberMap[service.Metadata.Name] = *sub
+			h.proxy.EndpointSubscriberMap[service.Metadata.Name] = sub
 			err := sub.Subscribe("endpoints", subscriber.Handler(handler))
 			if err != nil {
 				fmt.Printf(err.Error())

@@ -43,7 +43,7 @@ func main() {
 	// job存入apiserver
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
 	//job := parseYaml.ParseYaml[object.GPUJob]("../test/gpuJobAdd.yaml")
-	job := parseYaml.ParseYaml[object.GPUJob]("../test/gpuJobAdd.yaml")
+	job := parseYaml.ParseYaml[object.GPUJob]("./gpuJobAdd.yaml")
 	job.Status = object.PENDING
 	jobInfo, _ := json.Marshal(job)
 	client.Post("/gpuJobs/create", jobInfo)

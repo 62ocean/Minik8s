@@ -87,12 +87,13 @@ func (s ServiceListener) OnCreate(kv mvccpb.KeyValue) {
 }
 
 func (s ServiceListener) OnDelete(kv mvccpb.KeyValue, prevkv mvccpb.KeyValue) {
-	log.Printf("ETCD: delete key:" + string(prevkv.Key) + "\n")
+	log.Printf("ETCD: delete key:" + string(prevkv.Key) + " " + string(prevkv.Value) + "\n")
+	log.Printf("ETCD: delete kv:" + string(kv.Key) + " " + string(kv.Value) + "\n")
 	service := object.Service{}
 	json.Unmarshal(prevkv.Value, &service)
 
 	// 向“services”队列发布DELETE消息
-	jsonMsg := publisher.ConstructPublishMsg(kv, kv, object.DELETE)
+	jsonMsg := publisher.ConstructPublishMsg(prevkv, prevkv, object.DELETE)
 	var err error
 	err = s.publisher.Publish("services", jsonMsg, "DELETE")
 	if err != nil {
