@@ -1,9 +1,11 @@
 package kubelet
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"io"
 	"k8s/object"
 	"k8s/pkg/global"
 	"k8s/pkg/kubelet/cache"
@@ -11,7 +13,9 @@ import (
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"log"
+	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -33,6 +37,7 @@ type Kubelet struct {
 func NewKubelet(name string) (*Kubelet, error) {
 	// 使用HTTP，构建node对象传递到APIServer处
 	client := HTTPClient.CreateHTTPClient(global.ServerHost)
+	config := readConfiguration("./build/flannel.properties")
 	id, _ := uuid.NewUUID()
 	nodeInfo := object.Node{
 		Metadata: object.Metadata{
@@ -40,7 +45,7 @@ func NewKubelet(name string) (*Kubelet, error) {
 			Namespace: "default",
 			Uid:       id.String(),
 		},
-		IP: "127.0.0.1",
+		IP: config["node-ip"],
 	}
 	info, _ := json.Marshal(nodeInfo)
 	response := client.Post("/nodes/create", info)
@@ -339,4 +344,32 @@ func (kub *Kubelet) uploadStatus(podInfo object.PodStorage) {
 	} else {
 		log.Println("cannot upload pod's status, response: " + resp)
 	}
+}
+
+func readConfiguration(configurationFile string) map[string]string {
+	var properties = make(map[string]string)
+	confFile, err := os.OpenFile(configurationFile, os.O_RDONLY, 0666)
+	defer func(confFile *os.File) {
+		if err := confFile.Close(); err != nil {
+			panic(err)
+		}
+	}(confFile)
+	if err != nil {
+		fmt.Printf("The config file %s is not exits.", configurationFile)
+	} else {
+		reader := bufio.NewReader(confFile)
+		for {
+			if confString, err := reader.ReadString('\n'); err != nil {
+				if err == io.EOF {
+					break
+				}
+			} else {
+				if len(confString) == 0 || confString == "\n" || confString[0] == '#' {
+					continue
+				}
+				properties[strings.Split(confString, "=")[0]] = strings.Replace(strings.Split(confString, "=")[1], "\n", "", -1)
+			}
+		}
+	}
+	return properties
 }
