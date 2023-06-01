@@ -66,7 +66,7 @@ func NewKubelet(name string) (*Kubelet, error) {
 		toBeDel:       make(map[string]*cache.PodCache),
 	}
 	h := podHandler{
-		nodeID: kub.node.Metadata.Uid,
+		nodeIP: kub.node.IP,
 		kub:    &kub,
 	}
 	kub.podHandler = h
@@ -86,7 +86,7 @@ func (kub *Kubelet) Run() {
 	for _, val := range *podList {
 		podInfo := object.PodStorage{}
 		_ = json.Unmarshal([]byte(val), &podInfo)
-		if podInfo.Node == kub.node.Metadata.Uid {
+		if podInfo.Node == kub.node.IP {
 			podCache := kub.addToList(podInfo)
 			podCache.PodStorage.Status = object.PENDING
 			go kub.createPod(podCache)
@@ -128,7 +128,7 @@ func StopKubelet(kl *Kubelet) {
 
 // --------------------POD STATUS LISTENER----------------
 type podHandler struct {
-	nodeID string
+	nodeIP string
 	kub    *Kubelet
 }
 
@@ -143,7 +143,7 @@ func (h podHandler) Handle(jsonMsg []byte) {
 	switch msg.EventType {
 	case object.CREATE:
 		log.Println("Node get msg of CREATE")
-		if podStorage.Node == h.nodeID {
+		if podStorage.Node == h.nodeIP {
 			podCache := h.kub.addToList(podStorage)
 			podCache.PodStorage.Status = object.PENDING
 			go h.kub.createPod(podCache)
@@ -151,14 +151,14 @@ func (h podHandler) Handle(jsonMsg []byte) {
 	case object.UPDATE:
 		log.Println("Node get msg of UPDATE")
 		// update 目前只可能是scheduler和状态同步两种情况造成，不用考虑太多
-		if prevPodStorage.Node == h.nodeID {
-			if podStorage.Node != h.nodeID {
+		if prevPodStorage.Node == h.nodeIP {
+			if podStorage.Node != h.nodeIP {
 				// pod被转移至其他node
 				log.Println("Pod is removed to other node")
 				podCache := h.kub.DelFromList(podStorage)
 				go h.kub.deletePod(*podCache)
 			}
-			if podStorage.Node == h.nodeID {
+			if podStorage.Node == h.nodeIP {
 				log.Println("Pod status changed")
 				// 此种情况只可能是状态同步、或者分配pod IP，暂时不用管
 				//if podStorage.Status == prevPodStorage.Status  {
@@ -169,7 +169,7 @@ func (h podHandler) Handle(jsonMsg []byte) {
 		} else {
 			// pod被转移至本node
 			log.Println("Pod is moved to this node")
-			if podStorage.Node == h.nodeID {
+			if podStorage.Node == h.nodeIP {
 				podCache := h.kub.addToList(podStorage)
 				podCache.PodStorage.Status = object.PENDING
 				go h.kub.createPod(podCache)
@@ -177,7 +177,7 @@ func (h podHandler) Handle(jsonMsg []byte) {
 		}
 	case object.DELETE:
 		log.Println("Node get msg of DELETE")
-		if prevPodStorage.Node == h.nodeID {
+		if prevPodStorage.Node == h.nodeIP {
 			podCache := h.kub.DelFromList(prevPodStorage)
 			if podCache == nil {
 				podCache = h.kub.toBeDel[prevPodStorage.Config.Metadata.Uid]
@@ -234,14 +234,18 @@ func (kub *Kubelet) syncPodList() {
 
 	// 遍历pod列表，运行在本node上的加入podList
 	log.Println("Len of PodList: " + strconv.Itoa(len(*podList)))
+	podListLen := 0
 	for _, val := range *podList {
 		podInfo := object.PodStorage{}
 		_ = json.Unmarshal([]byte(val), &podInfo)
-		kub.addToList(podInfo)
-		podMap[podInfo.Config.Metadata.Uid] = &podInfo
+		if podInfo.Node == kub.node.IP {
+			podListLen++
+			kub.addToList(podInfo)
+			podMap[podInfo.Config.Metadata.Uid] = &podInfo
+		}
 	}
 	// 核对长度，不对劲说明有要删除的内容 (ps.map遍历时删除是安全的可以放心)
-	if len(kub.pods) > len(*podList) {
+	if len(kub.pods) > podListLen {
 		for key, _ := range kub.pods {
 			if podMap[key] == nil {
 				kub.moveToDelList(kub.pods[key].PodStorage)
