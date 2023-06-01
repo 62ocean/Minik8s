@@ -23,7 +23,7 @@ type Controller interface {
 }
 
 type controller struct {
-	//每一个rs对应一个worke，存储在workers中
+	//每一个rs对应一个worker，存储在workers中
 	workers map[string]Worker
 
 	//s监听replicaset的变化，handler处理
@@ -41,7 +41,7 @@ func (c *controller) Start(wg *sync.WaitGroup) {
 	// 开始监听rs变化
 	err := c.s.Subscribe("replicasets", subscriber.Handler(c.handler))
 	if err != nil {
-		fmt.Println("[rs controller] subcribe rs failed")
+		fmt.Println("[rs controller] subscribe rs failed")
 		return
 	}
 

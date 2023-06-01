@@ -49,4 +49,8 @@ func GetAllHpa(request *restful.Request, response *restful.Response) {
 
 func GetHpa(request *restful.Request, response *restful.Response)    {}
 func UpdateHpa(request *restful.Request, response *restful.Response) {}
-func RemoveHpa(request *restful.Request, response *restful.Response) {}
+func RemoveHpa(request *restful.Request, response *restful.Response) {
+	hpaName := request.PathParameter("hpaName")
+	key := "/registry/hpas/default/" + hpaName
+	etcd.Del(key)
+}
