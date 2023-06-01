@@ -104,7 +104,12 @@ clean-env:
 	sudo /bin/bash -c 'iptables -t nat -F'
 	sudo /bin/bash -c 'iptables -t nat -X'
 	sudo /bin/bash -c 'systemctl restart docker'
-	sudo /bin/bash -c 'etcdctl del "" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/pods/" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/replicasets/" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/services/" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/endpoints/" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/hpas/" --prefix'
+	sudo /bin/bash -c 'etcdctl del "/registry/nodes/" --prefix'
 	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
 
 kill-all:

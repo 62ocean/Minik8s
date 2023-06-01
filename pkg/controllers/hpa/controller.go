@@ -103,6 +103,7 @@ func (c *controller) DeleteHpa(hpa object.Hpa) {
 
 	HPAworker := c.workers[hpa.Metadata.Uid]
 	HPAworker.Stop()
+	delete(c.workers, hpa.Metadata.Uid)
 
 }
 func (c *controller) UpdateHpa(hpa object.Hpa) {

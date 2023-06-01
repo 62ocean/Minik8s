@@ -19,7 +19,7 @@ func CreateHTTPClient(serverHost string) *Client {
 	ret := Client{
 		Host: serverHost,
 		// timeout: 5s
-		http: &http.Client{Timeout: 10 * time.Second},
+		http: &http.Client{Timeout: 120 * time.Second},
 	}
 	return &ret
 }

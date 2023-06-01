@@ -77,11 +77,9 @@ func ConfigInit() {
 	//}
 
 	// config := readConfiguration("pkg/apiserver/flannel/flannel.properties")
-<<<<<<< HEAD
-	config := readConfiguration("./build/flannel.properties")
-=======
-	config := readConfiguration("cmd/kubelet/flannel.properties")
->>>>>>> 2ad7f65c9313b2275bcffa65fe7b5fb8c3c414d5
+	str, _ := os.Getwd()
+	fmt.Println(str)
+	config := readConfiguration("build/flannel.properties")
 
 	conf.etcdEndpoint = config["etcd-endpoint"]
 	conf.etcdPrefix = etcdPrefix

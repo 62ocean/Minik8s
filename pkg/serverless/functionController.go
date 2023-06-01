@@ -3,8 +3,6 @@ package serverless
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emicklei/go-restful/v3"
-	"github.com/google/uuid"
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
 	"log"
@@ -16,6 +14,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/emicklei/go-restful/v3"
+	"github.com/google/uuid"
 )
 
 type FunctionController interface {
@@ -210,12 +211,18 @@ func (c *functionController) GetAllFunction(request *restful.Request, response *
 func (c *functionController) TriggerFunction(request *restful.Request, response *restful.Response) {
 	functionName := request.PathParameter("function-name")
 	fmt.Print(functionName)
-	var paramsJson string
-	_ = request.ReadEntity(&paramsJson)
+	var params []object.Param
+	err := request.ReadEntity(&params)
+	if err != nil {
+		log.Println("unmarshall paraJson failed")
+		return
+	}
 
-	ret := c.ExecFunction(functionName, paramsJson)
+	paramsjson, _ := json.Marshal(params)
+	log.Println("params: " + string(paramsjson))
+	ret := c.ExecFunction(functionName, string(paramsjson))
 
-	_, err := response.Write([]byte(ret))
+	_, err = response.Write([]byte(ret))
 	if err != nil {
 		log.Println("write response error")
 		return
@@ -235,9 +242,9 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		log.Println("new request, reset timer to 30s")
 		//utils.OutputJson("runningFunction", targetFunction)
 		targetFunction.Timer.Stop()
-		targetFunction.Timer.Reset(time.Second * 30)
+		targetFunction.Timer.Reset(time.Second * 600000)
 		// 发请求
-		//resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
+		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
 
 		c.mutex.Unlock()
 
@@ -250,6 +257,8 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		c.client.Post("/replicasets/create", rsjson)
 		log.Println("create rs ok")
 
+		time.Sleep(time.Second * 1)
+
 		// 起对应的service并等待
 		service := CreateFunctionService(funName)
 		runningFunction.ServiceIP = service.Spec.ClusterIP + ":80"
@@ -258,17 +267,17 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		servicejson, _ := json.Marshal(service)
 		c.client.Post("/services/create", servicejson)
 		log.Println("create service ok")
-		//for {
-		//	response := c.client.Post("/services/check/function-"+funName, nil)
-		//	var flag string
-		//	_ = json.Unmarshal([]byte(response), &flag)
-		//	if flag == "1" {
-		//		log.Println("service is ready!")
-		//		break
-		//	}
-		//	log.Println("wait for service ready...")
-		//	time.Sleep(time.Second * 1)
-		//}
+		for {
+			response := c.client.Post("/services/check/function-"+funName, nil)
+			var flag int
+			_ = json.Unmarshal([]byte(response), &flag)
+			if flag == 1 {
+				log.Println("service is ready!")
+				break
+			}
+			log.Printf("flag: %d, wait for service ready...\n", flag)
+			time.Sleep(time.Second * 1)
+		}
 
 		// 起对应的hpa
 		hpa := CreateFunctionHPA(funName)
@@ -277,13 +286,13 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		log.Println("create hpa ok")
 
 		// 开始计时
-		runningFunction.Timer = time.NewTimer(time.Second * 30)
+		runningFunction.Timer = time.NewTimer(time.Second * 600000)
 
 		// 添加到内存列表中
 		c.runningFunctionList[runningFunction.Function.Name] = runningFunction
 
 		// 发请求
-		//resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
+		resultJson = runningFunction.Client.Post("/", []byte(paramsJson))
 		c.mutex.Unlock()
 
 		go c.HoldFunction(runningFunction)

@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Workflow
 metadata:
-  name: testworkflow1
+  name: testworkflow2
 start: addFive
 params:
   - name: x
-    value: 5
+    value: 6
 steps:
   - name: addFive
     type: function
