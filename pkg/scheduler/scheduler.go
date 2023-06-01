@@ -136,28 +136,34 @@ func (h nodeHandler) Handle(jsonMsg []byte) {
 	_ = json.Unmarshal([]byte(msg.PrevValue), &prevNodeStorage)
 	switch msg.EventType {
 	case object.CREATE:
+		log.Println("CREATE NODE: " + nodeStorage.Node.IP)
 		h.sched.nodeList = append(h.sched.nodeList, nodeStorage)
+		log.Println(h.sched.nodeList)
 		h.sched.scheduleAllPod()
 	case object.UPDATE:
+		log.Println("UPDATE NODE: " + nodeStorage.Node.IP)
 		var newList []object.NodeStorage
 		for _, node := range h.sched.nodeList {
-			if node.Node.Metadata.Uid == nodeStorage.Node.Metadata.Uid {
+			if node.Node.IP == nodeStorage.Node.IP {
 				newList = append(newList, nodeStorage)
 			} else {
 				newList = append(newList, node)
 			}
 		}
 		h.sched.nodeList = newList
+		log.Println(h.sched.nodeList)
 	case object.DELETE:
+		log.Println("DELETE NODE: " + prevNodeStorage.Node.IP)
 		var newList []object.NodeStorage
 		for _, node := range h.sched.nodeList {
-			if node.Node.Metadata.Uid == prevNodeStorage.Node.Metadata.Uid {
+			if node.Node.IP == prevNodeStorage.Node.IP {
 				continue
 			} else {
 				newList = append(newList, node)
 			}
 		}
 		h.sched.nodeList = newList
+		log.Println(h.sched.nodeList)
 		// 将分布在该node上的pod重新调配至其他node上
 		h.sched.scheduleAllPod()
 	}
@@ -180,7 +186,9 @@ func (s *Scheduler) roundRobin(pod *object.PodStorage) {
 			fmt.Println("err when alloc node for pod " + pod.Config.Metadata.Name + " response: " + response)
 		}
 	} else {
-		pod.Node = s.nodeList[roundIndex%nodeNum].Node.Metadata.Uid
+		log.Printf("nodeNum %d roundIndex %d\n", nodeNum, roundIndex)
+		pod.Node = s.nodeList[roundIndex%nodeNum].Node.IP
+		roundIndex++
 		updateMsg, _ := json.Marshal(pod)
 		response := s.client.Post("/pods/update", updateMsg)
 		if response != "ok" {
@@ -234,7 +242,7 @@ func (s *Scheduler) isNodeValid(node string) bool {
 		return false
 	}
 	for _, n := range s.nodeList {
-		if n.Node.Metadata.Uid == node {
+		if n.Node.IP == node {
 			return true
 		}
 	}
