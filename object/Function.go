@@ -1,6 +1,9 @@
 package object
 
-import "time"
+import (
+	"k8s/pkg/util/HTTPClient"
+	"time"
+)
 
 type Function struct {
 	Name      string
@@ -15,4 +18,5 @@ type RunningFunction struct {
 	Function  Function
 	ServiceIP string
 	Timer     *time.Timer
+	Client    *HTTPClient.Client
 }

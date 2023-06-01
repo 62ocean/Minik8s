@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
-	"k8s/utils"
 	"log"
 	"math/rand"
 	"os"
@@ -246,16 +245,19 @@ func (c *functionController) TriggerFunction(request *restful.Request, response 
 
 func (c *functionController) ExecFunction(funName string, paramsJson string) string {
 
+	resultJson := "no response"
+
 	c.mutex.Lock()
 
 	targetFunction, exist := c.runningFunctionList[funName]
 	if exist {
 		// 重置计时器
 		log.Println("new request, reset timer to 30s")
-		utils.OutputJson("runningFunction", targetFunction)
+		//utils.OutputJson("runningFunction", targetFunction)
 		targetFunction.Timer.Stop()
 		targetFunction.Timer.Reset(time.Second * 30)
 		// 发请求
+		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
 
 		c.mutex.Unlock()
 
@@ -271,6 +273,7 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		// 起对应的service并等待
 		service := CreateFunctionService(funName)
 		runningFunction.ServiceIP = service.Spec.ClusterIP + ":80"
+		runningFunction.Client = HTTPClient.CreateHTTPClient("http://" + runningFunction.ServiceIP)
 		log.Println("function IP: " + runningFunction.ServiceIP)
 		servicejson, _ := json.Marshal(service)
 		c.client.Post("/services/create", servicejson)
@@ -299,14 +302,14 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		// 添加到内存列表中
 		c.runningFunctionList[runningFunction.Function.Name] = runningFunction
 
-		c.mutex.Unlock()
-
 		// 发请求
+		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
+		c.mutex.Unlock()
 
 		go c.HoldFunction(runningFunction)
 	}
 
-	return "111"
+	return resultJson
 }
 
 func (c *functionController) HoldFunction(function object.RunningFunction) {
