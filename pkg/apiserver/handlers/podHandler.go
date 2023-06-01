@@ -60,8 +60,8 @@ func CreatePod(request *restful.Request, response *restful.Response) {
 }
 
 func GetPod(request *restful.Request, response *restful.Response) {
-	podName:= request.PathParameter("name")
-	key := "/registry/pods/default/"+podName
+	podName := request.PathParameter("name")
+	key := "/registry/pods/default/" + podName
 	podInfo := etcd.GetOne(key)
 	response.Write([]byte(podInfo))
 }

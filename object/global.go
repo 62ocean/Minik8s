@@ -37,8 +37,8 @@ type Labels struct {
 	Env string `yaml:"env"`
 }
 
-func (s Status)ToString() string{
-	switch s{
+func (s Status) ToString() string {
+	switch s {
 	case 0:
 		return "RUNNING"
 	case 1:

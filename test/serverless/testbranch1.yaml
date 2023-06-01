@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Workflow
+metadata:
+  name: testbranch1
+start: a1
+params:
+  - name: y
+    value: 9
+steps:
+  - name: a1
+    type: branch
+    choices:
+      - variable: y
+        type: moreThan
+        value: 5
+        next: a2
+      - variable: y
+        type: lessEqualThan
+        value: 5
+        next: END
+  - name: a2
+    type: branch
+    choices:
+      - variable: y
+        type: moreEqualThan
+        value: 10
+        next: a3
+      - variable: y
+        type: lessThan
+        value: 10
+        next: END
+  - name: a3
+    type: branch
+    choices:
+      - variable: y
+        type: moreEqualThan
+        value: 20
+        next: END
+      - variable: y
+        type: lessThan
+        value: 20
+        next: END
+
+

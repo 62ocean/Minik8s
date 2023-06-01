@@ -2,14 +2,13 @@ package apiserver
 
 import (
 	"fmt"
+	"github.com/emicklei/go-restful/v3"
 	"k8s/pkg/apiserver/handlers"
 	"k8s/pkg/apiserver/listeners"
 	"k8s/pkg/etcd"
 	"k8s/pkg/global"
 	"log"
 	"net/http"
-
-	"github.com/emicklei/go-restful/v3"
 )
 
 /*-----------------APIServer-----------------*/
@@ -24,6 +23,7 @@ type APIServer struct {
 	hpaListener        *listeners.HpaListener
 	endpointListener   *listeners.EndpointListener
 	dnsListener        *listeners.DnsListener
+	//functionListener   *listeners.FunctionListener
 
 	//TODO 在此添加其他listener……
 }
@@ -46,6 +46,7 @@ func CreateAPIServer() (*APIServer, error) {
 	nodeListener := listeners.NewNodeListener()
 	endpointListener := listeners.NewEndpointListener()
 	hpaListener := listeners.NewHpaListener()
+	//functionListener := listeners.NewfunctionListener()
 	dnsListener := listeners.NewDnsListener()
 
 	// HTTP server
@@ -64,6 +65,7 @@ func CreateAPIServer() (*APIServer, error) {
 		endpointListener:   endpointListener,
 		hpaListener:        hpaListener,
 		dnsListener:        dnsListener,
+		//functionListener:   functionListener,
 	}
 
 	return &server, nil
@@ -79,6 +81,7 @@ func (s *APIServer) StartServer() {
 	s.etcdWatcher.AddWatch("/registry/endpoints/", true, s.endpointListener)
 	s.etcdWatcher.AddWatch("/registry/hpas/", true, s.hpaListener)
 	s.etcdWatcher.AddWatch("/registry/dns", true, s.dnsListener)
+	//s.etcdWatcher.AddWatch("/registry/functions/", true, s.functionListener)
 
 	// list
 	server := &http.Server{Addr: ":8080", Handler: s.wsContainer}

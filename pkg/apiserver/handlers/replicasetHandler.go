@@ -47,7 +47,16 @@ func GetAllReplicaset(request *restful.Request, response *restful.Response) {
 	}
 }
 
-func GetReplicaset(request *restful.Request, response *restful.Response) {}
+func GetReplicaset(request *restful.Request, response *restful.Response) {
+	rsName := request.PathParameter("rsName")
+	log.Println("Get request: " + rsName)
+	key := "/registry/replicasets/default/" + rsName
+	val := etcd.GetOne(key)
+	_, err := response.Write([]byte(val))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
 func UpdateReplicaset(request *restful.Request, response *restful.Response) {
 	newRSInfo := object.ReplicaSet{}
 	err := request.ReadEntity(&newRSInfo)
@@ -74,4 +83,8 @@ func UpdateReplicaset(request *restful.Request, response *restful.Response) {
 		}
 	}
 }
-func RemoveReplicaset(request *restful.Request, response *restful.Response) {}
+func RemoveReplicaset(request *restful.Request, response *restful.Response) {
+	rsName := request.PathParameter("rsName")
+	key := "/registry/replicasets/default/" + rsName
+	etcd.Del(key)
+}
