@@ -63,3 +63,12 @@ func CreateDns(request *restful.Request, response *restful.Response) {
 func check(err error) {
 
 }
+
+func GetDns(request *restful.Request, response *restful.Response) {
+	dnsStr := etcd.GetOne("/registry/dns")
+	msg, _ := json.Marshal(dnsStr)
+	_, err := response.Write(msg)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}

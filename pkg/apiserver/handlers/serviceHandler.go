@@ -73,6 +73,15 @@ func GetService(request *restful.Request, response *restful.Response) {
 }
 func UpdateService(request *restful.Request, response *restful.Response) {}
 
+func GetAllService(request *restful.Request, response *restful.Response) {
+	serviceMap := etcd.GetDirectory("/registry/services")
+	msg, _ := json.Marshal(serviceMap)
+	_, err := response.Write([]byte(msg))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 // 请求参数为service name
 func RemoveService(request *restful.Request, response *restful.Response) {
 	log.Printf("apiserver handler: delete service")

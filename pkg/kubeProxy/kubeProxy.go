@@ -74,6 +74,10 @@ func KubeProxyInit() {
 	// RunCommand("iptables -N KUBE-MARK-MASQ")
 	// RunCommand("iptables -N KUBE-POSTROUTING")
 
+	nsConf, _ := os.OpenFile("/etc/resolv.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	defer nsConf.Close()
+	nsConf.WriteString(fmt.Sprintf("nameserver %s\n", global.NameServerIp))
+
 }
 
 func RegisterService(service object.Service, endpoint object.Endpoint) {

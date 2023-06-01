@@ -8,7 +8,7 @@ import (
 
 type PodCache struct {
 	PodStorage    object.PodStorage
-	ContainerMeta []ContainerMeta
+	ContainerMeta map[string]*ContainerMeta
 }
 
 type ContainerMeta struct {
