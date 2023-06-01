@@ -186,17 +186,22 @@ func (c *functionController) DeleteFunction(request *restful.Request, response *
 	//	log.Println(err)
 	//	return
 	//}
+	// 检查该function是否在运行
+	targetFunction, exist := c.runningFunctionList[functionName]
+	if exist {
+		targetFunction.Timer.Stop()
+		targetFunction.Timer.Reset(time.Millisecond)
+	}
 
 	// 检查该function是否已存在
-	_, exist := c.functionList[functionName]
+	_, exist = c.functionList[functionName]
 	if !exist {
 		fmt.Println("[DELETE FAILED] function " + functionName + " doesn't exist")
 		return
 	}
+	delete(c.functionList, functionName)
 
 	// 需要在docker仓库中删除吗？（会涉及很多细节处理，先不管这个了，运行起来没影响就好）
-
-	delete(c.functionList, functionName)
 
 	c.client.Del("/functions/remove/" + functionName)
 
