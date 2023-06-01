@@ -1,12 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"k8s/object"
-	"k8s/pkg/global"
-	"k8s/pkg/util/HTTPClient"
-	"k8s/pkg/util/parseYaml"
 	"log"
 	"os"
 	"runtime"
