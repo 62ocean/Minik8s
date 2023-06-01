@@ -1,9 +1,10 @@
 package subscriber
 
 import (
-	"fmt"
-	"github.com/streadway/amqp"
+	"log"
 	"sync"
+
+	"github.com/streadway/amqp"
 )
 
 type Subscriber struct {
@@ -86,11 +87,11 @@ func (p *Subscriber) Subscribe(exchangeName string, handler Handler) error {
 	// 处理队列中消息的协程
 	go func() {
 		for d := range msgs {
-			fmt.Println("Get msg now")
+			log.Println("Get msg now")
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
 		}
-		fmt.Println("forever协程运行到要结束的地方咯")
+		log.Println("forever协程运行到要结束的地方咯")
 		forever <- true
 	}()
 
@@ -160,11 +161,11 @@ func (p *Subscriber) SubscribeWithSync(exchangeName string, handler Handler, wg 
 	forever := make(chan bool)
 	go func() {
 		for d := range msgs {
-			fmt.Println("Get msg now")
+			log.Println("Get msg now")
 			// 可根据d.contentType选择不同的处理函数
 			handler.Handle(d.Body)
 		}
-		fmt.Println("协程运行到要结束的地方咯")
+		log.Println("协程运行到要结束的地方咯")
 		forever <- true
 	}()
 	<-forever
