@@ -46,6 +46,7 @@ func InitWebServer(container *restful.Container) {
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	serviceWS.Route(serviceWS.POST("/create").To(CreateService))
 	serviceWS.Route(serviceWS.POST("/get").To(GetService))
+	serviceWS.Route(serviceWS.GET("/getAll").To(GetAllService))
 	serviceWS.Route(serviceWS.POST("/update").To(UpdateService))
 	serviceWS.Route(serviceWS.POST("/remove").To(RemoveService))
 	serviceWS.Route(serviceWS.POST("/check/{serviceName}").To(CheckService))
@@ -70,6 +71,16 @@ func InitWebServer(container *restful.Container) {
 	hpaWS.Route(hpaWS.DELETE("/remove/{hpaName}").To(RemoveHpa))
 	hpaWS.Route(hpaWS.GET("/getAll").To(GetAllHpa))
 	container.Add(hpaWS)
+
+	// Dns
+	dnsWS := new(restful.WebService)
+	dnsWS.Path("/dns").
+		Consumes(restful.MIME_XML, restful.MIME_JSON).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
+	dnsWS.Route(dnsWS.POST("/create").To(CreateDns))
+	dnsWS.Route(dnsWS.GET("/get").To(GetDns))
+
+	container.Add(dnsWS)
 
 	// function
 	funWS := new(restful.WebService)

@@ -10,8 +10,10 @@ import (
 	"k8s/pkg/util/parseYaml"
 	"log"
 	"os"
+	"time"
 
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
 )
 
 var APIClient = HTTPClient.CreateHTTPClient(global.ServerHost)
@@ -23,6 +25,29 @@ func CmdExec() {
 				Name:  "create",
 				Usage: "create an object based on .yaml file",
 				Subcommands: []*cli.Command{
+					{
+						Name:  "dns",
+						Usage: "create a dns based on a dns.yaml",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "f",
+								Usage:    "the path of the configuration file of a dns",
+								Required: true,
+							},
+						},
+						Action: func(c *cli.Context) error {
+							fmt.Println("create: ", c.String("f"))
+							filePath := c.String("f")
+							newPod := parseYaml.ParseYaml[object.Dns](filePath)
+							// id, _ := uuid.NewUUID()
+							// newPod.Metadata.Uid = id.String()
+							client := HTTPClient.CreateHTTPClient(global.ServerHost)
+							dnsJson, _ := json.Marshal(newPod)
+							fmt.Println(newPod.Metadata.Name)
+							client.Post("/dns/create", dnsJson)
+							return nil
+						},
+					},
 					{
 						Name:  "pod",
 						Usage: "create a pod",
@@ -164,58 +189,39 @@ func CmdExec() {
 				},
 			},
 			{
+				// TODO
 				Name:  "delete",
 				Usage: "delete an object based on name",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "pod",
 						Usage: "delete a pod",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "f",
-								Usage: "the path of the configuration file of a pod",
-							},
-						},
 						Action: func(c *cli.Context) error {
-							filePath := c.String("f")
-							log.Println("delete pod: ", c.String("f"))
-							newPod := parseYaml.ParseYaml[object.Pod](filePath)
-							podJson, _ := json.Marshal(newPod)
-							log.Println(newPod)
-							APIClient.Post("/pods/", podJson)
+							if c.NArg() != 1 {
+								return errors.New("the pod name must be specified")
+							}
+							name := c.Args().First()
+							nameReq, _ := json.Marshal(name)
+							APIClient.Post("/pods/remove", nameReq)
 							return nil
 						},
 					},
 					{
 						Name:  "service",
 						Usage: "delete a service",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "f",
-								Usage:    "the path of the configuration file of a service",
-								Required: true,
-							},
-						},
 						Action: func(c *cli.Context) error {
-							filePath := c.String("f")
-							log.Println("delete service: ", c.String("f"))
-							newService := parseYaml.ParseYaml[object.Service](filePath)
-							serviceJson, _ := json.Marshal(newService)
-							log.Println(newService)
-							APIClient.Post("/services/create", serviceJson)
+							if c.NArg() != 1 {
+								return errors.New("the service name must be specified")
+							}
+							name := c.Args().First()
+							nameReq, _ := json.Marshal(name)
+							APIClient.Post("/services/remove", nameReq)
 							return nil
 						},
 					},
 					{
 						Name:  "RS",
 						Usage: "get the running information of a replicaset",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:     "f",
-								Usage:    "the path of the configuration file of a replicaset",
-								Required: true,
-							},
-						},
 						Action: func(c *cli.Context) error {
 							filePath := c.String("f")
 							log.Println("delete RS: ", c.String("f"))
@@ -259,8 +265,104 @@ func CmdExec() {
 							if c.NArg() != 1 {
 								return errors.New("the pod name must be specified")
 							}
-							fmt.Println("pod information: ", c.Args().First())
-							//apiserver.DescribePod()
+							name := c.Args().First()
+							podInfo := APIClient.Get("/pods/get/" + name)
+							podStorage := object.PodStorage{}
+							_ = json.Unmarshal([]byte(podInfo), &podStorage)
+							fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
+							createTime := podStorage.Config.Metadata.CreationTimestamp
+							newtime := time.Now()
+							d := newtime.Sub(createTime)
+							fmt.Printf("%s\t\t\t%s\t\t\t%s\n", name, podStorage.Status.ToString(), d.Truncate(time.Second).String())
+							return nil
+						},
+					},
+					{
+						Name:  "pods",
+						Usage: "get the running information of all pod",
+						Action: func(c *cli.Context) error {
+							response := APIClient.Get("/pods/getAll")
+							var podList map[string]string
+							_ = json.Unmarshal([]byte(response), &podList)
+							fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
+							for _, val := range podList {
+								podStorage := object.PodStorage{}
+								_ = json.Unmarshal([]byte(val), &podStorage)
+								createTime := podStorage.Config.Metadata.CreationTimestamp
+								newtime := time.Now()
+								d := newtime.Sub(createTime)
+								fmt.Printf("%s\t\t\t%s\t\t\t%s\n", podStorage.Config.Metadata.Name, podStorage.Status.ToString(), d.Truncate(time.Second).String())
+
+							}
+							return nil
+						},
+					},
+					{
+						Name:  "GPUJob",
+						Usage: "get the running information of a GPUJob",
+						Action: func(c *cli.Context) error {
+							if c.NArg() != 1 {
+								return errors.New("the job name must be specified")
+							}
+							name := c.Args().First()
+							jobInfo := APIClient.Get("/gpuJobs/get/" + name)
+							job := object.GPUJob{}
+							_ = json.Unmarshal([]byte(jobInfo), &job)
+							fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
+							createTime := job.Metadata.CreationTimestamp
+							newtime := time.Now()
+							d := newtime.Sub(createTime)
+							fmt.Printf("%s\t\t\t%s\t\t\t%s\n", name, job.Status.ToString(), d.Truncate(time.Second).String())
+							if job.Status == 3 {
+								fmt.Printf("OUTPUT: \n")
+								fmt.Println(job.Output)
+							}
+							return nil
+						},
+					},
+					{
+						Name:  "services",
+						Usage: "get the running information of all services",
+						Action: func(c *cli.Context) error {
+							response := APIClient.Get("/services/getAll")
+							var serviceList map[string]string
+							_ = json.Unmarshal([]byte(response), &serviceList)
+							fmt.Println("NAME\t\t\tCLUSTERIP\t\t\tLABEL")
+							for _, val := range serviceList {
+								service := object.Service{}
+								_ = json.Unmarshal([]byte(val), &service)
+								label := fmt.Sprint("app:%s env:%s", service.Metadata.Labels.App, service.Metadata.Labels.Env)
+								fmt.Printf("%s\t\t\t%s\t\t\t%s\n", service.Metadata.Name, service.Spec.ClusterIP, label)
+
+							}
+							return nil
+						},
+					},
+				},
+			},
+
+			{
+				Name:  "describe",
+				Usage: "get the detailed running information of a pod or a service",
+				Subcommands: []*cli.Command{
+					{
+						Name:  "pod",
+						Usage: "get the running information of a pod",
+						Action: func(c *cli.Context) error {
+							if c.NArg() != 1 {
+								return errors.New("the pod name must be specified")
+							}
+							podName := c.Args().First()
+							podInfo := APIClient.Get("/pods/get/" + podName)
+							podStorage := object.PodStorage{}
+							_ = json.Unmarshal([]byte(podInfo), &podStorage)
+							fmt.Println(podStorage)
+							yamlData, err := yaml.Marshal(podStorage)
+							if err != nil {
+								fmt.Println("转换为 YAML 失败:", err)
+								return nil
+							}
+							fmt.Println(string(yamlData))
 							return nil
 						},
 					},
@@ -272,7 +374,46 @@ func CmdExec() {
 								return errors.New("the service name must be specified")
 							}
 							fmt.Println("service information: ", c.Args().First())
-							//apiserver.DescribeService()
+							serviceName := c.Args().First()
+
+							getMsg, _ := json.Marshal(serviceName)
+							resp := APIClient.Post("/services/get", getMsg)
+							// fmt.Printf("Kubectl get service: %s\n", resp)
+							service := object.Service{}
+							var svStr string
+							json.Unmarshal([]byte(resp), &svStr)
+							json.Unmarshal([]byte(svStr), &service)
+
+							yamlData, err := yaml.Marshal(service)
+							if err != nil {
+								fmt.Println("转换为 YAML 失败:", err)
+								return nil
+							}
+							fmt.Println(string(yamlData))
+
+							// fmt.Printf("Name: %s\n", service.Metadata.Name)
+							// fmt.Printf("Type: %s\n", service.Spec.Type)
+							// fmt.Printf("Selector:\n")
+							// fmt.Printf("\tapp: %s\n", service.Spec.Selector.App)
+							// fmt.Printf("\tenv: %s\n", service.Spec.Selector.Env)
+							// fmt.Printf("ClusterIP: %s\n", service.Spec.ClusterIP)
+							return nil
+						},
+					},
+					{
+						Name:  "dns",
+						Usage: "get the information of dns and path",
+						Action: func(c *cli.Context) error {
+							resp := APIClient.Get("/dns/get")
+							dns := object.Dns{}
+							json.Unmarshal([]byte(resp), &dns)
+							fmt.Println(dns)
+							yamlData, err := yaml.Marshal(dns)
+							if err != nil {
+								fmt.Println("转换为 YAML 失败:", err)
+								return nil
+							}
+							fmt.Println(string(yamlData))
 							return nil
 						},
 					},

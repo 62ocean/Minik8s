@@ -50,11 +50,11 @@ type PodSpec struct {
 }
 
 type Pod struct {
-	ApiVersion string   `yaml:"apiVersion"`
-	Kind       string   `yaml:"kind"`
+	ApiVersion string `yaml:"apiVersion"`
+	Kind       string `yaml:"kind"`
+	IP         string
 	Metadata   Metadata `yaml:"metadata"`
 	Spec       PodSpec  `yaml:"spec"`
-	IP         string
 }
 
 type PodStorage struct {

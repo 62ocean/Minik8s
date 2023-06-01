@@ -1,13 +1,9 @@
 package Dns
 
 import (
-	"encoding/json"
 	"fmt"
 	"k8s/object"
-	"k8s/pkg/etcd"
-	"k8s/pkg/global"
 	"os"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -39,61 +35,61 @@ func ConfigTest() {
 	return
 }
 
-func CreateDns(filePath string) {
-	dns, err := ReadDnsConfig(filePath)
-	if err != nil {
-		fmt.Println("CreateDns: read error")
-		return
-	}
+func CreateDns() {
+	// dns, err := ReadDnsConfig(filePath)
+	// if err != nil {
+	// 	fmt.Println("CreateDns: read error")
+	// 	return
+	// }
 	coreFile, err := os.OpenFile("./Corefile", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	check(err)
 	defer coreFile.Close()
-	nginxConfig, err := os.OpenFile("/etc/nginx/conf.d/default.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
-	check(err)
-	defer nginxConfig.Close()
+	// nginxConfig, err := os.OpenFile("/etc/nginx/conf.d/default.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	// check(err)
+	// defer nginxConfig.Close()
 
-	for i, host := range dns.Spec.Hosts {
-		hostIp := fmt.Sprintf("%s.%d", global.HostNameIpPrefix, i)
-		// 切分域名
-		sep := "."
-		arr := strings.Split(host.HostName, sep)
-		// 根据域名构建存储键值
-		key := "/coredns"
-		for i := len(arr) - 1; i >= 0; i-- {
-			key = fmt.Sprintf("%s/%s", key, arr[i])
-		}
-		val := fmt.Sprintf(" {\"host\":\"%s\",\"port\":80} ", hostIp)
-		fmt.Println(key)
-		fmt.Println(val)
-		// 持久化到etcd
-		etcd.Put(key, val)
-		// 配置coreFile文件，没有就创建，每次写入清空先前内容
-		block := fmt.Sprintf(
-			"%s {\n"+
-				"  etcd {\n"+
-				"    endpoint http://%s\n"+
-				"    path /coredns\n"+
-				"  }\n"+
-				"}\n", host.HostName, global.EtcdHost)
-		coreFile.WriteString(block)
+	// for i, host := range dns.Spec.Hosts {
+	// 	hostIp := fmt.Sprintf("%s.%d", global.HostNameIpPrefix, i)
+	// 	// 切分域名
+	// 	sep := "."
+	// 	arr := strings.Split(host.HostName, sep)
+	// 	// 根据域名构建存储键值
+	// 	key := "/coredns"
+	// 	for i := len(arr) - 1; i >= 0; i-- {
+	// 		key = fmt.Sprintf("%s/%s", key, arr[i])
+	// 	}
+	// 	val := fmt.Sprintf(" {\"host\":\"%s\",\"port\":80} ", hostIp)
+	// 	fmt.Println(key)
+	// 	fmt.Println(val)
+	// 	// 持久化到etcd
+	// 	etcd.Put(key, val)
+	// 	// 配置coreFile文件，没有就创建，每次写入清空先前内容
+	// 	block := fmt.Sprintf(
+	// 		"%s {\n"+
+	// 			"  etcd {\n"+
+	// 			"    endpoint http://%s\n"+
+	// 			"    path /coredns\n"+
+	// 			"  }\n"+
+	// 			"}\n", host.HostName, global.EtcdHost)
+	// 	coreFile.WriteString(block)
 
-		// 依据路径配置nginx
-		nginxConfig.WriteString("server {\n")
-		nginxBlock := fmt.Sprintf("  listen 80;\n  server_name %s;\n", hostIp)
-		nginxConfig.WriteString(nginxBlock)
-		for _, path := range host.Paths {
-			service := object.Service{}
-			str := etcd.GetOne("/registry/services/" + path.ServiceName)
-			json.Unmarshal([]byte(str), &service)
-			nginxBlock = fmt.Sprintf("  location %s {\n    proxy_pass http://%s:%d/;\n  }\n",
-				path.Path, service.Spec.ClusterIP, path.ServicePort)
-			nginxConfig.WriteString(nginxBlock)
+	// 	// 依据路径配置nginx
+	// 	nginxConfig.WriteString("server {\n")
+	// 	nginxBlock := fmt.Sprintf("  listen 80;\n  server_name %s;\n", hostIp)
+	// 	nginxConfig.WriteString(nginxBlock)
+	// 	for _, path := range host.Paths {
+	// 		service := object.Service{}
+	// 		str := etcd.GetOne("/registry/services/" + path.ServiceName)
+	// 		json.Unmarshal([]byte(str), &service)
+	// 		nginxBlock = fmt.Sprintf("  location %s {\n    proxy_pass http://%s:%d/;\n  }\n",
+	// 			path.Path, service.Spec.ClusterIP, path.ServicePort)
+	// 		nginxConfig.WriteString(nginxBlock)
 
-		}
-		nginxConfig.WriteString("}")
-	}
+	// 	}
+	// 	nginxConfig.WriteString("}")
+	// }
 	// 其余流量转发到DNS服务器
-	block := fmt.Sprintf(". {\n  forward . 114.114.114.114\n  cache 30\n}")
+	block := fmt.Sprintf(". {\n  forward . 114.114.114.114\n  cache 30\n}\n")
 	coreFile.WriteString(block)
 
 }

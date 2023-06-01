@@ -8,7 +8,9 @@ import (
 	"k8s/pkg/util/HTTPClient"
 	"k8s/pkg/util/msgQueue/subscriber"
 	"log"
+	"os"
 	"os/exec"
+	"sync"
 )
 
 func RunCommand(cmd string) string {
@@ -71,6 +73,10 @@ func KubeProxyInit() {
 
 	// RunCommand("iptables -N KUBE-MARK-MASQ")
 	// RunCommand("iptables -N KUBE-POSTROUTING")
+
+	nsConf, _ := os.OpenFile("/etc/resolv.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	defer nsConf.Close()
+	nsConf.WriteString(fmt.Sprintf("nameserver %s\n", global.NameServerIp))
 
 }
 
@@ -160,8 +166,10 @@ func DeleteService(service object.Service, endpoint object.Endpoint) {
 
 type KubeProxy struct {
 	serviceSubscriber     *subscriber.Subscriber
+	dnsSubscriber         *subscriber.Subscriber
 	serviceQueue          string
 	serviceHandler        serviceHandler
+	dnsHandler            dnsHandler
 	EndpointSubscriberMap map[string]subscriber.Subscriber
 }
 
@@ -169,26 +177,49 @@ type KubeProxy struct {
 
 func CreateKubeProxy() *KubeProxy {
 	sub, _ := subscriber.NewSubscriber(global.MQHost)
-
+	dnsSub, _ := subscriber.NewSubscriber(global.MQHost)
 	kubeProxy := KubeProxy{
 		serviceSubscriber: sub,
+		dnsSubscriber:     dnsSub,
 		serviceQueue:      "services",
 	}
 	handler := serviceHandler{
 		proxy: &kubeProxy,
 	}
 	kubeProxy.serviceHandler = handler
+	dnsHandler := dnsHandler{
+		proxy: &kubeProxy,
+	}
+	kubeProxy.dnsHandler = dnsHandler
 	kubeProxy.EndpointSubscriberMap = make(map[string]subscriber.Subscriber)
 	return &kubeProxy
 }
 
 func (proxy *KubeProxy) Run() {
 	KubeProxyInit()
-	err := proxy.serviceSubscriber.Subscribe(proxy.serviceQueue, subscriber.Handler(proxy.serviceHandler))
-	if err != nil {
-		fmt.Printf(err.Error())
-		_ = proxy.serviceSubscriber.CloseConnection()
-	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+
+		err := proxy.dnsSubscriber.Subscribe("dns", subscriber.Handler(proxy.dnsHandler))
+		if err != nil {
+			fmt.Printf(err.Error())
+			_ = proxy.dnsSubscriber.CloseConnection()
+			wg.Done()
+		}
+	}()
+
+	go func() {
+		err := proxy.serviceSubscriber.Subscribe(proxy.serviceQueue, subscriber.Handler(proxy.serviceHandler))
+		if err != nil {
+			fmt.Printf(err.Error())
+			_ = proxy.serviceSubscriber.CloseConnection()
+			wg.Done()
+		}
+	}()
+	// 阻塞主协程，当至少有一个MQ停止监听时，主协程退出
+	wg.Wait()
+
 }
 
 type serviceHandler struct {
@@ -306,5 +337,58 @@ func (h endpointHandler) Handle(jsonMsg []byte) {
 
 		}
 	}
+
+}
+
+type dnsHandler struct {
+	proxy *KubeProxy
+}
+
+func (h dnsHandler) Handle(jsonMsg []byte) {
+	log.Println("dns get subscribe: " + string(jsonMsg))
+	msg := object.MQMessage{}
+	dns := object.Dns{}
+	prevDns := object.Dns{}
+	_ = json.Unmarshal(jsonMsg, &msg)
+	_ = json.Unmarshal([]byte(msg.Value), &dns)
+	_ = json.Unmarshal([]byte(msg.PrevValue), &prevDns)
+	fmt.Printf("prevalue: %s\n", msg.PrevValue)
+	fmt.Printf("value: %s\n", msg.Value)
+
+	switch msg.EventType {
+	case object.CREATE:
+		nginxConfig, err := os.OpenFile("/etc/nginx/conf.d/default.conf", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		check(err)
+		defer nginxConfig.Close()
+		for i, host := range dns.Spec.Hosts {
+			hostIp := fmt.Sprintf("%s.%d", global.HostNameIpPrefix, i)
+			// 依据路径配置nginx
+			nginxConfig.WriteString("server {\n")
+			nginxBlock := fmt.Sprintf("  listen 80;\n  server_name %s;\n", hostIp)
+			nginxConfig.WriteString(nginxBlock)
+			for _, path := range host.Paths {
+				fmt.Println(path.ServiceName)
+
+				client := HTTPClient.CreateHTTPClient(global.ServerHost)
+				getMsg, _ := json.Marshal(path.ServiceName)
+				resp := client.Post("/services/get", getMsg)
+				fmt.Printf("Get service: %s\n", resp)
+				service := object.Service{}
+				var svStr string
+				json.Unmarshal([]byte(resp), &svStr)
+				json.Unmarshal([]byte(svStr), &service)
+
+				// str := etcd.GetOne("/registry/services/" + path.ServiceName)
+				// json.Unmarshal([]byte(str), &service)
+				nginxBlock = fmt.Sprintf("  location %s {\n    proxy_pass http://%s:%d/;\n  }\n",
+					path.Path, service.Spec.ClusterIP, path.ServicePort)
+				nginxConfig.WriteString(nginxBlock)
+
+			}
+			nginxConfig.WriteString("}\n")
+		}
+	}
+}
+func check(err error) {
 
 }

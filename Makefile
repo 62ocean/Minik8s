@@ -8,6 +8,9 @@ TARGET_APISERVER=apiserver
 TARGET_KUBECTL=kubectl
 TARGET_SCHEDULER=scheduler
 TARGET_CONTROLLERMANAGER = controllerManager
+TARGET_DNS = dns
+TARGET_KUBEPROXY = kubeProxy
+TARGET_FLANNEL = flannel
 .DEFAULT_GOAL := default
 
 GO_TEST_PATH='./test/yaml_test'
@@ -17,13 +20,14 @@ GO_TEST_PATH='./test/yaml_test'
 
 all: test master node
 
-build: module apiserver kubectl kubelet scheduler controllerManager
+build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy
 
 master: kubectl apiserver scheduler replicaSet
 
 node: kubelet
 
 default: build
+
 
 test1:
 	go test -v ./test/yaml_test/yaml_test.go
@@ -55,6 +59,15 @@ kubelet: apiserver
 controllerManager: apiserver
 	$(GO_BUILD) -o ./build/$(TARGET_CONTROLLERMANAGER) ./cmd/controllerManager/main.go
 
+dns: apiserver
+	$(GO_BUILD) -o ./build/$(TARGET_DNS) ./cmd/Dns/main.go
+
+kubeProxy: apiserver
+	$(GO_BUILD) -o ./build/$(TARGET_KUBEPROXY) ./cmd/kubeProxy/main.go
+
+flannel: apiserver
+	$(GO_BUILD) -o ./build/$(TARGET_FLANNEL) ./cmd/flannel/main.go
+
 clean:
 	rm -rf ./build
 
@@ -62,11 +75,15 @@ master_start:
 #	sudo ./build/apiserver &
 #	sudo ./build/scheduler &
 #	sudo ./build/kubectl
+	sudo /bin/bash -c 'etcd &'
 	sudo /bin/bash -c './build/apiserver &'
 	sudo /bin/bash -c 'sleep 5'
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/autoScaler &'
 	sudo /bin/bash -c './build/replicaSet &'
+	sudo /bin/bash -c './build/dns'
+	sudo /bin/bash -c './build/coredns &'
+	sudo /bin/bash -c './build/flannel &'
 #	sudo sh -c './build/kubectl &'
 
 node_start:
@@ -75,3 +92,14 @@ node_start:
 	sudo /bin/bash -c './build/kubeproxy &'
 #	sudo ./build/kubelet -f ./utils/templates/node_template.yaml
 	sudo /bin/bash -c './build/kubelet -f /builds/520021910279/mini-k8s-2023/utils/templates/node_template.yaml &'
+	sudo /bin/bash -c './build/flannel &'
+
+clean-env:
+	sudo /bin/bash -c 'iptables -t nat -F'
+	sudo /bin/bash -c 'iptables -t nat -X'
+	sudo /bin/bash -c 'systemctl restart docker'
+	sudo /bin/bash -c 'etcdctl del "" --prefix'
+	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
+
+
+
