@@ -47,7 +47,16 @@ func GetAllHpa(request *restful.Request, response *restful.Response) {
 	}
 }
 
-func GetHpa(request *restful.Request, response *restful.Response)    {}
+func GetHpa(request *restful.Request, response *restful.Response) {
+	name := request.PathParameter("name")
+	log.Println("Get request: " + name)
+	key := "/registry/hpas/default/" + name
+	val := etcd.GetOne(key)
+	_, err := response.Write([]byte(val))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
 func UpdateHpa(request *restful.Request, response *restful.Response) {}
 func RemoveHpa(request *restful.Request, response *restful.Response) {
 	hpaName := request.PathParameter("hpaName")

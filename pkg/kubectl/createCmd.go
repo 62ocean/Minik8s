@@ -2,6 +2,7 @@ package kubectl
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"k8s/object"
@@ -81,7 +82,7 @@ func CreateCmd() *cli.Command {
 			},
 			{
 				Name:  "RS",
-				Usage: "get the running information of a replicaset",
+				Usage: "create a replicaset",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "f",
@@ -101,7 +102,7 @@ func CreateCmd() *cli.Command {
 			},
 			{
 				Name:  "HPA",
-				Usage: "get the running information of a HPA",
+				Usage: "create a HPA",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "f",
@@ -121,7 +122,7 @@ func CreateCmd() *cli.Command {
 			},
 			{
 				Name:  "GPUJob",
-				Usage: "get the running information of a service",
+				Usage: "create a service",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "f",
@@ -174,6 +175,51 @@ func CreateCmd() *cli.Command {
 					}
 					podInfo, _ := json.Marshal(newPod)
 					APIClient.Post("/pods/create", podInfo)
+					return nil
+				},
+			},
+			{
+				Name:  "function",
+				Usage: "create a function",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "f",
+						Usage:    "the path of the file of a function",
+						Required: true,
+					},
+				},
+				Action: func(c *cli.Context) error {
+					if c.NArg() != 1 {
+						return errors.New("the function name must be specified")
+					}
+					name := c.Args().First()
+					filePath := c.String("f")
+
+					var function object.Function
+					function.Name = name
+					function.Path = filePath
+					funjson, _ := json.Marshal(function)
+					serverlessClient.Post("/functions/create", funjson)
+					return nil
+				},
+			},
+			{
+				Name:  "workflow",
+				Usage: "create a workflow",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "f",
+						Usage:    "the path of the file of a workflow",
+						Required: true,
+					},
+				},
+				Action: func(c *cli.Context) error {
+					filePath := c.String("f")
+					log.Println("create workflow: ", c.String("f"))
+					newWf := parseYaml.ParseYaml[object.Workflow](filePath)
+					wfJson, _ := json.Marshal(newWf)
+					log.Println(newWf)
+					serverlessClient.Post("/workflows/create", wfJson)
 					return nil
 				},
 			},

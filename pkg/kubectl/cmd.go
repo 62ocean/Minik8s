@@ -9,6 +9,7 @@ import (
 )
 
 var APIClient = HTTPClient.CreateHTTPClient(global.ServerHost)
+var serverlessClient = HTTPClient.CreateHTTPClient(global.ServerlessHost)
 
 func CmdExec() {
 	app := &cli.App{
@@ -17,6 +18,8 @@ func CmdExec() {
 			DeleteCmd(),
 			GetCmd(),
 			DescribeCmd(),
+			UpdateCmd(),
+			InvokeCmd(),
 		},
 	}
 

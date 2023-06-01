@@ -86,6 +86,48 @@ func DescribeCmd() *cli.Command {
 					return nil
 				},
 			},
+			{
+				Name:  "replicaset",
+				Usage: "get the detailed information of a replicaset",
+				Action: func(c *cli.Context) error {
+					if c.NArg() != 1 {
+						return errors.New("the replicaset name must be specified")
+					}
+					name := c.Args().First()
+					rsInfo := APIClient.Get("/replicasets/get/" + name)
+					rs := object.ReplicaSet{}
+					_ = json.Unmarshal([]byte(rsInfo), &rs)
+					fmt.Println(rs)
+					yamlData, err := yaml.Marshal(rs)
+					if err != nil {
+						fmt.Println("转换为 YAML 失败:", err)
+						return nil
+					}
+					fmt.Println(string(yamlData))
+					return nil
+				},
+			},
+			{
+				Name:  "hpa",
+				Usage: "get the detailed information of a hpa",
+				Action: func(c *cli.Context) error {
+					if c.NArg() != 1 {
+						return errors.New("the hpa name must be specified")
+					}
+					name := c.Args().First()
+					hpaInfo := APIClient.Get("/hpas/get/" + name)
+					hpa := object.Hpa{}
+					_ = json.Unmarshal([]byte(hpaInfo), &hpa)
+					fmt.Println(hpa)
+					yamlData, err := yaml.Marshal(hpa)
+					if err != nil {
+						fmt.Println("转换为 YAML 失败:", err)
+						return nil
+					}
+					fmt.Println(string(yamlData))
+					return nil
+				},
+			},
 		},
 	}
 
