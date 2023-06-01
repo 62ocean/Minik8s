@@ -8,10 +8,30 @@ import (
 	"k8s/pkg/global"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/emicklei/go-restful/v3"
 )
+
+func RunCommand(cmd string) string {
+	fmt.Printf("RunCmd: %s\n", cmd)
+	command := exec.Command("/bin/bash", "-c", cmd)
+	// out, err := command.Output()
+	// if err != nil {
+	// 	fmt.Println("output : ")
+	// 	fmt.Println(out)
+	// }
+	out, err := command.CombinedOutput()
+	fmt.Printf("out: %s", string(out))
+	if err != nil {
+		// fmt.Printf("ERROR: run cmd error: %s\n", err.Error())
+		// if err.Error() != "exit status 1" && err.Error() != "exit status 4" {
+		// 	panic("ERROR: " + err.Error())
+		// }
+	}
+	return string(out)
+}
 
 func CreateDns(request *restful.Request, response *restful.Response) {
 	fmt.Println("apiserver handler: create dns")
@@ -23,9 +43,12 @@ func CreateDns(request *restful.Request, response *restful.Response) {
 		return
 	}
 
-	coreFile, err := os.OpenFile("../Dns/Corefile", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	coreFile, err := os.OpenFile("build/Corefile", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	coreFile2, err2 := os.OpenFile("Corefile", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
 	check(err)
+	check(err2)
 	defer coreFile.Close()
+	defer coreFile2.Close()
 
 	dnsStr, _ := json.Marshal(*dns)
 	etcd.Put("/registry/dns", string(dnsStr))
@@ -56,7 +79,11 @@ func CreateDns(request *restful.Request, response *restful.Response) {
 				"  }\n"+
 				"}\n", host.HostName, global.EtcdHost)
 		coreFile.WriteString(block)
+		coreFile2.WriteString(block)
 	}
+
+	RunCommand("killall coredns")
+	RunCommand("build/coredns &")
 
 }
 

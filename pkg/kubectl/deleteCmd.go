@@ -3,6 +3,8 @@ package kubectl
 import (
 	"encoding/json"
 	"errors"
+	"log"
+
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,10 +17,12 @@ func DeleteCmd() *cli.Command {
 				Name:  "pod",
 				Usage: "delete a pod",
 				Action: func(c *cli.Context) error {
+
 					if c.NArg() != 1 {
 						return errors.New("the pod name must be specified")
 					}
 					name := c.Args().First()
+					log.Println("delete pod " + name)
 					nameReq, _ := json.Marshal(name)
 					APIClient.Post("/pods/remove", nameReq)
 					return nil

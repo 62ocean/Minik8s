@@ -48,7 +48,7 @@ apiserver:
 	$(GO_BUILD) -o ./build/$(TARGET_APISERVER) ./cmd/apiserver/main.go
 
 kubectl:
-	$(GO_BUILD) -o ./build/$(TARGET_KUBECTL) ./cmd/kubectl/main.go
+	$(GO_BUILD) -o ./$(TARGET_KUBECTL) ./cmd/kubectl/main.go
 
 scheduler:
 	$(GO_BUILD) -o ./build/$(TARGET_SCHEDULER) ./cmd/scheduler/main.go
@@ -74,6 +74,7 @@ clean:
 master_start:
 	sudo /bin/bash -c 'etcd -listen-client-urls="http://192.168.1.6:2379,http://localhost:2379" -advertise-client-urls="http://192.168.1.6:2379"   &'
 	sudo /bin/bash -c './build/apiserver &'
+	sleep 5
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
 	sudo /bin/bash -c './build/dns'
@@ -88,6 +89,7 @@ node_start:
 start_all:
 	sudo /bin/bash -c 'etcd -listen-client-urls="http://192.168.1.6:2379,http://localhost:2379" -advertise-client-urls="http://192.168.1.6:2379"   &'
 	sudo /bin/bash -c './build/apiserver &'
+	sleep 5
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
 	sudo /bin/bash -c './build/kubelet &'
