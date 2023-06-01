@@ -1,0 +1,19 @@
+# 构建一个用于运行go程序的docker镜像
+FROM alpine
+MAINTAINER lrc<1260949667@qq.com>
+ENV VERSION 1.0
+
+# 在容器根目录 创建一个 apps 目录
+WORKDIR /apps
+
+# 拷贝当前目录下 gpu_server 可以执行文件
+COPY gpu_server /apps/main
+
+# 设置编码
+ENV LANG C.UTF-8
+
+# 暴露端口
+EXPOSE 8089
+
+# 进入bash进行循环等待
+# CMD ["sh", "-c", "while true; do sleep 1; done"]
