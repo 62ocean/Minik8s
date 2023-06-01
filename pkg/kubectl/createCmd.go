@@ -38,12 +38,23 @@ func CreateCmd() *cli.Command {
 			{
 				Name:  "node",
 				Usage: "create a node",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "f",
+						Usage: "the path of the configuration file of a node",
+					},
+				},
 				Action: func(c *cli.Context) error {
+					var nodeName string
+					if c.String("f") != "" {
+						node := parseYaml.ParseYaml[object.Node](c.String("f"))
+						nodeName = node.Metadata.Name
+					}
 					fmt.Printf("prepare for environment...\n")
 					RunCommand("make clean-env")
 					RunCommand("make kill-all")
 					fmt.Printf("build code...\n")
-					RunCommand("make node")
+					RunCommand("make node " + nodeName)
 					fmt.Printf("start node...\n")
 					RunCommand("make node_start")
 					return nil

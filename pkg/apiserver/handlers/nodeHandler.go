@@ -8,6 +8,7 @@ import (
 	"k8s/pkg/etcd"
 	"log"
 	"net/http"
+	"time"
 )
 
 func CreateNode(request *restful.Request, response *restful.Response) {
@@ -19,6 +20,7 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 		return
 	}
 	ip := node.IP
+	node.Metadata.CreationTimestamp = time.Now()
 	key := "/registry/nodes/default/" + ip
 	nodeStorage := object.NodeStorage{
 		Node:   *node,
@@ -41,7 +43,9 @@ func CreateNode(request *restful.Request, response *restful.Response) {
 	}
 }
 
-func GetNode(request *restful.Request, response *restful.Response)    {}
+func GetNode(request *restful.Request, response *restful.Response) {
+
+}
 func UpdateNode(request *restful.Request, response *restful.Response) {}
 func RemoveNode(request *restful.Request, response *restful.Response) {
 	NodeIP := request.PathParameter("ip")

@@ -31,9 +31,13 @@ func init() {
 }
 
 func main() {
+	nodeName := "default_name"
+	if len(os.Args) == 2 {
+		nodeName = os.Args[1]
+	}
 	flannel.ConfigInit()
 	// 创建kubelet对象
-	kl, _ := kubelet.NewKubelet("node1")
+	kl, _ := kubelet.NewKubelet(nodeName)
 	defer kubelet.StopKubelet(kl)
 	// 创建kubelet对象
 	kl.Run()
