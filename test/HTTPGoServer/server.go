@@ -22,10 +22,10 @@ func main() {
 	wsContainer := restful.NewContainer()
 	wsContainer.Router(restful.CurlyRouter{})
 	nodeWS := new(restful.WebService)
-	nodeWS.Path("/hello").
+	nodeWS.Path("/").
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
-	nodeWS.Route(nodeWS.GET("/").To(Greet))
+	nodeWS.Route(nodeWS.GET("").To(Greet))
 	wsContainer.Add(nodeWS)
 
 	// run

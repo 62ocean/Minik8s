@@ -2,7 +2,7 @@ package global
 
 var MQHost = "amqp://guest:guest@localhost:5672/"
 var EtcdHost = "localhost:2379"
-var ServerHost = "http://127.0.0.1:8080"
+var ServerHost = "http://192.168.1.12:8080"
 var ServerlessHost = "http://127.0.0.1:8090"
 
 var HostNameIpPrefix = "127.111.111"
