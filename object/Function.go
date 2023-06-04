@@ -16,6 +16,7 @@ type Function struct {
 
 type RunningFunction struct {
 	Function  Function
+	KeyName   string
 	ServiceIP string
 	Timer     *time.Timer
 	Client    *HTTPClient.Client

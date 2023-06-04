@@ -14,9 +14,6 @@ type WorkflowController interface {
 	InitWorkflow() error
 
 	AddWorkflow(request *restful.Request, response *restful.Response)
-	UpdateWorkflow(request *restful.Request, response *restful.Response)
-	DeleteWorkflow(request *restful.Request, response *restful.Response)
-	GetAllWorkflow(request *restful.Request, response *restful.Response)
 
 	TriggerWorkflow(request *restful.Request, response *restful.Response)
 }
@@ -96,18 +93,6 @@ func initWorkflowMap(workflow *object.Workflow) {
 	for _, value := range workflow.Steps {
 		workflow.StepsMap[value.Name] = value
 	}
-}
-
-func (c *workflowController) UpdateWorkflow(request *restful.Request, response *restful.Response) {
-
-}
-
-func (c *workflowController) DeleteWorkflow(request *restful.Request, response *restful.Response) {
-
-}
-
-func (c *workflowController) GetAllWorkflow(request *restful.Request, response *restful.Response) {
-
 }
 
 func (c *workflowController) TriggerWorkflow(request *restful.Request, response *restful.Response) {

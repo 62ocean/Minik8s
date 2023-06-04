@@ -25,7 +25,6 @@ type FunctionController interface {
 	AddFunction(request *restful.Request, response *restful.Response)
 	UpdateFunction(request *restful.Request, response *restful.Response)
 	DeleteFunction(request *restful.Request, response *restful.Response)
-	GetAllFunction(request *restful.Request, response *restful.Response)
 
 	TriggerFunction(request *restful.Request, response *restful.Response)
 	ExecFunction(funName string, paramsJson string) string
@@ -148,6 +147,13 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 		return
 	}
 
+	// 检查该function是否在运行
+	targetFunction, exist := c.runningFunctionList[functionInfo.Name]
+	if exist {
+		targetFunction.Timer.Stop()
+		targetFunction.Timer.Reset(time.Millisecond)
+	}
+
 	// 检查该function是否已存在
 	function, exist := c.functionList[functionInfo.Name]
 	if !exist {
@@ -179,13 +185,7 @@ func (c *functionController) UpdateFunction(request *restful.Request, response *
 func (c *functionController) DeleteFunction(request *restful.Request, response *restful.Response) {
 
 	functionName := request.PathParameter("name")
-	//functionInfo := object.Function{}
-	//err := request.ReadEntity(&functionInfo)
-	////fmt.Println(newRSInfo)
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
+
 	// 检查该function是否在运行
 	targetFunction, exist := c.runningFunctionList[functionName]
 	if exist {
@@ -206,10 +206,6 @@ func (c *functionController) DeleteFunction(request *restful.Request, response *
 	c.client.Del("/functions/remove/" + functionName)
 
 	fmt.Println("[DELETE SUCCESSFULLY] function [" + functionName + "] is removed")
-
-}
-
-func (c *functionController) GetAllFunction(request *restful.Request, response *restful.Response) {
 
 }
 
@@ -247,7 +243,7 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		log.Println("new request, reset timer to 30s")
 		//utils.OutputJson("runningFunction", targetFunction)
 		targetFunction.Timer.Stop()
-		targetFunction.Timer.Reset(time.Second * 600000)
+		targetFunction.Timer.Reset(time.Second * 30)
 		// 发请求
 		resultJson = targetFunction.Client.Post("/", []byte(paramsJson))
 
@@ -291,7 +287,7 @@ func (c *functionController) ExecFunction(funName string, paramsJson string) str
 		log.Println("create hpa ok")
 
 		// 开始计时
-		runningFunction.Timer = time.NewTimer(time.Second * 600000)
+		runningFunction.Timer = time.NewTimer(time.Second * 30)
 
 		// 添加到内存列表中
 		c.runningFunctionList[runningFunction.Function.Name] = runningFunction
@@ -339,27 +335,6 @@ func (c *functionController) HoldFunction(function object.RunningFunction) {
 	c.mutex.Unlock()
 
 }
-
-//func CreateFunctionPod(functionName string, functionImage string) object.Pod {
-//	var pod object.Pod
-//
-//	pod.ApiVersion = "v1"
-//	pod.Kind = "Pod"
-//
-//	pod.Metadata.Uid = uuid.New().String()
-//	pod.Metadata.Name = "function-" + functionName
-//	pod.Metadata.Labels.App = functionName
-//	pod.Metadata.Labels.Env = "prod"
-//
-//	var container object.Container
-//	container.Name = "function-" + functionName + "-" + pod.Metadata.Uid
-//	container.Image = functionImage
-//	container.Ports = append(container.Ports, object.ContainerPort{Port: 8888})
-//
-//	pod.Spec.Containers = append(pod.Spec.Containers, container)
-//
-//	return pod
-//}
 
 func CreateFunctionRS(functionName string, functionImage string) object.ReplicaSet {
 	var rs object.ReplicaSet
