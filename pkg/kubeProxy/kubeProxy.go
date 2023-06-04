@@ -137,7 +137,8 @@ func RegisterService(service object.Service, endpoint object.Endpoint) {
 
 // 注册的镜像操作
 func DeleteService(service object.Service, endpoint object.Endpoint) {
-	fmt.Printf("delete service %s %s\n", service.Metadata.Name, service.Metadata.Uid)
+	log.Printf("delete service %s %s\n", service.Metadata.Name, service.Metadata.Uid)
+	log.Println(service)
 	ports := service.Spec.Ports
 	clusterIP := service.Spec.ClusterIP
 	if clusterIP == "" {
@@ -151,7 +152,7 @@ func DeleteService(service object.Service, endpoint object.Endpoint) {
 		// cmd := fmt.Sprintf("iptables -t nat -D KUBE-SERVICES -p %s -d %s/32 --dport %d -j %s", protocol, clusterIP, port.Port, svcChain)
 		cmd := fmt.Sprintf("KUBE-SERVICES -p %s -d %s/32 --dport %d -j %s", protocol, clusterIP, port.Port, svcChain)
 		ensureRuleDelete(cmd)
-		RunCommand(cmd)
+		// RunCommand(cmd)
 		RunCommand(fmt.Sprintf("iptables -t nat -F %s", svcChain))
 		RunCommand(fmt.Sprintf("iptables -t nat -X %s", svcChain))
 		podsLen := len(endpoint.PodIps)
@@ -269,6 +270,11 @@ func (h serviceHandler) Handle(jsonMsg []byte) {
 		}()
 	case object.DELETE:
 		DeleteService(service, endpoint)
+
+		client := HTTPClient.CreateHTTPClient(global.ServerHost)
+		nameReq, _ := json.Marshal(service.Metadata.Name)
+		client.Post("/endpoints/remove", nameReq)
+
 		sub := h.proxy.EndpointSubscriberMap[service.Metadata.Name]
 		sub.CloseConnection()
 		delete(h.proxy.EndpointSubscriberMap, service.Metadata.Name)
@@ -365,7 +371,7 @@ func (h dnsHandler) Handle(jsonMsg []byte) {
 			hostIp := fmt.Sprintf("%s.%d", global.HostNameIpPrefix, i)
 			// 依据路径配置nginx
 			nginxConfig.WriteString("server {\n")
-			nginxBlock := fmt.Sprintf("  listen 80;\n  server_name %s;\n", hostIp)
+			nginxBlock := fmt.Sprintf("  listen 80;\n  server_name %s %s;\n", hostIp, host.HostName)
 			nginxConfig.WriteString(nginxBlock)
 			for _, path := range host.Paths {
 				fmt.Println(path.ServiceName)
@@ -388,6 +394,7 @@ func (h dnsHandler) Handle(jsonMsg []byte) {
 			}
 			nginxConfig.WriteString("}\n")
 		}
+		RunCommand("systemctl restart nginx")
 	}
 }
 func check(err error) {

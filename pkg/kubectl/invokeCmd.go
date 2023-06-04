@@ -1,8 +1,10 @@
 package kubectl
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,7 +22,10 @@ func InvokeCmd() *cli.Command {
 					}
 					name := c.Args().Get(0)
 					params := c.Args().Get(1)
-					response := serverlessClient.Post("/invoke/function/"+name, []byte(params))
+					fmt.Println("name: " + name)
+					fmt.Println("params: " + params)
+					paramjson, _ := json.Marshal(params)
+					response := serverlessClient.Post("/invoke/function/"+name, paramjson)
 					fmt.Println("result: " + response)
 					return nil
 				},

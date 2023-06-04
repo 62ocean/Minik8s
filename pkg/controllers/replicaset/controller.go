@@ -104,6 +104,7 @@ func (c *controller) DeleteReplicaset(rs object.ReplicaSet) {
 
 	RSworker := c.workers[rs.Metadata.Name]
 	RSworker.Stop()
+	delete(c.workers, rs.Metadata.Name)
 
 }
 func (c *controller) UpdateReplicaset(rs object.ReplicaSet) {

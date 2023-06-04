@@ -3,10 +3,11 @@ package serverless
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/emicklei/go-restful/v3"
 	"k8s/object"
 	"k8s/pkg/util/HTTPClient"
 	"log"
+
+	"github.com/emicklei/go-restful/v3"
 )
 
 type WorkflowController interface {
@@ -120,16 +121,18 @@ func (c *workflowController) TriggerWorkflow(request *restful.Request, response 
 	pjson, _ := json.Marshal(targetWorkflow.Params)
 	paramsJson = string(pjson)
 	current := targetWorkflow.Start
+	log.Println("start: " + current)
+	log.Println("params: " + paramsJson)
 
 	for current != "END" {
 		currentStep := targetWorkflow.StepsMap[current]
+		log.Println("step: " + current)
 		if currentStep.Type == "function" {
 			// 执行function
 			retJson = c.s.GetFunController().ExecFunction(currentStep.Name, paramsJson)
 			current = currentStep.Next
 		} else if currentStep.Type == "branch" {
 			// 解析参数并判断分支
-			log.Println("step: " + current)
 			params := paramsJson2Map(paramsJson)
 			retJson = paramsJson
 			for _, choice := range currentStep.Choices {

@@ -58,6 +58,7 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	endpointWS.Route(endpointWS.POST("/get").To(GetEndpoint))
+	serviceWS.Route(serviceWS.POST("/remove").To(RemoveEndpoint))
 	container.Add(endpointWS)
 
 	// hpa
