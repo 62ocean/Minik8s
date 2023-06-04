@@ -21,7 +21,7 @@ func ParseYaml[T any](filepath string) T {
 	var retObject T
 	err2 := yaml.Unmarshal(dataBytes, &retObject)
 	if err2 != nil {
-		fmt.Println("解析 yaml 文件失败：", err)
+		fmt.Println("解析 yaml 文件失败：", err2.Error())
 		os.Exit(-1)
 	}
 

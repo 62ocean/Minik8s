@@ -25,7 +25,7 @@ func RunCommand(cmd string) {
 	out, err := command.CombinedOutput()
 	log.Printf("out: %s", string(out))
 	if err != nil {
-		fmt.Printf("ERROR: run cmd error: %s\n", err.Error())
+		// fmt.Printf("ERROR: run cmd error: %s\n", err.Error())
 		// panic("ERROR: " + err.Error())
 	}
 	// return string(out)
@@ -54,9 +54,9 @@ func CreateCmd() *cli.Command {
 					RunCommand("make clean-env")
 					RunCommand("make kill-all")
 					fmt.Printf("build code...\n")
-					RunCommand("make node " + nodeName)
+					RunCommand("make node")
 					fmt.Printf("start node...\n")
-					RunCommand("make node_start")
+					RunCommand("make node_start " + "VAR=" + nodeName)
 					return nil
 				},
 			},
@@ -173,10 +173,16 @@ func CreateCmd() *cli.Command {
 						Usage:    "the path of the configuration file of a pod",
 						Required: true,
 					},
+					&cli.StringFlag{
+						Name:     "cu",
+						Usage:    "the path of the configuration file of a pod",
+						Required: true,
+					},
 				},
 				Action: func(c *cli.Context) error {
 					filePath := c.String("f")
 					log.Println("create GPUJob: ", c.String("f"))
+					cuFilePath := c.String("cu")
 					// job存入apiserver
 					job := parseYaml.ParseYaml[object.GPUJob](filePath)
 					job.Status = object.PENDING
@@ -184,21 +190,20 @@ func CreateCmd() *cli.Command {
 					APIClient.Post("/gpuJobs/create", jobInfo)
 
 					// 构造pod 存入apiserver
-					port := object.ContainerPort{Port: 8080}
+					port := object.ContainerPort{Port: 8099}
 					container := object.Container{
 						Name:  "commit_" + "GPUJob_" + job.Metadata.Name,
-						Image: "saltfishy/gpu_server:v8",
+						Image: "saltfishy/gpu_server:v9",
 						Ports: []object.ContainerPort{
 							port,
 						},
 						Command: []string{
-							"./main ",
+							"/apps/main",
 						},
 						Args: []string{
 							job.Metadata.Name,
 						},
-						// TODO 此处写入kubectl时需要修改为参数指定的文件路径
-						CopyFile: job.Spec.Program,
+						CopyFile: cuFilePath,
 						CopyDst:  "/apps",
 					}
 					newPod := object.Pod{

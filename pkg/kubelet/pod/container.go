@@ -394,6 +394,16 @@ func GetContainerStatus(containerID string, resources object.ContainerResources)
 	return cpuUsage, cpuLimit, memoryUsage, memoryLimit, nil
 }
 
+func getContainerIP(id string) string {
+	containerInfo, err := Client.ContainerInspect(Ctx, id)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	ipAddress := containerInfo.NetworkSettings.IPAddress
+	log.Printf("IP ADDRESS: %s\n", ipAddress)
+	return ipAddress
+}
+
 // 创建pause容器用于管理网络
 func createPause(ports *[]int, podName string) (string, error) {
 	var exports nat.PortSet

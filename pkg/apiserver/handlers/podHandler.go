@@ -63,8 +63,10 @@ func GetPod(request *restful.Request, response *restful.Response) {
 	podName := request.PathParameter("name")
 	key := "/registry/pods/default/" + podName
 	podInfo := etcd.GetOne(key)
-	response.Write([]byte(podInfo))
+	msg, _ := json.Marshal(podInfo)
+	response.Write([]byte(msg))
 }
+
 func UpdatePod(request *restful.Request, response *restful.Response) {
 	log.Println("Get update pod request")
 	newPodInfo := object.PodStorage{}

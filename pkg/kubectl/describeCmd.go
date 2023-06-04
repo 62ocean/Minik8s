@@ -23,9 +23,10 @@ func DescribeCmd() *cli.Command {
 					}
 					podName := c.Args().First()
 					podInfo := APIClient.Get("/pods/get/" + podName)
+					var podString string
+					_ = json.Unmarshal([]byte(podInfo), &podString)
 					podStorage := object.PodStorage{}
-					_ = json.Unmarshal([]byte(podInfo), &podStorage)
-					fmt.Println(podStorage)
+					_ = json.Unmarshal([]byte(podString), &podStorage)
 					yamlData, err := yaml.Marshal(podStorage)
 					if err != nil {
 						fmt.Println("转换为 YAML 失败:", err)

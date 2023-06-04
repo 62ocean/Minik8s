@@ -200,6 +200,7 @@ func (kub *Kubelet) watchPods() {
 		if myPod.PodStorage.Status == object.STOPPED {
 			// 未运行pod直接启动
 			log.Println("WatchPods: create pod " + myPod.PodStorage.Config.Metadata.Name)
+			myPod.PodStorage.Status = object.PENDING
 			go kub.createPod(myPod)
 		} else if myPod.PodStorage.Status == object.RUNNING {
 			// 已运行pod同步容器状态
@@ -269,7 +270,9 @@ func (kub *Kubelet) createPod(podInfo *cache.PodCache) {
 		return
 	}
 	// 运行相关容器
-	pod.StartPod(containers, podInfo.PodStorage.Config.Metadata.Name)
+	ip := pod.StartPod(containers, podInfo.PodStorage.Config.Metadata.Name)
+
+	podInfo.PodStorage.Config.IP = ip
 
 	//通知apiServer保存status和资源利用率
 	matrix := pod.GetStatusOfPod(podInfo)

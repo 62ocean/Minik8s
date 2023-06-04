@@ -85,6 +85,7 @@ master_start:
 	sudo /bin/bash -c './build/flannel &'
 
 node_start:
+	echo "$(VAR)"
 	sudo /bin/bash -c './build/kubeProxy &'
 	sudo /bin/bash -c './build/kubelet $(VAR) &'
 	sudo /bin/bash -c './build/flannel &'
@@ -96,8 +97,6 @@ start_all:
 	sudo /bin/bash -c './build/scheduler &'
 	sudo /bin/bash -c './build/controllerManager &'
 	sudo /bin/bash -c './build/kubelet $(VAR) &'
-#    sudo /bin/bash -c './build/autoScaler &'
-#	sudo /bin/bash -c './build/replicaSet &'
 	sudo /bin/bash -c './build/kubeProxy &'
 	sudo /bin/bash -c './build/dns'
 	sudo /bin/bash -c './build/coredns &'
@@ -105,11 +104,11 @@ start_all:
 
 
 clean-env:
-	sudo /bin/bash -c 'iptables -t nat -F'
-	sudo /bin/bash -c 'iptables -t nat -X'
-	sudo /bin/bash -c 'systemctl restart docker'
-	sudo /bin/bash -c 'etcdctl --endpoints="http://192.168.1.6:2379" del "" --prefix'
-	sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
+	-sudo /bin/bash -c 'iptables -t nat -F'
+	-sudo /bin/bash -c 'iptables -t nat -X'
+	-sudo /bin/bash -c 'systemctl restart docker'
+	-sudo /bin/bash -c 'docker stop $$(docker ps -aq) && docker rm $$(docker ps -aq)'
+	-sudo /bin/bash -c 'etcdctl del "" --prefix'
 
 kill-all:
 	-sudo /bin/bash -c 'ps -ef | grep etcd | awk '{print $2}' | xargs kill -9'

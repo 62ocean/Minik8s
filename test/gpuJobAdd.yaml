@@ -11,7 +11,7 @@ spec:
     "module load cuda/10.0.130-gcc-4.8.5",
     "nvcc matrix_add/matrixAdd.cu -o matrixAdd",
   ]
-  program: ../cmd/gpu_server/matrixAdd.cu
+  program: matrixAdd.cu
   exe: matrixAdd
 
 # reference

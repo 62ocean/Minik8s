@@ -21,7 +21,7 @@ func InitWebServer(container *restful.Container) {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	podWS.Route(podWS.POST("/create").To(CreatePod))
-	podWS.Route(podWS.GET("/get").To(GetPod))
+	podWS.Route(podWS.GET("/get/{name}").To(GetPod))
 	podWS.Route(podWS.POST("/update").To(UpdatePod))
 	podWS.Route(podWS.POST("/remove").To(RemovePod))
 	podWS.Route(podWS.GET("/getAll").To(GetAllPod))

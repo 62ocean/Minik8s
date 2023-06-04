@@ -7,30 +7,25 @@ metadata :
     env: prod
 spec:
   containers :
-    - name : nginx
-      image : nginx:1.14.2
+    - name : http
+      image : saltfishy/httpserver:v4
       resources:
         limits:
           cpu: 10m
           memory: 32M
-#      command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]
-#      args:
-#        - '-storage.local.retention=$(STORAGE_RETENTION)'
-#        - '-storage.local.memory-chunks=$(STORAGE_MEMORY_CHUNKS)'
-#        - '-config.file=/etc/prometheus/prometheus.yml'
-#        - '-alertmanager.url=http://alertmanager:9093/alertmanager'
-#        - '-web.external-url=$(EXTERNAL_URL)'
+      command: [ "/bin/sh","-c","./main" ]
       volumeMounts:
         - name: html
           mountPath: /data/media
       ports:
-        - containerPort: 70
+        - containerPort: 8888
     - name : busybox
       image: busybox:1.28
       resources:
         limits:
           cpu: 10m
           memory: 32M
+      command: [ 'sh', '-c', 'echo "Hello, Kubernetes!" && sleep 3600' ]
       volumeMounts:
         - name: html
           mountPath: /data/media

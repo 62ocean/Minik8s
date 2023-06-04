@@ -3,7 +3,6 @@ package pod
 import (
 	"fmt"
 	object2 "k8s/object"
-	"k8s/pkg/apiserver/flannel"
 	"k8s/pkg/kubelet/cache"
 	"log"
 )
@@ -12,12 +11,12 @@ var ipCnt = 2
 
 func CreatePod(podConfig *object2.Pod) (map[string]*cache.ContainerMeta, error) {
 	// 分配podip
-	localNodeNetWork := flannel.GetLocalNodeNetwork()
-	fmt.Println(localNodeNetWork.SubnetPrefix)
-	//subnetPrefix: x.x.x
-	subnet := fmt.Sprintf("%s.%d", localNodeNetWork.SubnetPrefix, ipCnt)
-	ipCnt++
-	podConfig.IP = subnet
+	// localNodeNetWork := flannel.GetLocalNodeNetwork()
+	// fmt.Println(localNodeNetWork.SubnetPrefix)
+	// //subnetPrefix: x.x.x
+	// subnet := fmt.Sprintf("%s.%d", localNodeNetWork.SubnetPrefix, ipCnt)
+	// ipCnt++
+	// podConfig.IP = subnet
 
 	// 拉取镜像
 	var images []string
@@ -54,13 +53,15 @@ func CreatePod(podConfig *object2.Pod) (map[string]*cache.ContainerMeta, error) 
 	return containerMeta, nil
 }
 
-func StartPod(containers map[string]*cache.ContainerMeta, podName string) {
+func StartPod(containers map[string]*cache.ContainerMeta, podName string) string {
 	// 开启容器
 	// pause容器需要先启动（因为用的map，启动是无序的）
 	StartContainer(containers["pause_"+podName].ContainerID)
 	for _, it := range containers {
 		StartContainer(it.ContainerID)
 	}
+	log.Printf("START POD\n")
+	return getContainerIP(containers["pause_"+podName].ContainerID)
 }
 
 func ClosePod(containers []cache.ContainerMeta) {

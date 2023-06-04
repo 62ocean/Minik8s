@@ -42,8 +42,10 @@ func GetCmd() *cli.Command {
 					}
 					name := c.Args().First()
 					podInfo := APIClient.Get("/pods/get/" + name)
+					var podString string
+					_ = json.Unmarshal([]byte(podInfo), &podString)
 					podStorage := object.PodStorage{}
-					_ = json.Unmarshal([]byte(podInfo), &podStorage)
+					_ = json.Unmarshal([]byte(podString), &podStorage)
 					fmt.Println("NAME\t\t\tSATUS\t\t\tAGE")
 					createTime := podStorage.Config.Metadata.CreationTimestamp
 					newtime := time.Now()
@@ -87,7 +89,7 @@ func GetCmd() *cli.Command {
 					newtime := time.Now()
 					d := newtime.Sub(createTime)
 					fmt.Printf("%s\t\t\t%s\t\t\t%s\n", name, job.Status.ToString(), d.Truncate(time.Second).String())
-					if job.Status == 3 {
+					if job.Status == object.FINISHED {
 						fmt.Printf("OUTPUT: \n")
 						fmt.Println(job.Output)
 					}
@@ -105,7 +107,7 @@ func GetCmd() *cli.Command {
 					for _, val := range serviceList {
 						service := object.Service{}
 						_ = json.Unmarshal([]byte(val), &service)
-						label := fmt.Sprint("app:%s env:%s", service.Metadata.Labels.App, service.Metadata.Labels.Env)
+						label := fmt.Sprintf("app:%s env:%s", service.Spec.Selector.App, service.Spec.Selector.Env)
 						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", service.Metadata.Name, service.Spec.ClusterIP, label)
 					}
 					return nil
@@ -122,8 +124,8 @@ func GetCmd() *cli.Command {
 					for _, val := range replicasetList {
 						rs := object.ReplicaSet{}
 						_ = json.Unmarshal([]byte(val), &rs)
-						label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
-						fmt.Printf("%s\t\t\t%s\t\t\t%s\n", rs.Metadata.Name, rs.Spec.Replicas, label)
+						label := fmt.Sprintf("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
+						fmt.Printf("%s\t\t\t%d\t\t\t%s\n", rs.Metadata.Name, rs.Spec.Replicas, label)
 					}
 					return nil
 				},
@@ -140,7 +142,7 @@ func GetCmd() *cli.Command {
 						hpa := object.Hpa{}
 						_ = json.Unmarshal([]byte(val), &hpa)
 						//label := fmt.Sprint("app:%s env:%s", rs.Spec.Selector.MatchLabels.App, rs.Spec.Selector.MatchLabels.Env)
-						fmt.Printf("%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%s\n", hpa.Metadata.Name, hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas,
+						fmt.Printf("%s\t\t\t%d\t\t\t%d\t\t\t%f\t\t\t%f\n", hpa.Metadata.Name, hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas,
 							hpa.Spec.Metrics[0].Resource.Target.AverageUtilization, hpa.Spec.Metrics[1].Resource.Target.AverageUtilization)
 					}
 					return nil

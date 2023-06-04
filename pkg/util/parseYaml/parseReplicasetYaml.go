@@ -18,7 +18,7 @@ func ParseReplicasetYaml(filepath string) object.ReplicaSet {
 	var replicaset object.ReplicaSet
 	err2 := yaml.Unmarshal(dataBytes, &replicaset)
 	if err2 != nil {
-		fmt.Println("解析 yaml 文件失败：", err)
+		fmt.Println("解析 yaml 文件失败：", err2.Error())
 		os.Exit(-1)
 	}
 	//err = utils.OutputJson("解析yaml: replicaset", replicasetData)
