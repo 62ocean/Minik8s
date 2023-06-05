@@ -31,22 +31,22 @@ node: kubelet kubeProxy flannel
 default: build
 
 
-testPod:
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+test:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testRS:
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+# testRS:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testHPA:
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+# testHPA:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testServerless:
+# testServerless:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
 	/bin/bash -c './build/apiserver &'

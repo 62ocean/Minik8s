@@ -1,9 +1,6 @@
 stages:
   - build
-  - pod
-  - rs
-  - hpa
-  - serverless
+  - testNow
 
 cache:
   key: ${CI_BUILD_REF_NAME}
@@ -22,8 +19,8 @@ build:
     - make
 
 
-pod:
-  stage: pod
+testNow:
+  stage: testNow
   # 将CICD限制在main分支上运行
   only:
     - main
@@ -33,47 +30,8 @@ pod:
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
-    - make testPod
+    - make test
     - go test ./test/testPod
-
-rs:
-  stage: rs
-  # 将CICD限制在main分支上运行
-  only:
-    - main
-  script:
-    - apt-get update
-    - apt-get install -y make
-    - cd $CI_PROJECT_DIR
-    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
-    - go env -w GOPROXY=https://goproxy.cn
-    - make testRS
     - go test ./test/testRs
-
-hpa:
-  stage: hpa
-  # 将CICD限制在main分支上运行
-  only:
-    - main
-  script:
-    - apt-get update
-    - apt-get install -y make
-    - cd $CI_PROJECT_DIR
-    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
-    - go env -w GOPROXY=https://goproxy.cn
-    - make testHPA
     - go test ./test/testHPA
-
-serverless:
-  stage: serverless
-  # 将CICD限制在main分支上运行
-  only:
-    - main
-  script:
-    - apt-get update
-    - apt-get install -y make
-    - cd $CI_PROJECT_DIR
-    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
-    - go env -w GOPROXY=https://goproxy.cn
-    - make testServerless
     - go test ./test/testServerless
