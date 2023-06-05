@@ -8,7 +8,7 @@ stages:
 cache:
   key: ${CI_BUILD_REF_NAME}
   paths:
-    - bin/
+    - ./build
 
 build:
   stage: build
@@ -16,7 +16,7 @@ build:
     - main
   script:
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
     - make
@@ -29,7 +29,7 @@ pod:
     - main
   script:
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
@@ -43,7 +43,7 @@ rs:
     - main
   script:
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
@@ -57,7 +57,7 @@ hpa:
     - main
   script:
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
@@ -71,7 +71,7 @@ serverless:
     - main
   script:
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
