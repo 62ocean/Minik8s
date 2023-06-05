@@ -17,6 +17,8 @@ build:
   script:
     - apt-get update
     - apt-get install -y gcc automake autoconf libtool make
+    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
+    - go env -w GOPROXY=https://goproxy.cn
     - make
 
 
