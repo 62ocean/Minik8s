@@ -1,8 +1,22 @@
 stages:
+  - build
   - pod
   - rs
   - hpa
   - serverless
+
+cache:
+  key: ${CI_BUILD_REF_NAME}
+  paths:
+    - bin/
+
+build:
+  stage: build
+  only:
+    - main
+  script:
+    - make
+
 
 pod:
   stage: pod
@@ -17,7 +31,6 @@ pod:
     - go env -w GOPROXY=https://goproxy.cn
     - make testPod
     - go test ./test/testPod
-    - make kill-all
 
 rs:
   stage: rs
@@ -32,7 +45,6 @@ rs:
     - go env -w GOPROXY=https://goproxy.cn
     - make testRS
     - go test ./test/testRs
-    - make kill-all
 
 hpa:
   stage: hpa
@@ -47,7 +59,6 @@ hpa:
     - go env -w GOPROXY=https://goproxy.cn
     - make testHPA
     - go test ./test/testHPA
-    - make kill-all
 
 serverless:
   stage: serverless
@@ -62,4 +73,3 @@ serverless:
     - go env -w GOPROXY=https://goproxy.cn
     - make testServerless
     - go test ./test/testServerless
-    - make kill-all

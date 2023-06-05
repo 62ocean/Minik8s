@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+var APIClient = HTTPClient.CreateHTTPClient(global.ServerHost)
+
 func TestRS(t *testing.T) {
 	filePath := "../ReplicasetConfigTest.yaml"
 	log.Println("create rs: ", filePath)

@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+var APIClient = HTTPClient.CreateHTTPClient(global.ServerHost)
 var serverlessClient = HTTPClient.CreateHTTPClient(global.ServerlessHost)
 
 func TestFunction(t *testing.T) {

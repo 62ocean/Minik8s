@@ -22,8 +22,6 @@ GO_TEST_PATH='./test/yaml_test'
 # as there is a dir named "test" too, so we need .PHONY to specify this target.
 .PHONY:test
 
-all: test master node
-
 build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel serverless
 
 master: kubectl apiserver scheduler controllerManager dns flannel serverless
@@ -32,27 +30,38 @@ node: kubelet kubeProxy flannel
 
 default: build
 
+build_test:
+	$(GO_CMD) mod tidy
+	$(GO_BUILD) -o bin/$(TARGET_APISERVER) ./cmd/apiserver/main.go
+	$(GO_BUILD) -o bin/$(TARGET_KUBECTL) ./cmd/kubectl/main.go
+	$(GO_BUILD) -o bin/$(TARGET_SCHEDULER) ./cmd/scheduler/main.go
+	$(GO_BUILD) -o bin/$(TARGET_KUBELET) ./cmd/kubelet/main.go
+	$(GO_BUILD) -o bin/$(TARGET_CONTROLLERMANAGER) ./cmd/controllerManager/main.go
+	$(GO_BUILD) -o bin/$(TARGET_DNS) ./cmd/Dns/main.go
+	$(GO_BUILD) -o bin/$(TARGET_KUBEPROXY) ./cmd/kubeProxy/main.go
+	$(GO_BUILD) -o bin/$(TARGET_FLANNEL) ./cmd/flannel/main.go
+	$(GO_BUILD) -o bin/$(TARGET_SERVERLESS) ./cmd/serverless/main.go
 
-testPod: apiserver
+testPod:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+	/bin/bash -c 'bin/apiserver &'
 
-testRS: apiserver
+testRS:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+	/bin/bash -c 'bin/apiserver &'
 
-testHPA: apiserver
+testHPA:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+	/bin/bash -c 'bin/apiserver &'
 
-testServerless: apiserver serverless
+testServerless:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
-	/bin/bash -c './build/serverless &'
+	/bin/bash -c 'bin/apiserver &'
+	/bin/bash -c 'bin/serverless &'
 
 module:
 	$(GO_CMD) mod tidy

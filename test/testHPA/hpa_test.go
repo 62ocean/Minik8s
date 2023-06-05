@@ -7,6 +7,7 @@ import (
 	"log"
 	"testing"
 )
+var APIClient = HTTPClient.CreateHTTPClient(global.ServerHost)
 
 func TestHPA(t *testing.T) {
 	filePath := "../hpaConfigTest.yaml"
