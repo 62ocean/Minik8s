@@ -1,5 +1,5 @@
 # 构建一个用于运行go程序的docker镜像
-FROM ubuntu:20.04
+FROM alpine
 MAINTAINER lrc<1260949667@qq.com>
 
 # environment
@@ -14,7 +14,7 @@ USER root
 WORKDIR /home
 
 # 安装依赖搭建运行环境
-COPY env.sh /home
+COPY env.sh /home/env.sh
 RUN chmod +x /home/env.sh && /home/env.sh
 
 # 暴露端口

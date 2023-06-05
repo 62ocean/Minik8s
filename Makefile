@@ -32,17 +32,8 @@ node: kubelet kubeProxy flannel
 default: build
 
 
-test1:
-	go test -v ./test/yaml_test/yaml_test.go
-	go test -v ./test/etcd_test/etcd_test.go
-	go test -v ./test/container_test/container_test.go
-	go test -v ./test/node_test/node_test.go
-test:
-	go test -v ./test/pod_test/pod_test.go
-	go test -v ./test/node_test/node1_test.go
-	go test -v ./test/service_test/service_test.go
-	go test -v ./test/auto_test/auto_test.go
-	# go test -v ./test/replicaSet_test/replicaSet_test.go
+testPod:
+	apiserver
 
 module:
 	$(GO_CMD) mod tidy
