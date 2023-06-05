@@ -32,8 +32,8 @@ node: kubelet kubeProxy flannel
 default: build
 
 
-testPod:
-	apiserver
+testPod: apiserver
+	sudo /bin/bash -c './build/apiserver &'
 
 module:
 	$(GO_CMD) mod tidy
