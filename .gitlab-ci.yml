@@ -8,8 +8,8 @@ test:
     - main
   script:
 #    - cd /builds/520021910279/mini-k8s-2023
-    # - apt-get update
-    # - apt-get install -y gcc automake autoconf libtool make
+    - apt-get update
+    - apt-get install -y gcc automake autoconf libtool make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
