@@ -11,7 +11,7 @@ TARGET_CONTROLLERMANAGER = controllerManager
 TARGET_DNS = dns
 TARGET_KUBEPROXY = kubeProxy
 TARGET_FLANNEL = flannel
-TARGET_SERVERLESS = flannel
+TARGET_SERVERLESS = serverless
 
 VAR ?= default_name
 
