@@ -22,9 +22,11 @@ GO_TEST_PATH='./test/yaml_test'
 # as there is a dir named "test" too, so we need .PHONY to specify this target.
 .PHONY:test
 
-build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel serverless
+all: test master node
 
-master: kubectl apiserver scheduler controllerManager dns flannel serverless
+build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel
+
+master: kubectl apiserver scheduler replicaSet dns dns flannel
 
 node: kubelet kubeProxy flannel
 

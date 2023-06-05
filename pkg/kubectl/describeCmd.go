@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"k8s/object"
+
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
-	"k8s/object"
 )
 
 func DescribeCmd() *cli.Command {
@@ -54,19 +55,32 @@ func DescribeCmd() *cli.Command {
 					json.Unmarshal([]byte(resp), &svStr)
 					json.Unmarshal([]byte(svStr), &service)
 
-					yamlData, err := yaml.Marshal(service)
-					if err != nil {
-						fmt.Println("转换为 YAML 失败:", err)
-						return nil
+					fmt.Printf("Name: %s\n", service.Metadata.Name)
+					fmt.Printf("Type: %s\n", service.Spec.Type)
+					fmt.Printf("Selector:\n")
+					fmt.Printf("\tapp: %s\n", service.Spec.Selector.App)
+					fmt.Printf("\tenv: %s\n", service.Spec.Selector.Env)
+					fmt.Printf("ClusterIP: %s\n", service.Spec.ClusterIP)
+					fmt.Printf("ports:\n")
+					for _, port := range service.Spec.Ports {
+						fmt.Printf("\tprotocol:%s\n", port.Protocol)
+						fmt.Printf("\tport:%d\n", port.Port)
+						fmt.Printf("\ttargetPort:%d\n", port.TargetPort)
 					}
-					fmt.Println(string(yamlData))
 
-					// fmt.Printf("Name: %s\n", service.Metadata.Name)
-					// fmt.Printf("Type: %s\n", service.Spec.Type)
-					// fmt.Printf("Selector:\n")
-					// fmt.Printf("\tapp: %s\n", service.Spec.Selector.App)
-					// fmt.Printf("\tenv: %s\n", service.Spec.Selector.Env)
-					// fmt.Printf("ClusterIP: %s\n", service.Spec.ClusterIP)
+					fmt.Printf("pods:\n")
+
+					getMsg, _ = json.Marshal(serviceName)
+					resp = APIClient.Post("/endpoints/get", getMsg)
+					// fmt.Printf("Get endpoint: %s\n", resp)
+					endpoint := object.Endpoint{}
+					var epStr string
+					json.Unmarshal([]byte(resp), &epStr)
+					json.Unmarshal([]byte(epStr), &endpoint)
+					// fmt.Printf("len: %d\n", len(endpoint.PodIps))
+					for _, v := range endpoint.PodIps {
+						fmt.Printf("\t%s\n", v)
+					}
 					return nil
 				},
 			},

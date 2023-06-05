@@ -7,6 +7,7 @@ import (
 	"io"
 	"k8s/pkg/api/pod"
 	"k8s/pkg/etcd"
+	"k8s/pkg/global"
 	"net"
 	"os"
 	"os/signal"
@@ -32,8 +33,8 @@ var conf Config
 
 const vni = 1
 const vxlanDstPort = 8472
-const flannelNetworkPrefix = "142.16"
-const flannelNetwork = "142.16.0.0/16"
+const flannelNetworkPrefix = "162.16"
+const flannelNetwork = "162.16.0.0/16"
 const etcdPrefix = "/flannel.com/network"
 
 func readConfiguration(configurationFile string) map[string]string {
@@ -102,9 +103,20 @@ func ConfigInit() {
 }
 
 func SetDockerBipNet() {
-	daemonJsonPath := `"{
-    \"bip\":\"` + conf.dockerNet + `\"}"`
-	cmd := "echo " + daemonJsonPath + " > /etc/docker/daemon.json"
+	// daemonJsonPath := `"{
+	// \"bip\":\"` + conf.dockerNet + `\"}"`
+	// cmd := "echo " + daemonJsonPath + " > /etc/docker/daemon.json"
+
+	config, _ := os.OpenFile("/etc/docker/daemon.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+
+	config.WriteString("{\n")
+
+	cmd := fmt.Sprintf("  \"bip\":\"%s\",\n", conf.dockerNet)
+	config.WriteString(cmd)
+	cmd = fmt.Sprintf("  \"dns\":[\"%s\"]\n", global.NameServerIp)
+	config.WriteString(cmd)
+	config.WriteString("}\n")
+	config.Close()
 
 	pod.RunCommand(cmd)
 	pod.RunCommand("systemctl restart docker")
