@@ -8,7 +8,10 @@ test:
     - main
   script:
 #    - cd /builds/520021910279/mini-k8s-2023
+    - apt-get install -y gcc automake autoconf libtool make
+    - ls
     - cd $CI_PROJECT_DIR
+    - ls
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
     - make testPod
