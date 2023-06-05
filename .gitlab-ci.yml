@@ -1,18 +1,65 @@
 stages:
-  - test
+  - pod
+  - rs
+  - hpa
+  - serverless
 
-test:
-  stage: test
+pod:
+  stage: pod
   # 将CICD限制在main分支上运行
   only:
     - main
   script:
-#    - cd /builds/520021910279/mini-k8s-2023
     - apt-get update
     - apt-get install -y gcc automake autoconf libtool make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
     - make testPod
-    - go test ./test/testFile
+    - go test ./test/testPod
+    - make kill-all
+
+rs:
+  stage: rs
+  # 将CICD限制在main分支上运行
+  only:
+    - main
+  script:
+    - apt-get update
+    - apt-get install -y gcc automake autoconf libtool make
+    - cd $CI_PROJECT_DIR
+    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
+    - go env -w GOPROXY=https://goproxy.cn
+    - make testRS
+    - go test ./test/testRs
+    - make kill-all
+
+hpa:
+  stage: hpa
+  # 将CICD限制在main分支上运行
+  only:
+    - main
+  script:
+    - apt-get update
+    - apt-get install -y gcc automake autoconf libtool make
+    - cd $CI_PROJECT_DIR
+    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
+    - go env -w GOPROXY=https://goproxy.cn
+    - make testHPA
+    - go test ./test/testHPA
+    - make kill-all
+
+serverless:
+  stage: serverless
+  # 将CICD限制在main分支上运行
+  only:
+    - main
+  script:
+    - apt-get update
+    - apt-get install -y gcc automake autoconf libtool make
+    - cd $CI_PROJECT_DIR
+    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
+    - go env -w GOPROXY=https://goproxy.cn
+    - make testServerless
+    - go test ./test/testServerless
     - make kill-all
