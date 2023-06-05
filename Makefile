@@ -11,6 +11,7 @@ TARGET_CONTROLLERMANAGER = controllerManager
 TARGET_DNS = dns
 TARGET_KUBEPROXY = kubeProxy
 TARGET_FLANNEL = flannel
+TARGET_SERVERLESS = flannel
 
 VAR ?= default_name
 
@@ -23,9 +24,9 @@ GO_TEST_PATH='./test/yaml_test'
 
 all: test master node
 
-build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel
+build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel serverless
 
-master: kubectl apiserver scheduler replicaSet dns dns flannel
+master: kubectl apiserver scheduler controllerManager dns flannel serverless
 
 node: kubelet kubeProxy flannel
 
@@ -36,6 +37,22 @@ testPod: apiserver
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
 	/bin/bash -c './build/apiserver &'
+
+testRS: apiserver
+	service rabbitmq-server start
+	/bin/bash -c 'etcd &'
+	/bin/bash -c './build/apiserver &'
+
+testHPA: apiserver
+	service rabbitmq-server start
+	/bin/bash -c 'etcd &'
+	/bin/bash -c './build/apiserver &'
+
+testServerless: apiserver serverless
+	service rabbitmq-server start
+	/bin/bash -c 'etcd &'
+	/bin/bash -c './build/apiserver &'
+	/bin/bash -c './build/serverless &'
 
 module:
 	$(GO_CMD) mod tidy
@@ -63,6 +80,9 @@ kubeProxy:
 
 flannel:
 	$(GO_BUILD) -o ./build/$(TARGET_FLANNEL) ./cmd/flannel/main.go
+
+serverless:
+	$(GO_BUILD) -o ./build/$(TARGET_SERVERLESS) ./cmd/serverless/main.go
 
 clean:
 	rm -rf ./build
