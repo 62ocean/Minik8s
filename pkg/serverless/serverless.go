@@ -67,7 +67,6 @@ func (s *APIServer) InitWebServer() {
 	functionWS.Route(functionWS.POST("/create").To(s.funController.AddFunction))
 	functionWS.Route(functionWS.POST("/update").To(s.funController.UpdateFunction))
 	functionWS.Route(functionWS.DELETE("/remove/{name}").To(s.funController.DeleteFunction))
-	functionWS.Route(functionWS.GET("/getAll").To(s.funController.GetAllFunction))
 	s.wsContainer.Add(functionWS)
 
 	workflowWS := new(restful.WebService)
@@ -75,9 +74,6 @@ func (s *APIServer) InitWebServer() {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 	workflowWS.Route(workflowWS.POST("/create").To(s.wfController.AddWorkflow))
-	workflowWS.Route(workflowWS.POST("/update").To(s.wfController.UpdateWorkflow))
-	workflowWS.Route(workflowWS.POST("/remove").To(s.wfController.DeleteWorkflow))
-	workflowWS.Route(workflowWS.POST("/getAll").To(s.wfController.GetAllWorkflow))
 	s.wsContainer.Add(workflowWS)
 }
 
