@@ -33,7 +33,7 @@ default: build
 
 
 testPod: apiserver
-	sudo /bin/bash -c './build/apiserver &'
+	/bin/bash -c './build/apiserver &'
 
 module:
 	$(GO_CMD) mod tidy
