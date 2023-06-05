@@ -33,6 +33,7 @@ default: build
 
 
 testPod: apiserver
+	/bin/bash -c 'etcd &'
 	/bin/bash -c './build/apiserver &'
 
 module:
