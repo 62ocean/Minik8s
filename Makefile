@@ -33,7 +33,7 @@ default: build
 
 
 testPod: apiserver
-	systemctl start rabbitmq-server
+	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
 	/bin/bash -c './build/apiserver &'
 
