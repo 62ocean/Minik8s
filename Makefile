@@ -24,31 +24,31 @@ GO_TEST_PATH='./test/yaml_test'
 
 all: test master node
 
-build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel serverless
+build: module apiserver kubectl kubelet scheduler controllerManager dns kubeProxy flannel
 
-master: kubectl apiserver scheduler controllerManager dns flannel serverless
+master: kubectl apiserver scheduler replicaSet dns dns flannel
 
 node: kubelet kubeProxy flannel
 
 default: build
 
 
-testPod: apiserver
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+test:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testRS: apiserver
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+# testRS:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testHPA: apiserver
-	service rabbitmq-server start
-	/bin/bash -c 'etcd &'
-	/bin/bash -c './build/apiserver &'
+# testHPA:
+# 	service rabbitmq-server start
+# 	/bin/bash -c 'etcd &'
+# 	/bin/bash -c './build/apiserver &'
 
-testServerless: apiserver serverless
+# testServerless:
 	service rabbitmq-server start
 	/bin/bash -c 'etcd &'
 	/bin/bash -c './build/apiserver &'
