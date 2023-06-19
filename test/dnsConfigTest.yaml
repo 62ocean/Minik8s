@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: DNS
+metadata:
+  name: example-dns
+spec:
+  hosts:
+    - hostName: k8s.example1.com
+      paths:
+        - path: /example1
+          serviceName: example-service1
+          servicePort: 8080
+        - path: /example2
+          serviceName: example-service2
+          servicePort: 8081
