@@ -1,18 +1,37 @@
 stages:
-  - test
+  - build
+  - testNow
 
-test:
-  stage: test
+cache:
+  key: ${CI_BUILD_REF_NAME}
+  paths:
+    - ./build
+
+build:
+  stage: build
+  only:
+    - main
+  script:
+    - apt-get update
+    - apt-get install -y make
+    - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
+    - go env -w GOPROXY=https://goproxy.cn
+    - make
+
+
+testNow:
+  stage: testNow
   # 将CICD限制在main分支上运行
   only:
     - main
   script:
-#    - cd /builds/520021910279/mini-k8s-2023
     - apt-get update
-    - apt-get install -y gcc automake autoconf libtool make
+    - apt-get install -y make
     - cd $CI_PROJECT_DIR
     - export PATH=$PATH:/usr/local/bin/etcd:/usr/local/go/bin
     - go env -w GOPROXY=https://goproxy.cn
-    - make testPod
-    - go test ./test/testFile
-    - make kill-all
+    - make test
+    - go test ./test/testPod
+    - go test ./test/testRs
+    - go test ./test/testHPA
+    - go test ./test/testServerless

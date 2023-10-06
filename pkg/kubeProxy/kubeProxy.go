@@ -69,6 +69,7 @@ func KubeProxyInit() {
 	// RunCommand("iptables -t nat -N KUBE-SERVICES -m comment --comment \"k8s service chain\"")
 	// 把本机发出的流量劫持（bushi）到自建的规则链
 	ensureRuleAppend("OUTPUT -j KUBE-SERVICES")
+	ensureRuleAppend("PREROUTING -j KUBE-SERVICES")
 	// RunCommand("iptables -t nat -A OUTPUT -j KUBE-SERVICES")
 
 	// RunCommand("iptables -N KUBE-MARK-MASQ")

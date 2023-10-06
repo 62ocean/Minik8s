@@ -81,8 +81,10 @@ func CreateDns(request *restful.Request, response *restful.Response) {
 		coreFile.WriteString(block)
 		coreFile2.WriteString(block)
 	}
-
+	RunCommand("killall nginx")
 	RunCommand("killall coredns")
+
+	RunCommand("systemctl restart nignx")
 	RunCommand("build/coredns &")
 
 }
