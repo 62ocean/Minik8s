@@ -1,60 +1,49 @@
 # minik8s - CloudOS
 
-## 组员分工与贡献度
+## Contents
 
-  |姓名         |分工                                   |贡献度|
+- [Tiger Compiler Labs in C++](#tiger-compiler-labs-in-c)
+  - [Contents](#contents)
+  - [Overview](#overview)
+  - [Lab 1: Straight-line Program Interpreter](#lab-1-straight-line-program-interpreter)
+  - [Lab 2: Lexical Analysis](#lab-2-lexical-analysis)
+  - [Lab 3: Parsing](#lab-3-parsing)
+  - [Lab 4: Type Checking](#lab-4-type-checking)
+  - [Lab 5: Tiger Compiler without register allocation](#lab-5-tiger-compiler-without-register-allocation)
+  - [Lab 6: Register Allocation](#lab-6-register-allocation)
+  - [Commands](#commands)
+
+## Overview
+
+Course project of SJTU SE3356, 2023.
+
+This project is a three-person team effort. We together developed a mini container orchestration tool called minik8s, which supports basic functions such as container lifecycle management and auto-scaling. It also integrates with serverless platforms.
+
+## Team Members and Contributions
+
+  |Name         |Responsibilities                 |Contribution|
   |------------|--------------------------------------|-----|
-  |谢琛         |CNI、service、DNS                     | 1/3|
-  |杨嘉路       |Replicaset、HPA、Serverless           | 1/3|
-  |刘容川       |Kubelet、APIServer、Scheduler、GPU     |1/3|
+  |Xie Chen         |CNI、service、DNS                     | 1/3|
+  |Yang Jialu       |Replicaset、HPA、Serverless           | 1/3|
+  |Liu Rongchuan       |Kubelet、APIServer、Scheduler、GPU     |1/3|
 
 
-## 项目总体架构
+## Overall Project Architecture
 
 ![descript](./images/media/image1.png)
 
-项目整体架构与Kubernetes的实现相当，做了一定简化。
+The overall project architecture closely resembles the implementation of Kubernetes, but with some simplifications.
 
-APIServer负责为各个组件之间提供交互功能，系统各个对象的状态持久化在ETCD中，为控制面崩溃提供容错机制。
+The APIServer is responsible for facilitating interactions between various components. The persistent state of system objects is stored in ETCD, providing fault tolerance for control plane failures.
 
-用户使用命令行工具Kubectl与系统进行交互，如创建删除更新对象和查看对象状态等。其他组件与APIServer通过HTTP协议和消息队列订阅两种方式通信。
+Users interact with the system using the command-line tool Kubectl, which allows them to create, delete, update objects, and view object statuses, among other operations. Other components communicate with the APIServer through both HTTP protocol and message queue subscriptions.
 
-**程序语言**：Go、Shell、Python
+**Programming Languages**: Go, Shell, Python
 
-**软件栈**：ETCD、Docker、RabbitMQ、go-restful、CoreDNS、nginx、flannel、go-daily-lib/cli、go-yaml
+**Software Stack**: ETCD, Docker, RabbitMQ, go-restful, CoreDNS, nginx, flannel, go-daily-lib/cli, go-yaml
 
-## 项目结构与开发流程
+## Kubectl Commands
 
-1.  项目地址：[xiechen/k8s(gitee.com)](https://gitee.com/xiechen-12138/k8s)
-    
-2.  项目分支列表如下：
-
-    ![descript](./images/media/image2.png)  
-
--   feature分支包含单一功能的代码，小组成员在各自负责的feature分支上进行开发
-
--   master分支为合并各个功能后的项目代码，可使用完整的功能，其他分支开发完成后，采用   pull-request方式合并至master分支并进行CI/CD的自动化测试。
-
--   fixbug分支用于在master分支上发现错误时签出解决bug
-  
-    pull-request情况与仓库网络图如下：
-
-    ![descript](./images/media/image3.png)  
-
-    ![descript](./images/media/image4.png)
-
-3.  CI/CD与测试
-
-    我们使用gitlab的测试功能，基于程序运行环境构建了测试用的镜像，在构建镜像时使用运行脚本安装好了go、rabbitmq、etcd等依赖，并使用Makefile进行自动化的编译和运行。
-
-    测试时我们使用go自带的test包对函数生成单元测试，并在gitlab-ci.yml中设置提交时自动触发运行测试程序
-
-    ![descript](./images/media/image5.png)
-
-
-## 项目运行方法
-
-**kubectl命令格式**
 ```shell
 # node
 kubectl create node -f <node yaml path>
@@ -105,145 +94,139 @@ kubectl get workflows
 
 kubectl invoke function <function name> <params>
 kubectl invoke workflow <workflow name>
-# 除了命令行，也可以使用http trigger的方式调用function和workflow
+# In addition to the command line, functions and workflows can also be invoked using an HTTP trigger.
 ```
 
-## 项目各组件功能与实现方式
+## Components Implementation
 
-> 我们在本部分中对解决的Corner Case、额外实现的功能或者我们认为较有挑战性的部分进行了**加粗**。
+> In this section, we have **bolded** the resolved corner cases, additional implemented features, or the parts we consider to be more challenging.
 
 ### APIServer
 
--   对ETCD中的数据进行增删改查：调用ETCD库的接口实现
+-   Performing CRUD operations on data in ETCD: Implementing the interface of the ETCD library.
 
--   处理HTTP请求：
+-   Handling HTTP requests:
 
-    使用[go-restful库](https://github.com/emicklei/go-restful)，根据要求定义好WebServices和Routes对象以及相应的处理函数，即可处理特定请求。
+    Using the [go-restful library](https://github.com/emicklei/go-restful), define WebServices and Routes objects according to requirements, along with corresponding handling functions, to process specific requests.
 
--   监听ETCD数据变化并发布：
+-   Listening for ETCD Data Changes and Publishing:
 
-    在ETCD库的watch接口监听到数据变化后，根据数据类型发布至不同的[RabbitMQ](https://www.rabbitmq.com/)消息队列（publish-subscribe模式），订阅者开始订阅后每当消息队列中有新消息时便会自动调用用户指定的处理函数。
+    After detecting data changes using the watch interface in the ETCD library, publish the data to different [RabbitMQ](https://www.rabbitmq.com/) message queues based on the data type (using the publish-subscribe pattern). Subscribers will automatically invoke user-specified processing functions whenever there are new messages in the message queue.
 
--   List-Watch 机制：
+-   List-Watch Mechanism:
 
-    list：调用资源的list API罗列资源，基于HTTP短链接实现；
+    List: Utilize the list API of a resource to enumerate resources, implemented using HTTP short connections.
 
-    watch：调用资源的watch API监听资源变更事件，基于消息队列实现；
+    Watch: Use the watch API of a resource to listen for resource change events, implemented using a message queue.
 
-    client先通过list接口获取对象的全量信息，再使用watch机制获取对象的增量信息，期间间隔一段时间使用list矫正，便能实现比轮询更加节约资源的状态维护。
+    The client first retrieves the complete information of an object through the list interface. Then, it employs the watch mechanism to obtain incremental information about the object. During this process, at intervals, it uses the list operation for correction. This approach allows for more resource-efficient state maintenance compared to regular polling.
 
 ### Kubelet
 
 ![descript](./images/media/image6.png)
 
--   kubelet的启动流程：
+-   kubelet's Startup Process:
 
-    1. 向APIServer发送HTTP请求获取PodList
+    1. Send an HTTP request to the API Server to fetch the PodList.
 
-    2. 根据调度结果在内存中维护本地运行的podList，并开启协程异步创建销毁容器
+    2. Based on the scheduling results, maintain a local running podList in memory. Begin asynchronous goroutines for creating and destroying containers.
 
-    3. 开始订阅pod的消息队列，根据消息内容删改podList，并异步修改本地容器
+    3. Start subscribing to the message queue for pods. Modify the podList based on the message content and asynchronously update local containers.
 
-    4. 每5秒轮询本地镜像，同步状态至apiserver，并及时重启异常退出的pod
+    4. Every 5 seconds, poll the local images. Synchronize the status with the API Server and promptly restart pods that have exited abnormally.
 
-    5. 每60秒使用HTTP请求获取APIServer的PodList进行同步
+    5. Every 60 seconds, use an HTTP request to fetch the PodList from the API Server for synchronization.
 
--   **pod自动重启**：
+-   **Automated Pod Restart**:
 
-    在设计上，pod对应的容器的基本信息储存在node本地，控制面不可见，当容器出现变化或更新时只需更新node保存在内存中的信息，而不需要对控制面存储的信息进行修改。  
+    In the design, the basic information of the container corresponding to the pod is stored locally on the node and is not visible to the control plane. When there are changes or updates to the container, it's only necessary to update the information stored in memory on the node, without modifying the information stored in the control plane.
 
-    Kubelet会采用轮询的方法监听本机容器的状态，**当检测到本该正常运行在本节点的Pod对应的容器意外退出时将主动重启容器、当对应容器被删除时将自动重启pod**（删除容器并重新创建），这些操作仅修改node内存中pod与容器ID的映射信息，对控制面不可见，控制面仅能看到pod状态变为PENDING后一段时间又重新变为RUNNUING。由于不需要在控制面各个组件间反复传递信息，在容错的同时保证了性能。
+    Kubelet uses a polling method to monitor the status of containers on the local machine. **When it detects that the container corresponding to a Pod that should be running on this node has unexpectedly exited, it will proactively restart the container. Additionally, if the corresponding container is deleted, the pod will be automatically restarted (by deleting the container and recreating it).** These operations only modify the mapping information between the pod and container IDs in the node's memory, which is not visible to the control plane. The control plane can only see that the pod's status changes from PENDING to RUNNING after a period of time. Since there is no need to repeatedly pass information between various components in the control plane, this approach ensures fault tolerance while maintaining performance.
 
 ### Scheduler
 
-实现了RR调度策略，在内存维护Node列表，订阅pod的变化队列，将新建pod的node字段轮流赋值为node list中node的ip，然后存入ETCD。
+We implemented the Round Robin Scheduling Policy.
 
-各个node同样订阅pod列表监听其变化，当监听到有pod被调度到本节点时，立即创建对应pod。
+Maintaining a list of nodes in memory, the scheduler subscribes to the queue for pod changes. When a new pod is created, the `node` field is cyclically assigned the IP of nodes in the node list, and then it is stored in ETCD.
+
+Similarly, each node subscribes to the pod list and listens for changes. When a pod is scheduled to this node, it is immediately created.
 
 ### CNI
 
-跨节点的pod间通信通过构建vxlan网络实现。在集群内每个节点新建一个vxlan，加入本节点docker0。当有新结点加入时，将新节点的实际IP设为vxlan的对端地址，并配置相应的路由、fdb、arp信息。节点退出时将相关信息删除。
 
-将docker配置文件中的bip修改为设定好的子网段。
+Inter-pod communication across nodes is achieved through the construction of a VXLAN network. In the cluster, a new VXLAN is created on each node and added to the local `docker0` bridge. When a new node joins, its actual IP is set as the remote address for the VXLAN, and corresponding routes, FDB (Forwarding Database), and ARP (Address Resolution Protocol) information are configured. When a node exits, the related information is deleted.
+
+The `bip` in the Docker configuration file is modified to the predefined subnet.
 
 ### Service
 
-通过配置iptables实现。
+Achieved by configuring iptables.
 
-将OUTPUT和PREROUTING链的的流量转发到KUBE-SERVICES链上。
+Redirect traffic from the OUTPUT and PREROUTING chains to the KUBE-SERVICES chain.
 
-对每个service，插入三层跳转规则：
+For each service, insert three-tier forwarding rules:
+>First Tier: From KUBE-SERVICES to KUBE-SVC-(service id)-(port), with each port having a separate target chain corresponding to the various ports of the service.
 
-> 第一层：从KUBE-SERVICES 到 KUBE-SVC-(service
-> id)-(port)，每个端口对应一条目标链，分开service的各个端口
->
-> 第二层：从KUBE-SVC-(service id)-(port) 到 KUBE-SVC-(service
-> id)-(port)-(pod
-> index)，每个pod对应一条目标链，通过设置概率进行负载均衡
->
-> 第三层：进行DNAT，将数据包的目标地址从service的地址修改为pod的地址。
+>Second Tier: From KUBE-SVC-(service id)-(port) to KUBE-SVC-(service id)-(port)-(pod index), with each pod having a separate target chain. Load balancing is achieved by setting probabilities.
 
-service的动态更新：当pod有变动时，会向相应消息队列推送消息，service监听到变动后根据消息的类型（新增/删除/更改）对iptables进行调整。在具体实现上，在service和pod之间增加endpoint对象，用于存储service对应的各pod的IP。
+>Third Tier: Conduct DNAT (Destination Network Address Translation) to modify the destination address of the packet from the service's address to the pod's address.
+
+Dynamic Update of Services:
+
+When there are changes in pods, a message is pushed to the corresponding message queue. The service, upon detecting the change, adjusts iptables based on the type of message (addition/deletion/modification). In the specific implementation, an endpoint object is added between the service and pod. This object is used to store the IPs of the various pods corresponding to the service.
 
 ![descript](./images/media/image7.png)
 
-由于service之间是并发协程，同时大量执行iptables命令时可能因为竞争而执行失败，所以在插入/删除规则前后进行检查，确保规则被正确更改。
+Due to concurrent goroutines between services, executing a large number of iptables commands simultaneously may lead to failures due to competition. Therefore, it's important to perform checks before and after inserting/deleting rules to ensure that the rules are correctly modified.
 
 ### DNS
 
-在master节点上通过CoreDNS部署dns服务器进行域名解析。
+Deploy a DNS server using CoreDNS on the master node for domain name resolution.
 
-各个子结点通过nginx进行路径解析。
+Each child node resolves paths using nginx.
 
-当etcd中DNS对象变动时，向相应消息队列推送信息，各节点动态修改CoreDNS/nginx配置文件。
+When there are changes in DNS objects in etcd, push information to the corresponding message queue. Each node dynamically modifies CoreDNS/nginx configuration files.
 
 ### Controller Manager
 
 ![descript](./images/media/image8.jpg)
 
-Controller Manager包括RS controller和HPA Controller。
+The Controller Manager includes the RS Controller and HPA Controller.
 
-#### **Replicaset**
+#### Replicaset
 
--   Replicaset Controller监听API
-    Server中RS的变化，并根据RS变化增加/更新/删除RS Worker。
+The Replicaset Controller listens for changes in RS from the APIServer and adds/updates/deletes RS Workers based on RS changes. Each RS object corresponds to an RS Worker. The RS Worker listens for changes in the corresponding pods from the APIServer. If the number of pods does not meet the requirements, it triggers a sync operation.
 
--   每一个RS对象对应一个RS Worker。RS Worker监听API
-    Server中对应pod的变化，如pod的数量不符合要求则触发sync操作。
-
--   **为减轻监听压力，每个replicaset根据selector监听不同的exchange
-    name**，格式为`pods_<label_app>`，这样pod的增删消息只会被推送给相应的replicaset，其他replicaset无需响应。
+**To reduce listening pressure, each replicaset listens to different exchange names based on selectors.** The format is `pods_<label_app>`, so messages about pod additions and deletions are only pushed to the corresponding replicaset, and other replicasets do not need to respond.
 
 #### **HPA**
 
-HPA支持根据cpu和memory两种指标的平均利用率进行扩缩容。
+The HPA Controller listens for changes in HPA from the APIServer and adds/updates/deletes HPA Workers based on HPA changes. Each HPA object corresponds to an HPA Worker. The HPA Worker checks the performance metrics of the corresponding pods every 15 seconds, calculates the desired number of replicas, and adjusts the Replica field of the corresponding Replicaset if it does not match the current number of replicas.
 
-计算方法：
+**To reduce polling pressure, a cache for pod performance metrics is set up.** The cache polls the APIServer uniformly (every 10 seconds), and each HPA Worker only needs to poll from the cache.
 
-$$期望副本数=ceil[当前副本数*(当前指标/期望指标)]$$
+HPA supports scaling based on two metrics: CPU and memory utilization. When both CPU and memory metrics are specified, the higher value of desired replicas is taken.
 
-同时规定了cpu、memory两种指标时，取较大的期望副本数。
 
-扩缩容策略：每15s增加/减少一个副本。
+Calculation：
+
+$$DesiredReplicas=ceil[CurrentReplicas*(CurrentMetric/DesiredMetric)]$$
+
+Scaling Policy: 
+
+Add/Remove one replica every 15 seconds.
 
 &emsp;
 
--   HPA Controller监听API
-    Server中HPA的变化，并根据HPA变化增加/更新/删除HPA Worker。
 
--   每一个HPA对象对应一个HPA Worker。HPA
-    Worker每隔15s检查一次对应pod的运行指标，计算出期望副本数，如与当前副本数不符，则将对应Replicaset的Replica字段+1/-1。
-
--   **为减轻轮询压力，设置pod运行指标的cache**，由cache统一向API
-    Server轮询（10s一次），每个HPA Worker只需向cache轮询即可。
 
 ### GPU
 
-构建了GPUServer镜像，该镜像搭载了编译好的go代码，将参数中指定的cuda文件以及根据配置文件中的设置生成的slurm脚本提交至云计算平台，并轮询获取返回结果存至ETCD。
+We built the GPUServer image, which contains precompiled Go code. It submits the specified CUDA files and the slurm script generated based on the configuration file to the cloud computing platform, and polls to retrieve the results and store them in ETCD.
 
-参考kubernetes的Job的实现，kubectl的处理函数接收到GPUJob的创建命令后，创建pod（使用上述镜像生成容器），将Job和pod存入ETCD。
+Referring to the implementation of Kubernetes Job, when the handling function of kubectl receives a command to create a GPUJob, it creates a pod (using the above image to generate a container) and stores the Job and pod in ETCD.
 
-用户使用kubectl get命令即可获取job的运行状态与最终结果。
+Users can use the `kubectl get` command to obtain the running status and final results of the job.
 
 ![descript](./images/media/image10.png)
 
@@ -251,21 +234,24 @@ $$期望副本数=ceil[当前副本数*(当前指标/期望指标)]$$
 
 ![descript](./images/media/image11.png)
 
-Serverless平台具有以下功能：
+The serverless platform has the following capabilities:
 
-function的增删改查、workflow的创建、function/workflow的调用。其中function/workflow的调用既可以通过http
-trigger的方式向控制面的8090端口发请求，也可以通过kubectl命令行。
+- CRUD operations for functions.
+- Creation of workflows.
+- Invocation of functions and workflows. 
+
+(Invocation of functions and workflows can be done either by sending a request to the control plane's 8090 port using an HTTP trigger, or through the kubectl command-line interface.)
 
 #### **Function**
 
-函数格式（以add.py为例）：
+Function format (using add.py as an example):
 ```python
 import flask, json
 from flask import request
 server = flask.Flask(__name__)
 @server.route('/', methods=['post'])
 def main():
-    # 处理paramsJson
+    # handle paramsJson
     params = json.loads(request.data)
     for param in params:
         if param['Name'] == 'x':
@@ -273,85 +259,87 @@ def main():
         if param['Name'] == 'y':
             y = param['Value']
             
-    # 函数逻辑
+    # function logic
     x = x + y
     
-    # 生成returnJson
+    # generate returnJson
     rets = [{'Name': 'x', 'Value': x}]
     return json.dumps(rets)
 if __name__ == '__main__':
     server.run(debug=True, port=8888, host='0.0.0.0')
 ```
 
-参数格式：
+params format：
 ```json
 [{"Name": "x", "Value": 2}, {"Name": "y", "Value": 3}]
 ```
 
-返回值格式：
+return values format：
 ```json
 [{"Name": "x", "Value": 5}]
 ```
 
--   function的创建：
+-   Function Creation:
 
-    1. 将指定的python文件打包成docker镜像
+    1. Package the specified Python file into a Docker image.
+    
+    2. Push this image to the Docker repository.
+    
+    3. Store the image address of this function and persist it in ETCD.
 
-    2. 将该镜像push到docker仓库中
+-   Function Invocation:
 
-    3. 存储该function的镜像地址，并持久化到etcd中
-
--   function的调用：
 ```shell
 curl -X POST http://<serverless ip>:8090/<function name>  <params>
 ```
+
 ```shell
 kubectl invoke function <function name> <params>
 ```
 
--   function的scale-to-0和自动扩容：
+-   Function Scaling to 0 and Autoscaling:
 
-    -   使用Timer实现30s内无调用自动删除函数实例。
+    -   Implement automatic deletion of function instances if there is no invocation within 30 seconds using a Timer.
 
-    -   复用hpa实现并发请求数增多时函数的自动扩容，扩容策略与hpa的扩容策略相同。
+    -   Utilize HPA (Horizontal Pod Autoscaler) to automatically scale functions when the concurrent request count increases. The scaling strategy follows the same criteria as HPA.
 
--   function调用流程：
+-   Function Invocation Process:
 
-    首先检查函数实例是否已存在
+    Firstly, check if a function instance already exists.
 
-    已存在：
+    If it exists:
 
-    1. 重置计时器至30s
+    1. Reset the timer to 30 seconds.
 
-    2. 直接向pod发送http请求，拿到结果
+    2. Send an HTTP request directly to the pod to retrieve the result.
 
-    不存在：
+    If it doesn't exist:
 
-    1. 创建rs
+    1. Create a ReplicaSet (rs).
 
-    2. 创建service
+    2. Create a Service.
 
-    3. 创建hpa
+    3. Create an HPA.
 
-    4. 等待所有pod就绪
+    4. Wait for all pods to be ready.
 
-    5. 添加30s计时器
+    5. Add a 30-second timer.
 
-    6. 向pod发送http请求，拿到结果
+    6. Send an HTTP request to the pod to retrieve the result.
 
-    计时器到时间时，删除对应函数实例（service+hpa+replicaset+pod）。
+    When the timer reaches zero, delete the corresponding function instance (Service + HPA + ReplicaSet + Pod).
 
--   function的更新和删除
+-   Function Update and Deletion:
 
-    > 更新/删除之前，首先检查有没有正在运行的函数实例，如有，则删除该函数实例（具体做法为将计时器重置为1毫秒）。
+    > Before updating/deleting, first check if there are any running function instances. If so, delete the function instance (specifically, reset the timer to 1 millisecond).
 
-    更新：重新打包镜像并push到docker仓库，镜像名字不变，版本号+1。同时更新内存和etcd。
+    Update: Rebuild the image, push it to the Docker repository with the same name but increment the version number. Also, update the memory and ETCD.
 
-    删除：删除内存和etcd中存储的function信息。
+    Delete: Remove the function information stored in memory and ETCD.
 
 #### **Workflow** 
 
-workflow由yaml文件定义，格式如下：
+The workflow is defined by a YAML file with the following format:
 ```yaml
 apiVersion: v1
 kind: Workflow
@@ -389,15 +377,14 @@ steps:
     next: END
 ```
 
-start为起始函数，params为起始参数，steps为函数调用链的各个节点。
+`start` is the initial function, `params` are the initial parameters, and `steps` represent various nodes in the function invocation chain.
 
-step有function和branch两种类型。function为实际的函数执行节点，并通过next将函数的返回值传递到下个节点。branch为分支节点，支持指定参数与常数的==,
-!=, \>, \<, \>=, \<=六种比较，根据结果跳转下个节点。
+A step can be of two types: `function` and `branch`. `function` is the actual function execution node, and it passes the return value to the next node through `next`. `branch` is a branching node, which supports six types of comparisons: `==`, `!=`, `>`, `<`, `>=`, `<=`. Based on the result, it proceeds to the next node.
 
-当next为END时，函数调用链停止。  
+When `next` is set to `END`, the function invocation chain stops.
 
 &emsp;
 
-调用workflow时，会依次调用链上的各个函数，如函数实例存在则直接发送请求，如不存在则等待函数实例创建好。
+When invoking the workflow, it will sequentially call the functions on the chain. If the function instance exists, it sends the request directly; if not, it waits for the function instance to be created.
 
-每个节点结束时，将returnJson赋给paramsJson，并进入下个节点。最终的returnJson即为workflow的返回值。
+At the end of each node, `returnJson` is assigned to `paramsJson`, and it proceeds to the next node. The final `returnJson` is the return value of the workflow.
