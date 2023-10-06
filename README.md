@@ -1,17 +1,27 @@
 # minik8s - CloudOS
 
 ## Contents
-
-- [Tiger Compiler Labs in C++](#tiger-compiler-labs-in-c)
+- [minik8s - CloudOS](#minik8s---cloudos)
   - [Contents](#contents)
   - [Overview](#overview)
-  - [Lab 1: Straight-line Program Interpreter](#lab-1-straight-line-program-interpreter)
-  - [Lab 2: Lexical Analysis](#lab-2-lexical-analysis)
-  - [Lab 3: Parsing](#lab-3-parsing)
-  - [Lab 4: Type Checking](#lab-4-type-checking)
-  - [Lab 5: Tiger Compiler without register allocation](#lab-5-tiger-compiler-without-register-allocation)
-  - [Lab 6: Register Allocation](#lab-6-register-allocation)
-  - [Commands](#commands)
+  - [Team Members and Contributions](#team-members-and-contributions)
+  - [Overall Project Architecture](#overall-project-architecture)
+  - [Kubectl Commands](#kubectl-commands)
+  - [Components Implementation](#components-implementation)
+    - [APIServer](#apiserver)
+    - [Kubelet](#kubelet)
+    - [Scheduler](#scheduler)
+    - [CNI](#cni)
+    - [Service](#service)
+    - [DNS](#dns)
+    - [Controller Manager](#controller-manager)
+      - [Replicaset](#replicaset)
+      - [HPA](#hpa)
+    - [GPU](#gpu)
+    - [Serverless](#serverless)
+      - [Function](#function)
+      - [Workflow](#workflow)
+
 
 ## Overview
 
@@ -199,7 +209,7 @@ The Replicaset Controller listens for changes in RS from the APIServer and adds/
 
 **To reduce listening pressure, each replicaset listens to different exchange names based on selectors.** The format is `pods_<label_app>`, so messages about pod additions and deletions are only pushed to the corresponding replicaset, and other replicasets do not need to respond.
 
-#### **HPA**
+#### HPA
 
 The HPA Controller listens for changes in HPA from the APIServer and adds/updates/deletes HPA Workers based on HPA changes. Each HPA object corresponds to an HPA Worker. The HPA Worker checks the performance metrics of the corresponding pods every 15 seconds, calculates the desired number of replicas, and adjusts the Replica field of the corresponding Replicaset if it does not match the current number of replicas.
 
@@ -242,7 +252,7 @@ The serverless platform has the following capabilities:
 
 (Invocation of functions and workflows can be done either by sending a request to the control plane's 8090 port using an HTTP trigger, or through the kubectl command-line interface.)
 
-#### **Function**
+#### Function
 
 Function format (using add.py as an example):
 ```python
@@ -337,7 +347,7 @@ kubectl invoke function <function name> <params>
 
     Delete: Remove the function information stored in memory and ETCD.
 
-#### **Workflow** 
+#### Workflow 
 
 The workflow is defined by a YAML file with the following format:
 ```yaml
